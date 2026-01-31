@@ -118,14 +118,12 @@ namespace MDTracer
                         g_display_ysize = 224;
                         g_display_ycell = 28;
                         g_vertical_line_max = 262;
-                        g_window_ysize = 32;
                     }
                     else
                     {
                         g_display_ysize = 240;
                         g_display_ycell = 30;
                         g_vertical_line_max = 312;
-                        g_window_ysize = 32;
                     }
                     break;
                 case 2:
@@ -186,7 +184,6 @@ namespace MDTracer
                         g_max_sprite_num = 64;
                         g_max_sprite_line = 16;
                         g_max_sprite_cell = 32;
-                        g_window_xsize = 32;
                     }
                     else
                     {
@@ -195,7 +192,6 @@ namespace MDTracer
                         g_max_sprite_num = 80;
                         g_max_sprite_line = 20;
                         g_max_sprite_cell = 40;
-                        g_window_xsize = 64;
                     }
                     if (g_vdp_reg_12_7_cellmode1 == 0)
                     {
