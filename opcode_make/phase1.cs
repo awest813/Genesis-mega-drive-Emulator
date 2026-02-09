@@ -1097,6 +1097,19 @@ namespace opcode_make
             }
             out_tail();
             //-----------------------
+            //RESET
+            out_head("RESET");
+            {
+                string wfuncname = string_add("analyse_RESET");
+                out_opcode(wfuncname, 4, 7, 1, 6, 0, 2, 0, false);
+                outtext("        private void ", wfuncname, "()");
+                outtext("        {");
+                outtext("            g_reg_addr[7].l = md_main.g_md_bus.read32(0);");
+                outtext("            g_reg_PC = md_main.g_md_bus.read32(4);");
+                outtext("        }");
+            }
+            out_tail();
+            //-----------------------
             //ROL ROR
             code_type4("RO");
             //-----------------------

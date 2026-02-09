@@ -9,6 +9,7 @@ namespace MDTracer
         public bool g_cpu_pause;
         private bool g_chk_enable; 
         private ManualResetEvent g_waitHandle;
+        private int g_stack_num;
 
         public enum STACK_LIST_TYPE : int
         {
@@ -35,7 +36,6 @@ namespace MDTracer
             public uint stack_address;
         }
         public STACK_LIST[] g_stack_list;
-        private int g_g_stack_num;
         public int g_stack_cur;
         public uint g_func_address;
         public uint g_caller_address;
@@ -171,7 +171,6 @@ namespace MDTracer
                 g_caller_address = g_stack_list[g_stack_cur - 1].caller_address;
             }
         }
-        //----------------------------------------------------------------
         public void CPU_Trace(uint in_addr)
         {
             int w_line = get_code_from_addr(in_addr);

@@ -4,6 +4,10 @@ namespace MDTracer
 {
     public partial class Form_Setting : Form
     {
+        public bool g_view_screenA = true;
+        public bool g_view_screenB = true;
+        public bool g_view_screenW = true;
+        public bool g_view_screenS = true;
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
@@ -155,6 +159,26 @@ namespace MDTracer
             if (md_main.g_music_enable == true) { md_main.g_form_music.Show(); } else { md_main.g_form_music.Hide(); }
             if (md_main.g_registry_enable == true) { md_main.g_form_registry.Show(); } else { md_main.g_form_registry.Hide(); }
             if (md_main.g_flow_enable == true) { md_main.g_form_flow.Show(); } else { md_main.g_form_flow.Hide(); }
+        }
+
+        private void checkBox_viewA_CheckedChanged(object sender, EventArgs e)
+        {
+            g_view_screenA = checkBox_viewA.Checked;
+        }
+
+        private void checkBox_viewB_CheckedChanged(object sender, EventArgs e)
+        {
+            g_view_screenB = checkBox_viewB.Checked;
+        }
+
+        private void checkBox_viewW_CheckedChanged(object sender, EventArgs e)
+        {
+            g_view_screenW = checkBox_viewW.Checked;
+        }
+
+        private void checkBox_viewS_CheckedChanged(object sender, EventArgs e)
+        {
+            g_view_screenS = checkBox_viewS.Checked;
         }
     }
 }

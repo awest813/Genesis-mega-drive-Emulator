@@ -25,6 +25,7 @@ namespace MDTracer
         private uint[] g_game_cmap;
         private uint[] g_game_primap;
         private uint[] g_game_shadowmap;
+        private uint[] g_game_spmap;
 
         private VDP_REGISTER g_snap_register;
         private uint[] g_snap_renderer_vram;
@@ -46,8 +47,6 @@ namespace MDTracer
         private int g_scroll_xsize_mask;
         private int g_scroll_ysize_mask;
         public int g_vertical_line_max;
-        public int g_window_xsize;
-        public int g_window_ysize;
 
         private int g_screenA_left_x;
         private int g_screenA_right_x;

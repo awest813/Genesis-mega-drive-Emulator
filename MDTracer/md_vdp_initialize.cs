@@ -17,6 +17,7 @@ namespace MDTracer
             g_game_cmap = new uint[DISPLAY_BUFSIZE];
             g_game_primap = new uint[DISPLAY_BUFSIZE];
             g_game_shadowmap = new uint[DISPLAY_BUFSIZE];
+            g_game_spmap = new uint[DISPLAY_BUFSIZE];
 
             g_game_screen = new uint[DISPLAY_BUFSIZE];
             g_renderer_vram = new uint[VRAM_DATASIZE * 4];

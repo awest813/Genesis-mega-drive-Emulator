@@ -17,6 +17,10 @@ namespace MDTracer
         public static bool g_mouseclick_interrupt;
         public static string[] g_file_name;
         private static bool g_filelist_view;
+        private Bitmap g_work_bitmap = null;
+        private int g_work_bitmapW = -1;
+        private int g_work_bitmapH = -1;
+
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
@@ -54,6 +58,7 @@ namespace MDTracer
 
         private void Form_Main_SizeChanged(object sender, EventArgs e)
         {
+            if (this.WindowState != FormWindowState.Normal) return;
             if (g_filelist_view == false)
             {
                 int w_x = this.Size.Width;
@@ -191,6 +196,7 @@ namespace MDTracer
         private readonly object g_bitmapLock = new object();
         public void picture_update(int in_cpu)
         {
+            if (this.WindowState == FormWindowState.Minimized) return;
             g_filelist_view = false;
             toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%";
             lock (g_bitmapLock)
@@ -199,7 +205,14 @@ namespace MDTracer
                 int w_bitmap_y = panel_game.ClientSize.Height;
                 float w_cx = (float)md_main.g_md_vdp.g_display_xsize / (float)w_bitmap_x;
                 float w_cy = (float)md_main.g_md_vdp.g_display_ysize / (float)w_bitmap_y;
-                Bitmap g_work_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y);
+
+                if (g_work_bitmap == null || g_work_bitmapW != w_bitmap_x || g_work_bitmapH != w_bitmap_y)
+                {
+                    g_work_bitmap?.Dispose();
+                    g_work_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y, PixelFormat.Format32bppArgb);
+                    g_work_bitmapW = w_bitmap_x;
+                    g_work_bitmapH = w_bitmap_y;
+                }
                 BitmapData game_bmpData = g_work_bitmap.LockBits(new Rectangle(0, 0, g_work_bitmap.Width, g_work_bitmap.Height),
                                             ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
                 IntPtr dest_ptr = game_bmpData.Scan0;

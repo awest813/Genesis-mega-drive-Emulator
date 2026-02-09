@@ -88,6 +88,12 @@ namespace MDTracer
                                 uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
                                 uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
                                 uint color = g_snap_color[w_palette + w_pic];
+                                /*
+                                if((((wx%2) == 1)&& (dx == 7)) ||(((wy%2) == 1)&& (dy == 7)))
+                                {
+                                    color = g_snap_color[0x1f];
+                                }
+                                */
                                 uint* pixel2 = (uint*)(pixels + pixelOffset4);
                                 *pixel2 = color;
                                 pixelOffset4 += bytesPerPixel;
@@ -154,11 +160,11 @@ namespace MDTracer
             {
                 byte* pixels = (byte*)dest_ptr;
                 int pixelOffset1 = 0;
-                for (int wy = 0; wy < g_window_ysize; wy++)
+                for (int wy = 0; wy < g_scroll_ycell; wy++)
                 {
-                    int w_num = (g_vdp_reg_3_windows >> 1) + (wy * g_window_xsize);
+                    int w_num = (g_vdp_reg_3_windows >> 1) + (wy * g_scroll_xcell);
                     int pixelOffset2 = pixelOffset1;
-                    for (int wx = 0; wx < g_window_xsize; wx++)
+                    for (int wx = 0; wx < g_scroll_xcell; wx++)
                     {
                         int pixelOffset3 = pixelOffset2;
                         uint w_val = g_snap_renderer_vram[w_num];

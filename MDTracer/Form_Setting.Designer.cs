@@ -44,14 +44,20 @@
             checkBox_sip = new CheckBox();
             checkBox_fsb = new CheckBox();
             groupBox3 = new GroupBox();
+            label3 = new Label();
             comboBox_rendering = new ComboBox();
             label2 = new Label();
             label1 = new Label();
             comboBox_videoformat = new ComboBox();
-            label3 = new Label();
+            groupBox4 = new GroupBox();
+            checkBox_viewS = new CheckBox();
+            checkBox_viewW = new CheckBox();
+            checkBox_viewB = new CheckBox();
+            checkBox_viewA = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
+            groupBox4.SuspendLayout();
             SuspendLayout();
             // 
             // groupBox1
@@ -242,6 +248,15 @@
             groupBox3.TabStop = false;
             groupBox3.Text = "system";
             // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(125, 76);
+            label3.Name = "label3";
+            label3.Size = new Size(69, 15);
+            label3.TabIndex = 8;
+            label3.Text = "(GPU ...test)";
+            // 
             // comboBox_rendering
             // 
             comboBox_rendering.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -282,20 +297,77 @@
             comboBox_videoformat.TabIndex = 4;
             comboBox_videoformat.SelectedIndexChanged += comboBox_videoformat_SelectedIndexChanged;
             // 
-            // label3
+            // groupBox4
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(125, 76);
-            label3.Name = "label3";
-            label3.Size = new Size(69, 15);
-            label3.TabIndex = 8;
-            label3.Text = "(GPU ...test)";
+            groupBox4.Controls.Add(checkBox_viewS);
+            groupBox4.Controls.Add(checkBox_viewW);
+            groupBox4.Controls.Add(checkBox_viewB);
+            groupBox4.Controls.Add(checkBox_viewA);
+            groupBox4.Location = new Point(12, 207);
+            groupBox4.Name = "groupBox4";
+            groupBox4.Size = new Size(176, 125);
+            groupBox4.TabIndex = 3;
+            groupBox4.TabStop = false;
+            groupBox4.Text = "View";
+            // 
+            // checkBox_viewS
+            // 
+            checkBox_viewS.AutoSize = true;
+            checkBox_viewS.Checked = true;
+            checkBox_viewS.CheckState = CheckState.Checked;
+            checkBox_viewS.Location = new Point(24, 98);
+            checkBox_viewS.Name = "checkBox_viewS";
+            checkBox_viewS.Size = new Size(67, 19);
+            checkBox_viewS.TabIndex = 7;
+            checkBox_viewS.Text = "ScreenS";
+            checkBox_viewS.UseVisualStyleBackColor = true;
+            checkBox_viewS.CheckedChanged += checkBox_viewS_CheckedChanged;
+            // 
+            // checkBox_viewW
+            // 
+            checkBox_viewW.AutoSize = true;
+            checkBox_viewW.Checked = true;
+            checkBox_viewW.CheckState = CheckState.Checked;
+            checkBox_viewW.Location = new Point(24, 73);
+            checkBox_viewW.Name = "checkBox_viewW";
+            checkBox_viewW.Size = new Size(72, 19);
+            checkBox_viewW.TabIndex = 6;
+            checkBox_viewW.Text = "ScreenW";
+            checkBox_viewW.UseVisualStyleBackColor = true;
+            checkBox_viewW.CheckedChanged += checkBox_viewW_CheckedChanged;
+            // 
+            // checkBox_viewB
+            // 
+            checkBox_viewB.AutoSize = true;
+            checkBox_viewB.Checked = true;
+            checkBox_viewB.CheckState = CheckState.Checked;
+            checkBox_viewB.Location = new Point(24, 48);
+            checkBox_viewB.Name = "checkBox_viewB";
+            checkBox_viewB.Size = new Size(68, 19);
+            checkBox_viewB.TabIndex = 5;
+            checkBox_viewB.Text = "ScreenB";
+            checkBox_viewB.UseVisualStyleBackColor = true;
+            checkBox_viewB.CheckedChanged += checkBox_viewB_CheckedChanged;
+            // 
+            // checkBox_viewA
+            // 
+            checkBox_viewA.AutoSize = true;
+            checkBox_viewA.Checked = true;
+            checkBox_viewA.CheckState = CheckState.Checked;
+            checkBox_viewA.Location = new Point(24, 23);
+            checkBox_viewA.Name = "checkBox_viewA";
+            checkBox_viewA.Size = new Size(69, 19);
+            checkBox_viewA.TabIndex = 4;
+            checkBox_viewA.Text = "ScreenA";
+            checkBox_viewA.UseVisualStyleBackColor = true;
+            checkBox_viewA.CheckedChanged += checkBox_viewA_CheckedChanged;
             // 
             // Form_Setting
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(418, 200);
+            ClientSize = new Size(418, 339);
+            Controls.Add(groupBox4);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
@@ -308,6 +380,8 @@
             groupBox2.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
+            groupBox4.ResumeLayout(false);
+            groupBox4.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -335,5 +409,10 @@
         private CheckBox checkBox_flow;
         private CheckBox checkBox_sip;
         private Label label3;
+        private GroupBox groupBox4;
+        private CheckBox checkBox_viewS;
+        private CheckBox checkBox_viewW;
+        private CheckBox checkBox_viewB;
+        private CheckBox checkBox_viewA;
     }
 }
