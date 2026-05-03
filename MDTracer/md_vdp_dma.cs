@@ -25,18 +25,17 @@ namespace MDTracer
                         break;
                     case 2:
                         w_tran = (g_vdp_status_3_vbrank == 0) ? 17 : 204;
+                        w_clock = 488;
                         break;
                     case 3:
                         w_tran = (g_vdp_status_3_vbrank == 0) ? 9 : 102;
+                        w_clock = 488;
                         break;
                 }
                 g_dma_leng -= w_tran;
                 if (g_dma_leng <= 0)
                 {
-                    g_dma_mode = 0;
                     g_dma_leng = 0;
-                    g_vdp_status_1_dma = 0;
-                    g_vdp_status_8_full = 0;
                     write_dma_leng();
                     switch (g_dma_mode)
                     {
@@ -47,6 +46,10 @@ namespace MDTracer
                             write_dma_src_addr(g_dma_src_addr);
                             break;
                     }
+                    g_dma_mode = 0;
+                    g_dma_leng = 0;
+                    g_vdp_status_1_dma = 0;
+                    g_vdp_status_8_full = 0;
                 }
             }
             return w_clock;
@@ -180,7 +183,7 @@ namespace MDTracer
         {
             int out_ling = (g_vdp_reg_19_dma_counter_low
                     + (g_vdp_reg_20_dma_counter_high << 8));
-            if (out_ling == 0) out_ling = 0xffff;
+            if (out_ling == 0) out_ling = 0x10000;
             return out_ling;
         }
         private void write_dma_leng()

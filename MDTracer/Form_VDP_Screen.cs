@@ -88,6 +88,7 @@ namespace MDTracer
 
         public void picture_update(Bitmap in_bitmap, int in_screen_xsize, int in_screen_ysize)
         {
+            if (this.WindowState == FormWindowState.Minimized) return;
             g_screen_xsize_change = in_screen_xsize;
             g_screen_ysize_change = in_screen_ysize;
             if (this.IsHandleCreated && this.Visible)

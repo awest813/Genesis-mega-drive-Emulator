@@ -94,6 +94,8 @@ namespace MDTracer
                                     color = g_snap_color[0x1f];
                                 }
                                 */
+
+
                                 uint* pixel2 = (uint*)(pixels + pixelOffset4);
                                 *pixel2 = color;
                                 pixelOffset4 += bytesPerPixel;
@@ -137,6 +139,15 @@ namespace MDTracer
                                 uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) +(dx >> 2)];
                                 uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
                                 uint color = g_snap_color[w_palette + w_pic];
+
+                                /*
+                                if (w_priority != 0)
+                                {
+                                    color = 0xffff0000;
+                                }
+                                */
+
+
                                 uint* pixel2 = (uint*)(pixels + pixelOffset4);
                                 *pixel2 = color;
                                 pixelOffset4 += bytesPerPixel;

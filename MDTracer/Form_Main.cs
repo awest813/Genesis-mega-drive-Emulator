@@ -56,7 +56,11 @@ namespace MDTracer
             BringToFront();
         }
 
-        private void Form_Main_SizeChanged(object sender, EventArgs e)
+        private void Form_Main_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            md_main.g_md_io.input_record_stop();
+            md_main.g_md_io.input_replay_stop();
+        }        private void Form_Main_SizeChanged(object sender, EventArgs e)
         {
             if (this.WindowState != FormWindowState.Normal) return;
             if (g_filelist_view == false)
@@ -184,6 +188,49 @@ namespace MDTracer
         {
             md_main.g_hard_reset_req = true;
         }
+        private void inputRecordStartMenuItem_Click(object sender, EventArgs e)
+        {
+            using SaveFileDialog w_dialog = new SaveFileDialog();
+            w_dialog.Filter = "MDTracer input record (*.mdi)|*.mdi|All files (*.*)|*.*";
+            w_dialog.FileName = "input.mdi";
+            if (w_dialog.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                md_main.g_md_io.input_record_start(w_dialog.FileName);
+                toolStripStatusLabel1.Text = "input recording";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Input Record Start");
+            }
+        }
+        private void inputRecordStopMenuItem_Click(object sender, EventArgs e)
+        {
+            md_main.g_md_io.input_record_stop();
+            toolStripStatusLabel1.Text = "input record stopped";
+        }
+        private void inputReplayStartMenuItem_Click(object sender, EventArgs e)
+        {
+            using OpenFileDialog w_dialog = new OpenFileDialog();
+            w_dialog.Filter = "MDTracer input record (*.mdi)|*.mdi|All files (*.*)|*.*";
+            if (w_dialog.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                md_main.g_md_io.input_replay_start(w_dialog.FileName);
+                toolStripStatusLabel1.Text = "input replaying";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Input Replay Start");
+            }
+        }
+        private void inputReplayStopMenuItem_Click(object sender, EventArgs e)
+        {
+            md_main.g_md_io.input_replay_stop();
+            toolStripStatusLabel1.Text = "input replay stopped";
+        }
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var newForm = new Form_About();
@@ -198,7 +245,7 @@ namespace MDTracer
         {
             if (this.WindowState == FormWindowState.Minimized) return;
             g_filelist_view = false;
-            toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%";
+            toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "");
             lock (g_bitmapLock)
             {
                 int w_bitmap_x = panel_game.ClientSize.Width;

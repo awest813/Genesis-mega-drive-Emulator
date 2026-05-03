@@ -42,6 +42,9 @@
             if (g_scanline == g_vertical_line_max - 1)
             {
                 g_vdp_status_3_vbrank = 0;
+                g_vdp_status_7_vinterrupt = 0;
+                md_main.g_md_z80.irq_request(false);
+
                 g_vdp_status_4_frame = (byte)((g_vdp_status_4_frame == 0) ? 1 : 0);
                 g_vdp_status_5_collision = 0;
                 g_vdp_status_6_sprite = 0;

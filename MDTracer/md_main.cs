@@ -131,8 +131,7 @@ namespace MDTracer
                     g_form_code_trace.g_analyse_code[w_line].break_flash = true;
                     g_trace_nextframe = false;
                 }
-                g_md_io.read_device_keyboard();
-                g_md_io.read_device_joystick();
+                g_md_io.input_update_frame();
                 for (int w_vline = 0; w_vline < g_md_vdp.g_vertical_line_max; w_vline++)
                 {
                     g_md_vdp.run(w_vline);

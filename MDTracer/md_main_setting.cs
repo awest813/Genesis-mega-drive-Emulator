@@ -35,7 +35,7 @@ namespace MDTracer
                 switch(w_name)
                 {
                     case "key":
-                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM; j++)
+                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM && j < w_val.Length; j++)
                         {
                             g_md_io.g_key_allocation[j] = byte.Parse(w_val[j]);
                         }
@@ -44,9 +44,21 @@ namespace MDTracer
                         g_md_io.g_joy_name = w_val[0];
                         break;
                     case "joy":
-                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM; j++)
+                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM && j < w_val.Length; j++)
                         {
-                            g_md_io.g_joy_allocation[j] = byte.Parse(w_val[j]);
+                            g_md_io.g_joy_allocation[j] = int.Parse(w_val[j]);
+                        }
+                        break;
+                    case "joy2":
+                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM && j < w_val.Length; j++)
+                        {
+                            g_md_io.g_joy_allocation2[j] = int.Parse(w_val[j]);
+                        }
+                        break;
+                    case "key2":
+                        for (int j = 0; j < g_md_io.KEY_ALLCATION_NUM && j < w_val.Length; j++)
+                        {
+                            g_md_io.g_key_allocation2[j] = byte.Parse(w_val[j]);
                         }
                         break;
                     case "screen_main":
@@ -153,11 +165,28 @@ namespace MDTracer
             g_md_io.g_key_allocation[0] = 49;
             g_md_io.g_key_allocation[1] = 50;
             g_md_io.g_key_allocation[2] = 51;
-            g_md_io.g_key_allocation[3] = 35;
+            g_md_io.g_key_allocation[3] = 57;
             g_md_io.g_key_allocation[4] = 17;
             g_md_io.g_key_allocation[5] = 31;
             g_md_io.g_key_allocation[6] = 30;
             g_md_io.g_key_allocation[7] = 32;
+            g_md_io.g_key_allocation[8] = 35;
+            g_md_io.g_key_allocation[9] = 36;
+            g_md_io.g_key_allocation[10] = 37;
+            g_md_io.g_key_allocation[11] = 28;
+
+            g_md_io.g_key_allocation2[0] = 0;
+            g_md_io.g_key_allocation2[1] = 0;
+            g_md_io.g_key_allocation2[2] = 0;
+            g_md_io.g_key_allocation2[3] = 0;
+            g_md_io.g_key_allocation2[4] = 0;
+            g_md_io.g_key_allocation2[5] = 0;
+            g_md_io.g_key_allocation2[6] = 0;
+            g_md_io.g_key_allocation2[7] = 0;
+            g_md_io.g_key_allocation2[8] = 0;
+            g_md_io.g_key_allocation2[9] = 0;
+            g_md_io.g_key_allocation2[10] = 0;
+            g_md_io.g_key_allocation2[11] = 0;
             for (int j = 0; j <= 10; j++)
             {
                 md_main.g_md_music.g_master_chk[j] = true;
@@ -182,7 +211,17 @@ namespace MDTracer
                 }
             }
             setting_add("key", w_val);
-           
+            w_val = "";
+            for (int i = 0; i < g_md_io.KEY_ALLCATION_NUM; i++)
+            {
+                w_val += g_md_io.g_key_allocation2[i].ToString();
+                if (i < g_md_io.KEY_ALLCATION_NUM - 1)
+                {
+                    w_val += ":";
+                }
+            }
+            setting_add("key2", w_val);
+
             setting_add("joyname", g_md_io.g_joy_name);
             w_val = "";
             for (int i = 0; i < g_md_io.KEY_ALLCATION_NUM; i++)
@@ -194,6 +233,16 @@ namespace MDTracer
                 }
             }
             setting_add("joy", w_val);
+            w_val = "";
+            for (int i = 0; i < g_md_io.KEY_ALLCATION_NUM; i++)
+            {
+                w_val += g_md_io.g_joy_allocation2[i].ToString();
+                if (i < g_md_io.KEY_ALLCATION_NUM - 1)
+                {
+                    w_val += ":";
+                }
+            }
+            setting_add("joy2", w_val);
 
             w_val = Form_Main.g_screen_xpos
                 + ":" + Form_Main.g_screen_ypos

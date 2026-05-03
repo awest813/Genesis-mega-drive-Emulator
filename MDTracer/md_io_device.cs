@@ -10,6 +10,13 @@ namespace MDTracer
             DirectInput dinput = new DirectInput();
             if (dinput != null)
             {
+                foreach (Joystick w_joy in g_joy_device)
+                {
+                    w_joy.Dispose();
+                }
+                g_joy_device.Clear();
+                g_joy_name_list.Clear();
+
                 g_keyboard = new SharpDX.DirectInput.Keyboard(dinput);
                 if (g_keyboard != null)
                 {
@@ -35,22 +42,34 @@ namespace MDTracer
                         }
                     }
                 }
+                if (g_joy_device_cur < 0 && g_joy_device.Count > 0)
+                {
+                    g_joy_device_cur = 0;
+                    g_joy_name = g_joy_name_list[0];
+                }
             }
         }
         public int read_device_joystick()
         {
             int w_out = -1;
-            if (g_joy_device.Count > 0)
+            for (int i = 0; i < JOY_STATUS_NUM; i++)
             {
-                g_joy_device[g_joy_device_cur].Acquire();
+                g_joy_status[i] = 0;
+            }
+            if (g_joy_device.Count > 0 && g_joy_device_cur >= 0 && g_joy_device_cur < g_joy_device.Count)
+            {
+                try
+                {
+                    g_joy_device[g_joy_device_cur].Acquire();
+                }
+                catch
+                {
+                    return -1;
+                }                
                 g_joy_device[g_joy_device_cur].Poll();
                 var state = g_joy_device[g_joy_device_cur].GetCurrentState();
                 if (state == null) { return -1; }
 
-                for (int i = 0; i < JOY_STATUS_NUM; i++)
-                {
-                    g_joy_status[i] = 0;
-                }
                 for (int i = 0; i < 32; i++)
                 {
                     if (state.Buttons[i] == true)

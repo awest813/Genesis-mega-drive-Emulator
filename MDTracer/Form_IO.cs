@@ -9,6 +9,7 @@
             public string keyboard { get; set; }
         }
         public List<ParamView> g_paramview;
+        public List<ParamView> g_paramview2;
         public string[] JOYSTICKS_NAME = {
                  "Button 0"  ,"Button 1"  ,"Button 2"  ,"Button 3"
                 ,"Button 4"  ,"Button 5"  ,"Button 6"  ,"Button 7"
@@ -70,6 +71,7 @@
             this.MaximumSize = this.Size;
             this.MinimumSize = this.Size;
             dataGridView_io.Font = new Font("Yu Gothic UI", 8);
+            dataGridView_io2.Font = new Font("Yu Gothic UI", 8);
 
             g_paramview = new List<ParamView>()
             {
@@ -81,6 +83,25 @@
                 new ParamView{name="Down",joystick="",keyboard="" },
                 new ParamView{name="left",joystick="",keyboard="" },
                 new ParamView{name="Right",joystick="",keyboard="" },
+                new ParamView{name="X",joystick="",keyboard="" },
+                new ParamView{name="Y",joystick="",keyboard="" },
+                new ParamView{name="Z",joystick="",keyboard="" },
+                new ParamView{name="Mode",joystick="",keyboard="" },
+            };
+            g_paramview2 = new List<ParamView>()
+            {
+                new ParamView{name="A",joystick="",keyboard="" },
+                new ParamView{name="B",joystick="",keyboard="" },
+                new ParamView{name="C",joystick="",keyboard="" },
+                new ParamView{name="Start",joystick="",keyboard="" },
+                new ParamView{name="Up",joystick="",keyboard="" },
+                new ParamView{name="Down",joystick="",keyboard="" },
+                new ParamView{name="left",joystick="",keyboard="" },
+                new ParamView{name="Right",joystick="",keyboard="" },
+                new ParamView{name="X",joystick="",keyboard="" },
+                new ParamView{name="Y",joystick="",keyboard="" },
+                new ParamView{name="Z",joystick="",keyboard="" },
+                new ParamView{name="Mode",joystick="",keyboard="" },
             };
             dataGridView_io.DataSource = g_paramview;
             DataGridViewButtonColumn column = new DataGridViewButtonColumn();
@@ -93,6 +114,18 @@
             dataGridView_io.Columns.Insert(dataGridView_io.Columns["keyboard"].Index, column2);
             dataGridView_io.Columns.Remove("keyboard");
             column2.Name = "keyboard";
+
+            dataGridView_io2.DataSource = g_paramview2;
+            DataGridViewButtonColumn column3 = new DataGridViewButtonColumn();
+            column3.DataPropertyName = "joystick";
+            dataGridView_io2.Columns.Insert(dataGridView_io2.Columns["joystick"].Index, column3);
+            dataGridView_io2.Columns.Remove("joystick");
+            column3.Name = "joystick";
+            DataGridViewButtonColumn column4 = new DataGridViewButtonColumn();
+            column4.DataPropertyName = "keyboard";
+            dataGridView_io2.Columns.Insert(dataGridView_io2.Columns["keyboard"].Index, column4);
+            dataGridView_io2.Columns.Remove("keyboard");
+            column4.Name = "keyboard";
         }
 
         //----------------------------------------------------------------
@@ -114,7 +147,7 @@
                     if (w_result == -2)
                     {
                         dataGridView_io[e.ColumnIndex, e.RowIndex].Value = "";
-                        w_result = 0;
+                        w_result = -1;
                     }
                     if (w_result != -1)
                     {
@@ -146,6 +179,58 @@
                     md_main.g_md_io.g_key_allocation[e.RowIndex] = w_result;
                 }
                 md_main.write_setting();
+            }
+        }
+        private void dataGridView_io2_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            {
+                DataGridView dgv = (DataGridView)sender;
+                if (dgv.Columns[e.ColumnIndex].Name == "joystick")
+                {
+                    var form1 = new Form_IO_Setting();
+                    form1.g_mode = 0;
+                    form1.ShowDialog();
+                    int w_result = form1.g_result;
+                    form1.Dispose();
+
+                    if (w_result != -1)
+                    {
+                        if (w_result == -2)
+                        {
+                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = "";
+                            w_result = -1;
+                        }
+                        if (w_result != -1)
+                        {
+                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = JOYSTICKS_NAME[w_result];
+                        }
+                        md_main.g_md_io.g_joy_allocation2[e.RowIndex] = w_result;
+                    }
+                    md_main.write_setting();
+                }
+                if (dgv.Columns[e.ColumnIndex].Name == "keyboard")
+                {
+                    var form1 = new Form_IO_Setting();
+                    form1.g_mode = 1;
+                    form1.ShowDialog();
+                    int w_result = form1.g_result;
+                    form1.Dispose();
+
+                    if (w_result != -1)
+                    {
+                        if (w_result == -2)
+                        {
+                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = "";
+                            w_result = 0;
+                        }
+                        if (w_result != -1)
+                        {
+                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = KEYS_NAME[w_result];
+                        }
+                        md_main.g_md_io.g_key_allocation2[e.RowIndex] = w_result;
+                    }
+                    md_main.write_setting();
+                }
             }
         }
 
@@ -212,8 +297,11 @@
 
             for (int i = 0; i < md_main.g_md_io.KEY_ALLCATION_NUM; i++)
             {
-                dataGridView_io[1, i].Value = JOYSTICKS_NAME[md_main.g_md_io.g_joy_allocation[i]];
+                dataGridView_io[1, i].Value = md_main.g_md_io.g_joy_allocation[i] == -1 ? "" : JOYSTICKS_NAME[md_main.g_md_io.g_joy_allocation[i]];
                 dataGridView_io[2, i].Value = KEYS_NAME[md_main.g_md_io.g_key_allocation[i]];
+
+                dataGridView_io2[1, i].Value = md_main.g_md_io.g_joy_allocation2[i] == -1 ? "" : JOYSTICKS_NAME[md_main.g_md_io.g_joy_allocation2[i]];
+                dataGridView_io2[2, i].Value = KEYS_NAME[md_main.g_md_io.g_key_allocation2[i]];
             }
         }
     }

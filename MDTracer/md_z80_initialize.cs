@@ -200,7 +200,7 @@ namespace MDTracer
                 op_LD_A_r, op_LD_A_r, op_LD_A_r, op_LD_A_r, op_LD_r_IYH, op_LD_r_IYL, op_LD_r_IYD, op_LD_A_r,
                 //0x80
                 op_NOP, op_NOP, op_NOP, op_NOP, op_ADD_IYH , op_ADD_IYL, op_ADD_a_IYD, op_NOP,
-                op_NOP, op_NOP, op_NOP, op_NOP, op_ADC_IYH, op_ADC_IYH, op_ADC_a_IYD, op_NOP, 
+                op_NOP, op_NOP, op_NOP, op_NOP, op_ADC_IYH, op_ADC_IYL, op_ADC_a_IYD, op_NOP, 
                 //0x90
                 op_NOP, op_NOP, op_NOP, op_NOP, op_SUB_IYH, op_SUB_IYL, op_SUB_a_IYD, op_NOP,
                 op_NOP, op_NOP, op_NOP, op_NOP, op_SBC_IYH, op_SBC_IYL, op_SBC_a_IYD, op_NOP, 
@@ -376,6 +376,41 @@ namespace MDTracer
                 op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_HL, op_SET_b_r,
                 op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_r, op_SET_b_HL, op_SET_b_r,
             };
+            initialize_indexed_cb_operands();
+        }
+        private void initialize_indexed_cb_operands()
+        {
+            for (int i = 0; i < 0x100; i++)
+            {
+                g_operand_ddcb[i] = get_indexed_cb_operand(i, true);
+                g_operand_fdcb[i] = get_indexed_cb_operand(i, false);
+            }
+        }
+        private Action get_indexed_cb_operand(int in_opcode, bool in_ix)
+        {
+            if (in_opcode < 0x40)
+            {
+                switch (in_opcode & 0xf8)
+                {
+                    case 0x00: return in_ix ? op_RLC_IXD : op_RLC_IYD;
+                    case 0x08: return in_ix ? op_RRC_IXD : op_RRC_IYD;
+                    case 0x10: return in_ix ? op_RL_IXD : op_RL_IYD;
+                    case 0x18: return in_ix ? op_RR_IXD : op_RR_IYD;
+                    case 0x20: return in_ix ? op_SLA_IXD : op_SLA_IYD;
+                    case 0x28: return in_ix ? op_SRA_IXD : op_SRA_IYD;
+                    case 0x30: return in_ix ? op_SLL_IXD : op_SLL_IYD;
+                    case 0x38: return in_ix ? op_SRL_IXD : op_SRL_IYD;
+                }
+            }
+            if (in_opcode < 0x80)
+            {
+                return in_ix ? op_BIT_b_IXD : op_BIT_b_IYD;
+            }
+            if (in_opcode < 0xc0)
+            {
+                return in_ix ? op_RES_b_IXD : op_RES_b_IYD;
+            }
+            return in_ix ? op_SET_b_IXD : op_SET_b_IYD;
         }
     }
 }

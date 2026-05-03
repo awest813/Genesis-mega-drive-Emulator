@@ -322,21 +322,23 @@ namespace MDTracer
         */
         private void op_SLL_IXD()
         {
-            ushort w_addr = (ushort)(g_reg_IX + g_opcode3);
+            ushort w_addr = (ushort)((g_reg_IX + (sbyte)g_opcode3) & 0xffff);
             byte w_val = read_byte(w_addr);
             w_val = M_SLL(w_val);
             write_byte(w_addr, w_val);
+            write_indexed_cb_target(w_val);
             g_reg_PC += 4;
-            g_clock = 4;
+            g_clock = 23;
         }
         private void op_SLL_IYD()
         {
-            ushort w_addr = (ushort)(g_reg_IY + g_opcode3);
+            ushort w_addr = (ushort)((g_reg_IY + (sbyte)g_opcode3) & 0xffff);
             byte w_val = read_byte(w_addr);
             w_val = M_SLL(w_val);
             write_byte(w_addr, w_val);
+            write_indexed_cb_target(w_val);
             g_reg_PC += 4;
-            g_clock = 4;
+            g_clock = 23;
         }
         private void op_LD_A_r()
         {

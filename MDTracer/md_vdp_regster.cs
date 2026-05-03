@@ -59,6 +59,14 @@ namespace MDTracer
 
         private ushort get_vdp_status()
         {
+            const int HBLANK_CLOCK = 80;
+
+            int w_line_clock = get_line_clock();
+
+            g_vdp_status_2_hbrank =
+                (byte)((w_line_clock >= md_main.VDL_LINE_RENDER_MC68_CLOCK - HBLANK_CLOCK) ? 1 : 0);
+
+
             ushort w_out = 0;
             w_out = g_vdp_status_9_empl;
             w_out = (ushort)((w_out << 1) | g_vdp_status_8_full);
@@ -72,26 +80,43 @@ namespace MDTracer
             w_out = (ushort)((w_out << 1) | g_vdp_status_0_tvmode);
             return w_out;
         }
+        private int get_line_clock()
+        {
+            int w_line_clock = (int)(md_main.VDL_LINE_RENDER_MC68_CLOCK
+                                   - (md_main.g_md_m68k.g_clock_total - md_main.g_md_m68k.g_clock_now));
+
+            if (w_line_clock < 0) w_line_clock = 0;
+            if (w_line_clock >= md_main.VDL_LINE_RENDER_MC68_CLOCK) w_line_clock = md_main.VDL_LINE_RENDER_MC68_CLOCK - 1;
+            return w_line_clock;
+        }
+        private int get_vcounter()
+        {
+            if (g_vdp_reg_1_3_cellmode == 0)
+            {
+                if (g_scanline <= 234) return g_scanline;
+                return g_scanline - 6;
+            }
+
+            if (g_scanline <= 266) return g_scanline & 0xff;
+            return (g_scanline - 57) & 0xff;
+        }
         private ushort get_vdp_hvcounter()
         {
             ushort w_out = g_vdp_c00008_hvcounter;
             if (g_vdp_c00008_hvcounter_latched == false)
             {
+                int w_hcounter = (g_display_xsize * get_line_clock() / md_main.VDL_LINE_RENDER_MC68_CLOCK) & 0xff;
+                int w_vcounter = get_vcounter();
+
                 if (g_vdp_reg_12_2_interlacemode == 0)
                 {
-                    w_out = (ushort)
-                        ((g_scanline << 8)
-                        + ((g_display_xsize
-                           * (md_main.g_md_m68k.g_clock_total - md_main.g_md_m68k.g_clock_now)
-                           / md_main.VDL_LINE_RENDER_MC68_CLOCK) & 0xff));
+                    w_out = (ushort)((w_vcounter << 8) | w_hcounter);
                 }
                 else
                 {
-                    w_out = (ushort)
-                        (((g_scanline << 7) & 0xff00)
-                        + ((g_display_xsize
-                           * (md_main.g_md_m68k.g_clock_total - md_main.g_md_m68k.g_clock_now)
-                           / md_main.VDL_LINE_RENDER_MC68_CLOCK) & 0x00ff));
+                    w_out = (ushort)((((w_vcounter << 7) & 0xff00)
+                                    | (g_scanline & 0x0100)
+                                    | w_hcounter));
                 }
                 g_vdp_c00008_hvcounter = w_out;
             }

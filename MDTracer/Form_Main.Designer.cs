@@ -32,6 +32,10 @@
             settingToolStripMenuItem = new ToolStripMenuItem();
             SettingMenuItem1 = new ToolStripMenuItem();
             hardResetMenuItem = new ToolStripMenuItem();
+            inputRecordStartMenuItem = new ToolStripMenuItem();
+            inputRecordStopMenuItem = new ToolStripMenuItem();
+            inputReplayStartMenuItem = new ToolStripMenuItem();
+            inputReplayStopMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -55,7 +59,7 @@
             // 
             // settingToolStripMenuItem
             // 
-            settingToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { SettingMenuItem1, hardResetMenuItem });
+            settingToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { SettingMenuItem1, hardResetMenuItem, inputRecordStartMenuItem, inputRecordStopMenuItem, inputReplayStartMenuItem, inputReplayStopMenuItem });
             settingToolStripMenuItem.Name = "settingToolStripMenuItem";
             settingToolStripMenuItem.Size = new Size(56, 20);
             settingToolStripMenuItem.Text = "Setting";
@@ -75,6 +79,38 @@
             hardResetMenuItem.Size = new Size(180, 22);
             hardResetMenuItem.Text = "Hard Reset";
             hardResetMenuItem.Click += hardResetMenuItem_Click;
+            // 
+            // inputRecordStartMenuItem
+            // 
+            inputRecordStartMenuItem.Name = "inputRecordStartMenuItem";
+            inputRecordStartMenuItem.ShortcutKeys = Keys.F8;
+            inputRecordStartMenuItem.Size = new Size(180, 22);
+            inputRecordStartMenuItem.Text = "Input Record Start";
+            inputRecordStartMenuItem.Click += inputRecordStartMenuItem_Click;
+            // 
+            // inputRecordStopMenuItem
+            // 
+            inputRecordStopMenuItem.Name = "inputRecordStopMenuItem";
+            inputRecordStopMenuItem.ShortcutKeys = Keys.Shift | Keys.F8;
+            inputRecordStopMenuItem.Size = new Size(180, 22);
+            inputRecordStopMenuItem.Text = "Input Record Stop";
+            inputRecordStopMenuItem.Click += inputRecordStopMenuItem_Click;
+            // 
+            // inputReplayStartMenuItem
+            // 
+            inputReplayStartMenuItem.Name = "inputReplayStartMenuItem";
+            inputReplayStartMenuItem.ShortcutKeys = Keys.F9;
+            inputReplayStartMenuItem.Size = new Size(180, 22);
+            inputReplayStartMenuItem.Text = "Input Replay Start";
+            inputReplayStartMenuItem.Click += inputReplayStartMenuItem_Click;
+            // 
+            // inputReplayStopMenuItem
+            // 
+            inputReplayStopMenuItem.Name = "inputReplayStopMenuItem";
+            inputReplayStopMenuItem.ShortcutKeys = Keys.Shift | Keys.F9;
+            inputReplayStopMenuItem.Size = new Size(180, 22);
+            inputReplayStopMenuItem.Text = "Input Replay Stop";
+            inputReplayStopMenuItem.Click += inputReplayStopMenuItem_Click;
             // 
             // aboutToolStripMenuItem
             // 
@@ -126,6 +162,7 @@
             MainMenuStrip = menuStrip1;
             Name = "Form_Main";
             Text = "MD Tracer";
+            FormClosing += Form_Main_FormClosing;
             Load += Form_Main_Load;
             ResizeEnd += Form_Main_ResizeEnd;
             SizeChanged += Form_Main_SizeChanged;
@@ -152,5 +189,9 @@
         private ToolStripMenuItem hardResetMenuItem;
         private OpenFileDialog openFileDialog1;
         private ToolStripMenuItem aboutToolStripMenuItem;
+        private ToolStripMenuItem inputRecordStartMenuItem;
+        private ToolStripMenuItem inputRecordStopMenuItem;
+        private ToolStripMenuItem inputReplayStartMenuItem;
+        private ToolStripMenuItem inputReplayStopMenuItem;
     }
 }

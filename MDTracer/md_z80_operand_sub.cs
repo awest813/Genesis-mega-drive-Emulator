@@ -138,6 +138,14 @@
             }
             return w_out;
         }
+        private void write_indexed_cb_target(byte in_data)
+        {
+            byte w_reg = (byte)(g_opcode4 & 0x07);
+            if (w_reg != 6)
+            {
+                write_reg(w_reg, in_data);
+            }
+        }
         private bool chk_condion(byte in_cond)
         {
             bool w_out = false;

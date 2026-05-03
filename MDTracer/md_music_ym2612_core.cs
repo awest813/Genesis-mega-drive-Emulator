@@ -93,7 +93,10 @@ namespace MDTracer
 
         private void operator_calc(int in_ch)
         {
-            g_slot_op_calc[in_ch, 0] += (g_slot_phase_out[in_ch, 0] + g_slot_phase_out[in_ch, 1]) >> g_reg_b0_fb[in_ch];
+            if ((g_reg_b0_fb[in_ch] != 9) && (g_reg_b0_fb[in_ch] < 31))
+            {
+                g_slot_op_calc[in_ch, 0] += (g_slot_phase_out[in_ch, 0] + g_slot_phase_out[in_ch, 1]) >> g_reg_b0_fb[in_ch];
+            }
             g_slot_phase_out[in_ch, 1] = g_slot_phase_out[in_ch, 0];
             g_slot_phase_out[in_ch, 0] = TL_TABLE[SIN_TABLE[(g_slot_op_calc[in_ch, 0] >> CNT_LOW_BIT) & CNT_MASK] + g_slot_env_out[in_ch, 0]];
         }
@@ -108,6 +111,8 @@ namespace MDTracer
 
         private void operator_update(int in_ch)
         {
+            g_ch_out[in_ch] = 0;
+
             switch (g_reg_b0_algo[in_ch])
             {
                 case 4:

@@ -51,6 +51,7 @@ namespace MDTracer
         private bool g_interrupt_irq;
         private bool g_interrupt_nmi;
         private bool g_halt;
+        private bool g_halt_out;
 
         private ushort g_reg_BC => (ushort)((g_reg_B << 8) + g_reg_C);
         private ushort g_reg_DE => (ushort)((g_reg_D << 8) + g_reg_E);
@@ -68,12 +69,12 @@ namespace MDTracer
         private void g_write_IYH(byte in_val) { g_reg_IY = (ushort)((in_val << 8) + g_reg_IYL); }
         private void g_write_IYL(byte in_val) { g_reg_IY = (ushort)((g_reg_IYH << 8) + in_val); }
 
-        private byte g_opcode1 => g_ram[g_reg_PC];
-        private byte g_opcode2 => g_ram[g_reg_PC + 1];
-        private byte g_opcode3 => g_ram[g_reg_PC + 2];
-        private byte g_opcode4 => g_ram[g_reg_PC + 3];
-        private ushort g_opcode23 => (ushort)((read8((uint)(g_reg_PC + 2)) << 8) + read8((uint)(g_reg_PC + 1)));
-        private ushort g_opcode34 => (ushort)((read8((uint)(g_reg_PC + 3)) << 8) + read8((uint)(g_reg_PC + 2)));
+        private byte g_opcode1 => read8(g_reg_PC);
+        private byte g_opcode2 => read8((ushort)(g_reg_PC + 1));
+        private byte g_opcode3 => read8((ushort)(g_reg_PC + 2));
+        private byte g_opcode4 => read8((ushort)(g_reg_PC + 3));
+        private ushort g_opcode23 => (ushort)((read8((ushort)(g_reg_PC + 2)) << 8) + read8((ushort)(g_reg_PC + 1)));
+        private ushort g_opcode34 => (ushort)((read8((ushort)(g_reg_PC + 3)) << 8) + read8((ushort)(g_reg_PC + 2)));
 
         private byte g_opcode1_210 => (byte)(g_opcode1 & 0x07);
         private byte g_opcode2_210 => (byte)(g_opcode2 & 0x07);
@@ -122,7 +123,6 @@ namespace MDTracer
                     g_interrupt_nmi = false;
                     g_IFF1 = g_IFF2;
                     g_IFF1 = false;
-                    g_halt = false;
                 }
                 else
                 */
@@ -137,34 +137,19 @@ namespace MDTracer
                         g_interrupt_irq = false;
                         g_IFF1 = false;
                         g_IFF2 = false;
-                        g_halt = false;
+                        g_halt_out = true;
                         switch (g_interruptMode)
                         {
                             case 0:
-                                /*
-                                var instruction = ports.Data;
-                                stack_push(g_reg_PCH);
-                                stack_push(g_reg_PCL);
-                                reg.PC = (byte)(instruction & 0x38);
-                                g_halt = false;
-                                    */
-                                break;
                             case 1:
                                 stack_push(g_reg_PCH);
                                 stack_push(g_reg_PCL);
                                 g_reg_PC = 0x0038;
-                                g_halt = false;
                                 break;
                             case 2:
-                                /*
-                                var vector = ports.Data;
                                 stack_push(g_reg_PCH);
                                 stack_push(g_reg_PCL);
-                                var address = (ushort)((registers[I] << 8) + vector);
-                                registers[PC] = mem[address++];
-                                registers[PC + 1] = mem[address];
-                                g_halt = false;
-                                    */
+                                g_reg_PC = 0x0038;
                                 break;
                         }
                     }

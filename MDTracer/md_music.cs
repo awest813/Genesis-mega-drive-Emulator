@@ -11,21 +11,22 @@ namespace MDTracer
     {
         //const
         const int SAMPLING = 44100;
+        const float CPU_CLOCK = 7670453.0f;
         const int BIT = 16;
         const int CHANNELS = 2;
         const int BUFSIZE = 1024;
+        const float CLOCK_PER_SAMPLE = CPU_CLOCK / SAMPLING;
         public bool[] g_master_chk;
         public int[] g_master_vol;
         public float[] g_out_vol;
         public int[] g_freq_out;
 
         private BufferedWaveProvider g_bufferedwaveprovider;
-        private WaveOut g_waveOut;
+        private WaveOutEvent g_waveOut;
 
         private byte[] g_buffer;
         private int g_buffer_cur = 0;
         private float g_clock_total;
-        private int g_wait = 174;
         public md_sn76489 g_md_sn76489;
         public md_ym2612 g_md_ym2612;
         //----------------------------------------------------------------
@@ -41,7 +42,9 @@ namespace MDTracer
             g_freq_out = new int[11];
 
             g_bufferedwaveprovider = new BufferedWaveProvider(new WaveFormat(SAMPLING, BIT, CHANNELS));
-            g_waveOut = new WaveOut();
+            g_bufferedwaveprovider.BufferDuration = TimeSpan.FromMilliseconds(200);
+            g_waveOut = new WaveOutEvent();
+            g_waveOut.DesiredLatency = 100;
             g_waveOut.Init(g_bufferedwaveprovider);
             g_buffer = new byte[BUFSIZE];
 
@@ -70,17 +73,14 @@ namespace MDTracer
         public void run(int in_clock)
         {
             g_clock_total += in_clock;
-            while (g_wait <= g_clock_total)  //7670453(cpu) / 44100
+            while (CLOCK_PER_SAMPLE <= g_clock_total)
             {
-                g_clock_total -= g_wait;
+                g_clock_total -= CLOCK_PER_SAMPLE;
 
                 var result = g_md_ym2612.YM2612_Update();
-                short result2 = (short)g_md_sn76489.SN76489_Update();
-                short w_mix_total1 = (short)(result.out1 + result2);
-                short w_mix_total2 = (short)(result.out2 + result2);
-
-                w_mix_total1 = (short)Math.Max((short)-32768, (short)Math.Min((short)32767, w_mix_total1));
-                w_mix_total2 = (short)Math.Max((short)-32768, (short)Math.Min((short)32767, w_mix_total2));
+                int result2 = g_md_sn76489.SN76489_Update();
+                short w_mix_total1 = Clip16(result.out1 + result2);
+                short w_mix_total2 = Clip16(result.out2 + result2);
 
                 g_buffer[g_buffer_cur + 1] = (byte)((short)w_mix_total1 >> 8);
                 g_buffer[g_buffer_cur + 0] = (byte)((short)w_mix_total1 & 0xff);
@@ -89,20 +89,26 @@ namespace MDTracer
                 g_buffer_cur += 4;
                 if (BUFSIZE <= g_buffer_cur)
                 {
+                    WaitForBufferSpace();
                     g_bufferedwaveprovider.AddSamples(g_buffer, 0, BUFSIZE);
                     g_buffer_cur = 0;
                 }
-
-                if (g_bufferedwaveprovider.BufferedBytes < 10000)
-                {
-                    g_wait = 172;
-                }
-                else
-                {
-                    g_wait = 174;
-                }
-
             }
+        }
+
+        private void WaitForBufferSpace()
+        {
+            while (g_bufferedwaveprovider.BufferedBytes + BUFSIZE > g_bufferedwaveprovider.BufferLength)
+            {
+                System.Threading.Thread.Sleep(1);
+            }
+        }
+
+        private short Clip16(int in_val)
+        {
+            if (in_val > short.MaxValue) return short.MaxValue;
+            if (in_val < short.MinValue) return short.MinValue;
+            return (short)in_val;
         }
 
     }

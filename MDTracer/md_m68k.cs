@@ -113,7 +113,22 @@ namespace MDTracer
         }
         private void interrupt_chk()
         {
-            if ((g_interrupt_H_req == true)
+            if ((g_interrupt_V_req == true)
+                && (g_status_interrupt_mask < 6)
+                && (md_main.g_md_vdp.g_vdp_reg_1_5_vinterrupt == 1))
+            {
+                uint w_start_address = read32(0x0078);
+                stack_push32(g_reg_PC);
+                md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                ushort w_data = g_reg_SR;
+                stack_push16(w_data);
+                g_reg_PC = w_start_address;
+                g_status_interrupt_mask = 6;
+                g_interrupt_V_req = false;
+                g_interrupt_V_act = true;
+                g_68k_stop = false;
+            }
+            else if ((g_interrupt_H_req == true)
                 && (g_status_interrupt_mask < 4)
                 && (md_main.g_md_vdp.g_vdp_reg_0_4_hinterrupt == 1))
             {
@@ -128,26 +143,7 @@ namespace MDTracer
                 g_interrupt_H_act = true;
                 g_68k_stop = false;
             }
-            else
-            if ((g_interrupt_V_req == true)
-                && (g_status_interrupt_mask < 6)
-                && (md_main.g_md_vdp.g_vdp_reg_1_5_vinterrupt == 1)
-                && (g_interrupt_H_act == false)
-                )
-            {
-                uint w_start_address = read32(0x0078);
-                stack_push32(g_reg_PC);
-                md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
-                ushort w_data = g_reg_SR;
-                stack_push16(w_data);
-                g_reg_PC = w_start_address;
-                g_status_interrupt_mask = 6;
-                g_interrupt_V_req = false;
-                g_interrupt_V_act = true;
-                g_68k_stop = false;
-            }
-            else
-            if ((g_interrupt_EXT_req == true)
+            else if ((g_interrupt_EXT_req == true)
                 && (g_status_interrupt_mask < 2))
             {
                 uint w_start_address = read32(0x0068);

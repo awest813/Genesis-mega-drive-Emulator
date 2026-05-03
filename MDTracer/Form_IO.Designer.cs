@@ -32,7 +32,9 @@
             dataGridView_io = new DataGridView();
             label1 = new Label();
             button_rescan = new Button();
+            dataGridView_io2 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)dataGridView_io).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView_io2).BeginInit();
             SuspendLayout();
             // 
             // comboBox1
@@ -54,7 +56,6 @@
             dataGridView_io.MultiSelect = false;
             dataGridView_io.Name = "dataGridView_io";
             dataGridView_io.RowHeadersVisible = false;
-            dataGridView_io.RowTemplate.Height = 25;
             dataGridView_io.Size = new Size(209, 243);
             dataGridView_io.TabIndex = 1;
             dataGridView_io.CellContentClick += dataGridView_io_CellContentClick;
@@ -78,11 +79,26 @@
             button_rescan.UseVisualStyleBackColor = true;
             button_rescan.Click += button_rescan_Click;
             // 
+            // dataGridView_io2
+            // 
+            dataGridView_io2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView_io2.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridView_io2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView_io2.EditMode = DataGridViewEditMode.EditProgrammatically;
+            dataGridView_io2.Location = new Point(239, 64);
+            dataGridView_io2.MultiSelect = false;
+            dataGridView_io2.Name = "dataGridView_io2";
+            dataGridView_io2.RowHeadersVisible = false;
+            dataGridView_io2.Size = new Size(209, 243);
+            dataGridView_io2.TabIndex = 8;
+            dataGridView_io2.CellContentClick += dataGridView_io2_CellContentClick;
+            // 
             // Form_IO
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(235, 317);
+            ClientSize = new Size(462, 317);
+            Controls.Add(dataGridView_io2);
             Controls.Add(button_rescan);
             Controls.Add(label1);
             Controls.Add(dataGridView_io);
@@ -93,6 +109,7 @@
             Shown += Form_IO_Shown;
             ResizeEnd += Form_IO_ResizeEnd;
             ((System.ComponentModel.ISupportInitialize)dataGridView_io).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView_io2).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -102,5 +119,6 @@
         private DataGridView dataGridView_io;
         private Label label1;
         private Button button_rescan;
+        private DataGridView dataGridView_io2;
     }
 }

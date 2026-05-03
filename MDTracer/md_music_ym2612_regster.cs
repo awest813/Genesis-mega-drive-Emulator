@@ -30,7 +30,12 @@ namespace MDTracer
         private bool[] g_reg_b4_l;
         private bool[] g_reg_b4_r;
         private int[] g_reg_b4_ams;
-        public int[] g_reg_b4_pms;
+        public double[] g_reg_b4_pms;
+
+        private int GetFreqOut(int in_fnum, int in_block)
+        {
+            return (int)(in_fnum * Math.Pow(2, in_block - 1) * 0.0529819f);
+        }
 
         public byte read8(uint in_address)
         {
@@ -222,7 +227,7 @@ namespace MDTracer
                             g_slot_fnum[w_ch, 0] = wfnum;
                             g_slot_keycode[w_ch, 0] = (int)(((uint)g_reg_a4_block[w_ch, 0] << 2) | KEYCODE_TABLE[g_slot_fnum[w_ch, 0] >> 7]);
                             g_ch_reg_reflesh[w_ch] = true;
-                            md_main.g_md_music.g_freq_out[w_ch] = (int)((wfnum << (g_reg_a4_block[w_ch, 0] - 1)) * 0.0529819f);
+                            md_main.g_md_music.g_freq_out[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
                             break;
                         case 0xa4:
                             w_ch = (w_addr - 0xa4) + (w_mode * 3);
@@ -231,14 +236,14 @@ namespace MDTracer
                             g_reg_a4_block[w_ch, 0] = (in_val & 0x38) >> 3;
                             g_slot_keycode[w_ch, 0] = (int)(((uint)g_reg_a4_block[w_ch, 0] << 2) | KEYCODE_TABLE[g_slot_fnum[w_ch, 0] >> 7]);
                             g_ch_reg_reflesh[w_ch] = true;
-                            md_main.g_md_music.g_freq_out[w_ch] = (int)((wfnum << (g_reg_a4_block[w_ch, 0] - 1)) * 0.0529819f);
+                            md_main.g_md_music.g_freq_out[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
                             break;
                         case 0xa8:
                             w_slot = ((w_addr - 0xa8) & 0x03) + 1;
                             g_slot_fnum[2, w_slot] = (g_slot_fnum[2, w_slot] & 0x700) + in_val;
                             g_slot_keycode[2, w_slot] = (int)(((uint)g_reg_a4_block[2, w_slot] << 2) |
                                 KEYCODE_TABLE[g_slot_fnum[2, w_slot] >> 7]);
-                            g_ch_reg_reflesh[w_ch] = true;
+                            g_ch_reg_reflesh[2] = true;
                             break;
                         case 0xac:
                             w_slot = ((w_addr - 0xac) & 0x03) + 1;
@@ -247,7 +252,7 @@ namespace MDTracer
                             g_reg_a4_block[2, w_slot] = (in_val & 0x38) >> 3;
                             g_slot_keycode[2, w_slot] = (int)(((uint)g_reg_a4_block[2, w_slot] << 2) |
                                 KEYCODE_TABLE[g_slot_fnum[2, w_slot] >> 7]);
-                            g_ch_reg_reflesh[w_ch] = true;
+                            g_ch_reg_reflesh[2] = true;
                             break;
                         case 0xb0:
                             w_ch = (w_addr - 0xb0) + (w_mode * 3);
@@ -266,7 +271,7 @@ namespace MDTracer
                             g_reg_b4_l[w_ch] = ((in_val & 0x80) > 0) ? true : false;
                             g_reg_b4_r[w_ch] = ((in_val & 0x40) > 0) ? true : false;
                             g_reg_b4_ams[w_ch] = (int)LFO_AMS_MAP[(in_val >> 4) & 3];
-                            g_reg_b4_pms[w_ch] = (int)LFO_PMS_MAP[in_val & 7];
+                            g_reg_b4_pms[w_ch] = LFO_PMS_MAP[in_val & 7];
 
                             if (g_reg_60_ams_enable[w_ch, 0] != 0) g_slot_ams[w_ch, 0] = g_reg_b4_ams[w_ch];
                             else g_slot_ams[w_ch, 0] = 31;

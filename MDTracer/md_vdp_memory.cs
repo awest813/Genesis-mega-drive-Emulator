@@ -22,6 +22,10 @@ namespace MDTracer
         private int[] COLOR_SHADOW = { 0, 29, 52, 70, 87, 101, 116, 130 };
         private int[] COLOR_HIGHLIGHT = { 130, 144, 158, 172, 187, 206, 228, 255 };
 
+        private uint get_vdp_port(uint in_address)
+        {
+            return (in_address & 0x1f) & 0xfffffe;
+        }
         //----------------------------------------------------------------
         //read
         //----------------------------------------------------------------
@@ -42,8 +46,8 @@ namespace MDTracer
         public ushort read16(uint in_address)
         {
             ushort w_out = 0;
-            in_address &= 0xfffffe;
-            if (in_address <= 0xc00003)
+            uint w_port = get_vdp_port(in_address);
+            if (w_port <= 0x02)
             {
                 g_command_select = false;
                 switch (g_vdp_reg_code)
@@ -64,13 +68,13 @@ namespace MDTracer
                 g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
             }
             else
-            if (in_address <= 0xc00007)
+            if (w_port <= 0x06)
             {
                 g_command_select = false;
                 w_out = get_vdp_status();
             }
             else
-            if (in_address <= 0xc0000e)
+            if (w_port <= 0x0e)
             {
                 w_out = get_vdp_hvcounter();
             }
@@ -83,9 +87,10 @@ namespace MDTracer
         public uint read32(uint in_address)
         {
             uint w_out = 0;
-            if (in_address <= 0xc00003)
+            uint w_port = get_vdp_port(in_address);
+            if (w_port <= 0x0e)
             {
-                w_out = (uint)((read16(in_address) << 16) + read16(in_address));
+                w_out = (uint)((read16(in_address) << 16) + read16(in_address + 2));
             }
             else
             {
@@ -103,8 +108,8 @@ namespace MDTracer
         }
         public void write16(uint in_address, ushort in_data)
         {
-            in_address &= 0xfffffe;
-            if (in_address <= 0xc00003)
+            uint w_port = get_vdp_port(in_address);
+            if (w_port <= 0x02)
             {
                 g_command_select = false;
                 if (g_dma_fill_req == true)
@@ -141,7 +146,7 @@ namespace MDTracer
                 }
             }
             else
-            if (in_address <= 0xc00007)
+            if (w_port <= 0x06)
             {
                 if (g_command_select == false)
                 {
@@ -192,16 +197,11 @@ namespace MDTracer
         }
         public void write32(uint in_address, uint in_data)
         {
-            if (in_address <= 0xc00003)
+            uint w_port = get_vdp_port(in_address);
+            if (w_port <= 0x06)
             {
                 write16(in_address, (ushort)(in_data >> 16));
-                write16(in_address, (ushort)(in_data & 0xffff));
-            }
-            else
-            if (in_address <= 0xc00007)
-            {
-                write16(in_address, (ushort)(in_data >> 16));
-                write16(in_address, (ushort)(in_data & 0xffff));
+                write16(in_address + 2, (ushort)(in_data & 0xffff));
             }
             else
             {
@@ -213,7 +213,8 @@ namespace MDTracer
         //----------------------------------------------------------------
         private ushort vram_read_w(int in_addr)
         {
-            return (ushort)((g_vram[in_addr] << 8) + g_vram[in_addr + 1]);
+            return (ushort)((g_vram[in_addr & 0xffff] << 8)
+                          | g_vram[(in_addr ^ 1) & 0xffff]);
         }
         private void vram_write_w(int in_addr, ushort in_data)
         {

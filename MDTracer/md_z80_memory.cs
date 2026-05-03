@@ -43,24 +43,16 @@ namespace MDTracer
         }
         public ushort read16(uint in_address)
         {
-            UNION_UINT w_data;
-            w_data.w = 0;
-            in_address &= 0xffff;
-            w_data.b1 = g_ram[in_address];
-            w_data.b0 = g_ram[in_address + 1];
-            return w_data.w;
+            return (ushort)((read8(in_address) << 8)
+                          | read8(in_address + 1));
         }
+
         public uint read32(uint in_address)
         {
-            UNION_UINT w_data;
-            w_data.l = 0;
-            in_address &= 0xffff;
-            w_data.b3 = g_ram[in_address];
-            w_data.b2 = g_ram[in_address + 1];
-            w_data.b1 = g_ram[in_address + 2];
-            w_data.b0 = g_ram[in_address + 3];
-            return w_data.l;
+            return (uint)((read16(in_address) << 16)
+                        | read16(in_address + 2));
         }
+
         //----------------------------------------------------------------
         //write
         //----------------------------------------------------------------
@@ -80,13 +72,13 @@ namespace MDTracer
             else
             if ((in_address >= 0x6000) && (in_address <= 0x60ff))
             {
-                g_bank_register &= 0x00ff0000;
                 g_bank_register >>= 1;
 
                 if ((in_data & 0x01) == 1)
                 {
                     g_bank_register = (g_bank_register | 0x00800000);
                 }
+                g_bank_register &= 0x00ff8000;
             }
             else
             if ((in_address >= 0x6100) && (in_address <= 0x7eff))
@@ -110,17 +102,14 @@ namespace MDTracer
         }
         public void write16(uint in_address, ushort in_data)
         {
-            in_address &= 0xffff;
-            g_ram[in_address] = (byte)((in_data >> 8) & 0x00ff);
-            g_ram[in_address + 1] = (byte)(in_data & 0x00ff);
+            write8(in_address, (byte)(in_data >> 8));
+            write8(in_address + 1, (byte)(in_data & 0xff));
         }
+
         public void write32(uint in_address, uint in_data)
         {
-            in_address &= 0xffff;
-            g_ram[in_address] = (byte)(in_data >> 24);
-            g_ram[in_address + 1] = (byte)((in_data >> 16) & 0x00ff);
-            g_ram[in_address + 2] = (byte)((in_data >> 8) & 0x00ff);
-            g_ram[in_address + 3] = (byte)(in_data & 0x00ff);
+            write16(in_address, (ushort)(in_data >> 16));
+            write16(in_address + 2, (ushort)(in_data & 0xffff));
         }
     }
 }

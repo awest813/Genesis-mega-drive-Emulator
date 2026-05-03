@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualBasic.Devices;
 using SharpDX.DirectInput;
-
+using System.Text;
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace MDTracer
 
         public const int JOY_STATUS_NUM = 50;
         public const int KEY_STATUS_NUM = 256;
-        public int KEY_ALLCATION_NUM = 8;
+        public int KEY_ALLCATION_NUM = 12;
 
         public byte[] g_joy_status;
         public byte[] g_key_status;
@@ -43,7 +43,18 @@ namespace MDTracer
         public string g_joy_name;
         public int[] g_key_allocation;
         public int[] g_joy_allocation;
+
+        public int[] g_key_allocation2;
+        public int[] g_joy_allocation2;
         int g_key_cur;
+
+        private int g_io_port1_th;
+        private int g_io_port2_th;
+        private int g_io_port1_phase;
+        private int g_io_port2_phase;
+        private long g_io_port1_last_th_change;
+        private long g_io_port2_last_th_change;
+        private const int IO_6BUTTON_TIMEOUT_MS = 12;
         //----------------------------------------------------------------
         public md_io()
         {
@@ -61,7 +72,103 @@ namespace MDTracer
             g_joy_status = new byte[JOY_STATUS_NUM];
             g_key_status = new byte[KEY_STATUS_NUM];
             g_joy_allocation = new int[KEY_ALLCATION_NUM];
+            g_joy_allocation2 = new int[KEY_ALLCATION_NUM];
             g_key_allocation = new int[KEY_ALLCATION_NUM];
+            g_key_allocation2 = new int[KEY_ALLCATION_NUM];
+            Array.Fill(g_joy_allocation, -1);
+            Array.Fill(g_joy_allocation2, -1);
+            g_io_port1_th = 1;
+            g_io_port2_th = 1;
+        }
+
+        private bool is_key_down(int[] in_key_allocation, int in_index)
+        {
+            if (in_index < 0 || in_index >= in_key_allocation.Length) return false;
+            int w_key = in_key_allocation[in_index];
+            return w_key >= 0 && w_key < g_key_status.Length && g_key_status[w_key] == 1;
+        }
+
+        private bool is_joy_down(int[] in_joy_allocation, int in_index)
+        {
+            if (in_index < 0 || in_index >= in_joy_allocation.Length) return false;
+            int w_joy = in_joy_allocation[in_index];
+            return w_joy >= 0 && w_joy < g_joy_status.Length && g_joy_status[w_joy] == 1;
+        }
+
+        private bool is_button_down(int[] in_key_allocation, int[] in_joy_allocation, int in_index)
+        {
+            return is_key_down(in_key_allocation, in_index) || is_joy_down(in_joy_allocation, in_index);
+        }
+
+        private byte read_pad(int[] in_key_allocation, int[] in_joy_allocation, byte in_data, byte in_ctrl, int in_phase)
+        {
+            byte w_out;
+            bool w_th = (in_data & 0x40) != 0;
+
+            if (!w_th)
+            {
+                w_out = (byte)((in_phase == 3) ? 0x00 : 0x33);
+                if (in_phase != 3)
+                {
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 3)) w_out &= 0xdf;  //START
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 0)) w_out &= 0xef;  //A
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 5)) w_out &= 0xfd;  //DOWN
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 4)) w_out &= 0xfe;  //UP
+                }
+            }
+            else
+            {
+                w_out = 0x7f;
+                if (in_phase < 3)
+                {
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 2)) w_out &= 0xdf;  //C
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 1)) w_out &= 0xef;  //B
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 7)) w_out &= 0xf7;  //RIGHT
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 6)) w_out &= 0xfb;  //LEFT
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 5)) w_out &= 0xfd;  //DOWN
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 4)) w_out &= 0xfe;  //UP
+                }
+                else
+                {
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 11)) w_out &= 0xf7;  //MODE
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 8)) w_out &= 0xfb;   //X
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 9)) w_out &= 0xfd;   //Y
+                    if (is_button_down(in_key_allocation, in_joy_allocation, 10)) w_out &= 0xfe;  //Z
+                }
+            }
+
+            return (byte)((w_out & ~in_ctrl) | (in_data & in_ctrl));
+        }
+
+        private void update_th_phase(byte in_data, ref int io_th, ref int io_phase, ref long io_last_th_change)
+        {
+            int w_th = ((in_data & 0x40) != 0) ? 1 : 0;
+            if (w_th == io_th) return;
+
+            long w_now = Environment.TickCount64;
+            if (w_now - io_last_th_change > IO_6BUTTON_TIMEOUT_MS)
+            {
+                io_phase = 0;
+            }
+            io_last_th_change = w_now;
+
+            if (io_th == 1 && w_th == 0)
+            {
+                io_phase++;
+                if (io_phase > 3)
+                {
+                    io_phase = 0;
+                }
+            }
+            io_th = w_th;
+        }
+
+        private void reset_th_phase_if_timeout(ref int io_phase, long io_last_th_change)
+        {
+            if (io_phase != 0 && Environment.TickCount64 - io_last_th_change > IO_6BUTTON_TIMEOUT_MS)
+            {
+                io_phase = 0;
+            }
         }
 
         //----------------------------------------------------------------
@@ -87,37 +194,15 @@ namespace MDTracer
             }
             else if (in_address == 0xa10003)
             {
-                if ((g_io_a10003_data1 & 0x40) == 0)
-                {
-                    w_out = 0x33;
-                    if (g_key_status[g_key_allocation[3]] == 1) w_out &= 0xdf;  //START
-                    if (g_key_status[g_key_allocation[0]] == 1) w_out &= 0xef;  //A
-                    if (g_key_status[g_key_allocation[5]] == 1) w_out &= 0xfd;  //DOWN
-                    if (g_key_status[g_key_allocation[4]] == 1) w_out &= 0xfe;  //UP
-                    if (g_joy_status[g_joy_allocation[3]] == 1) w_out &= 0xdf;  //START
-                    if (g_joy_status[g_joy_allocation[0]] == 1) w_out &= 0xef;  //A
-                    if (g_joy_status[g_joy_allocation[5]] == 1) w_out &= 0xfd;  //DOWN
-                    if (g_joy_status[g_joy_allocation[4]] == 1) w_out &= 0xfe;  //UP
-                }
-                else
-                {
-                    w_out = 0x7f;
-                    if (g_key_status[g_key_allocation[2]] == 1) w_out &= 0xdf;  //C
-                    if (g_key_status[g_key_allocation[1]] == 1) w_out &= 0xef;  //B
-                    if (g_key_status[g_key_allocation[7]] == 1) w_out &= 0xf7;  //RIGHT
-                    if (g_key_status[g_key_allocation[6]] == 1) w_out &= 0xfb;  //LEFT
-                    if (g_key_status[g_key_allocation[5]] == 1) w_out &= 0xfd;  //DOWN
-                    if (g_key_status[g_key_allocation[4]] == 1) w_out &= 0xfe;  //UP
-                    if (g_joy_status[g_joy_allocation[2]] == 1) w_out &= 0xdf;  //C
-                    if (g_joy_status[g_joy_allocation[1]] == 1) w_out &= 0xef;  //B
-                    if (g_joy_status[g_joy_allocation[7]] == 1) w_out &= 0xf7;  //RIGHT
-                    if (g_joy_status[g_joy_allocation[6]] == 1) w_out &= 0xfb;  //LEFT
-                    if (g_joy_status[g_joy_allocation[5]] == 1) w_out &= 0xfd;  //DOWN
-                    if (g_joy_status[g_joy_allocation[4]] == 1) w_out &= 0xfe;  //UP
-
-                }
+                reset_th_phase_if_timeout(ref g_io_port1_phase, g_io_port1_last_th_change);
+                w_out = read_pad(g_key_allocation, g_joy_allocation, g_io_a10003_data1, g_io_a10009_ctrl1, g_io_port1_phase);
             }
-            else if (in_address == 0xa10005) w_out = g_io_a10005_data2;
+            else if (in_address == 0xa10005)
+            {
+                reset_th_phase_if_timeout(ref g_io_port2_phase, g_io_port2_last_th_change);
+                w_out = read_pad(g_key_allocation2, g_joy_allocation2, g_io_a10005_data2, g_io_a1000b_ctrl2, g_io_port2_phase);
+            }
+            //w_out = g_io_a10005_data2;
             else if (in_address == 0xa10007) w_out = g_io_a10007_data3;
             else if (in_address == 0xa10009) w_out = g_io_a10009_ctrl1;
             else if (in_address == 0xa1000b) w_out = g_io_a1000b_ctrl2;
@@ -135,7 +220,6 @@ namespace MDTracer
             {
                 MessageBox.Show("md_io.read8", "error");
             }
-
             return w_out;
         }
         public ushort read16(uint in_address)
@@ -153,8 +237,16 @@ namespace MDTracer
         //----------------------------------------------------------------
         public void write8(uint in_address, byte in_data)
         {
-            if (in_address == 0xa10003) g_io_a10003_data1 = in_data;
-            else if (in_address == 0xa10005) g_io_a10005_data2 = in_data;
+            if (in_address == 0xa10003)
+            {
+                update_th_phase(in_data, ref g_io_port1_th, ref g_io_port1_phase, ref g_io_port1_last_th_change);
+                g_io_a10003_data1 = in_data;
+            }
+            else if (in_address == 0xa10005)
+            {
+                update_th_phase(in_data, ref g_io_port2_th, ref g_io_port2_phase, ref g_io_port2_last_th_change);
+                g_io_a10005_data2 = in_data;
+            }
             else if (in_address == 0xa10007) g_io_a10007_data3 = in_data;
             else if (in_address == 0xa10009) g_io_a10009_ctrl1 = in_data;
             else if (in_address == 0xa1000b) g_io_a1000b_ctrl2 = in_data;
@@ -172,7 +264,12 @@ namespace MDTracer
         }
         public void write16(uint in_address, ushort in_data)
         {
-            MessageBox.Show("md_io.write16", "error");
+            write8(in_address + 1, (byte)(in_data & 0xff));
+        }
+        public void write32(uint in_address, uint in_data)
+        {
+            write16(in_address, (ushort)(in_data >> 16));
+            write16(in_address + 2, (ushort)(in_data & 0xffff));
         }
     }
 }

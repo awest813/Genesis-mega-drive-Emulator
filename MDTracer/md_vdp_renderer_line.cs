@@ -58,7 +58,14 @@ namespace MDTracer
                     uint w_pic = (w_pic_w >> ((3 - (w_view_dx & 3)) << 2)) & 0x0f;
                     if (w_pic != 0)
                     {
+                        //if(w_priority==0)
+                        //{
                         g_game_cmap[wx] = w_palette + w_pic;
+                        //}
+                        //else
+                        //{
+                        //    g_game_cmap[wx] = 0x1f;
+                        //}
                         g_game_primap[wx] = w_priority;
                     }
                     g_game_shadowmap[wx] = w_priority;
@@ -293,6 +300,14 @@ namespace MDTracer
                         if (w_shadow == 2) color = g_color_highlight[w_colnum];
                         else color = g_color[w_colnum];
                     }
+                    /*
+                    if (((wx % 8) == 0)||((g_scanline%8)==0))
+                    {
+                        color = 0xffff0000;
+                    }
+                    */
+
+
                     g_game_screen[w_base + wx] = color;
                 }
             }

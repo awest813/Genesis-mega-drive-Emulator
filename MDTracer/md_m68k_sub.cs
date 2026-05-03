@@ -172,8 +172,8 @@ namespace MDTracer
             }
             else
             {
-                g_reg_addr[g_reg_addr_usp.l].l = (g_reg_addr[g_reg_addr_usp.l].l - 4);
-                write32(g_reg_addr[g_reg_addr_usp.l].l, in_val);
+                g_reg_addr_usp.l -= 4;
+                write32(g_reg_addr_usp.l, in_val);
             }
         }
         private uint stack_pop32()
@@ -187,9 +187,9 @@ namespace MDTracer
             }
             else
             {
-                w_addr = read32(g_reg_addr[g_reg_addr_usp.l].l);
+                w_addr = read32(g_reg_addr_usp.l);
                 write32(g_reg_addr_usp.l, 0);
-                g_reg_addr[g_reg_addr_usp.l].l += 4;
+                g_reg_addr_usp.l += 4;
             }
             return w_addr;
         }
@@ -202,8 +202,8 @@ namespace MDTracer
             }
             else
             {
-                g_reg_addr[g_reg_addr_usp.l].l = (g_reg_addr[g_reg_addr_usp.l].l - 2);
-                write16(g_reg_addr[g_reg_addr_usp.l].l, in_val);
+                g_reg_addr_usp.l -= 2;
+                write16(g_reg_addr_usp.l, in_val);
             }
         }
         private ushort stack_pop16()
@@ -217,9 +217,9 @@ namespace MDTracer
             }
             else
             {
-                w_addr = read16(g_reg_addr[g_reg_addr_usp.l].l);
+                w_addr = read16(g_reg_addr_usp.l);
                 write16(g_reg_addr_usp.l, 0);
-                g_reg_addr[g_reg_addr_usp.l].l += 2;
+                g_reg_addr_usp.l += 2;
             }
             return w_addr;
         }
