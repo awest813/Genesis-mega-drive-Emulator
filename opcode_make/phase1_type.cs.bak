@@ -93,24 +93,8 @@
             outtext("        private void ", wfuncname, "()");
             outtext("        {");
             outtext("            g_reg_PC += 2;");
-            if ((in_opcode == "ADDA") || (in_opcode == "SUBA"))
-            {
-                outtext("            int w_size = (g_op2 >> 2) + 1;");
-                outtext("            g_clock = (w_size == 1) ? 8 : 6;");
-                outtext("            adressing_func_address(g_op3, g_op4, w_size);");
-                outtext("            uint src = adressing_func_read(g_op3, g_op4, w_size);");
-                outtext("            if (w_size == 1)");
-                outtext("            {");
-                outtext("                src = (uint)(int)(short)(src & 0xffff);");
-                outtext("            }");
-                outtext("            else");
-                outtext("            {");
-                outtext("                src &= 0xffffffff;");
-                outtext("            }");
-                outtext("            g_reg_addr[g_op1].l = g_reg_addr[g_op1].l", wenzan, "src;");
-            }
-            else
-            if (in_opcode == "CMPA")
+
+            if ((in_opcode == "ADDA") || (in_opcode == "SUBA") || (in_opcode == "CMPA"))
             {
                 outtext("            int w_size = (g_op2 >> 2) + 1;");
                 outtext("            g_clock = (w_size == 1) ? 8 : 6;");
@@ -119,6 +103,10 @@
                 outtext("            g_work_val2.l = adressing_func_read(g_op3, g_op4, w_size);");
                 outtext("            g_work_val2.l = get_int_cast(g_work_val2.l, w_size);");
                 outtext("            g_work_data.l = g_work_val1.l ", wenzan, " g_work_val2.l;");
+                if (in_opcode != "CMPA")
+                {
+                    outtext("            g_reg_addr[g_op1].l = g_work_data.l;");
+                }
             }
             else
             if (in_opcode == "CMP")
@@ -301,27 +289,22 @@
             outtext("            }else{");
             outtext("                if (g_op3 == 0) g_clock = 4; else g_clock = 9;");
             outtext("            }");
-            outtext("            int access_size = w_size;");
-            outtext("            if (g_op3 == 1)");
-            outtext("            {");
-            outtext("                access_size = 2;");
-            outtext("            }");
             outtext("            g_reg_PC += 2;");
             outtext("            g_work_val2.l = (byte)((g_opcode >> 9) & 0x07);");
             outtext("            if(g_work_val2.l == 0) g_work_val2.l = 8;");
-            outtext("            adressing_func_address(g_op3, g_op4, access_size);");
-            outtext("            g_work_val1.l = adressing_func_read(g_op3, g_op4, access_size);");
+            outtext("            adressing_func_address(g_op3, g_op4, w_size);");
+            outtext("            g_work_val1.l = adressing_func_read(g_op3, g_op4, w_size);");
             outtext("            g_work_data.l = g_work_val1.l", wenzan, "g_work_val2.l;");
-            outtext("            adressing_func_write(g_op3, g_op4, access_size, g_work_data.l);");
+            outtext("            adressing_func_write(g_op3, g_op4, w_size, g_work_data.l);");
             outtext("            if(g_op3 != 1){");
             if (in_opcode == "ADDQ")
             {
-                status_update(2, 2, 2, 2, 2, "g_work_val1", "g_work_val2", "g_work_data", "w_size");
+                status_update(2, 2, 2, 2, 2, "g_work_val1", "g_work_val2", "g_work_data", "g_op2");
             }
             else
             if (in_opcode == "SUBQ")
             {
-                status_update(2, 2, 3, 3, 2, "g_work_val1", "g_work_val2", "g_work_data", "w_size");
+                status_update(2, 2, 3, 3, 2, "g_work_val1", "g_work_val2", "g_work_data", "g_op2 & 0x03");
             }
             outtext("            }");
             outtext("        }");
