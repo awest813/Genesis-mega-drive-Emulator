@@ -124,7 +124,6 @@ This project is licensed under the MIT License.
 Copyright (c) 2019 Stephane Dallongeville
 
 ## How to Use MDTracer
-## How to Use MDTracer
 １．Extract the Executable File Extract the downloaded executable file.  
 ２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.  
 ３．Select a Game File  
@@ -151,7 +150,7 @@ Copyright (c) 2019 Stephane Dallongeville
         To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
   4.Press the button on the desired device to complete the key mapping.  
 
-６．Menu
+６．Menu  
 ■Control  
 　■Setting　　　　 Display the settings screen  
 　■Exit　　　　　　Exit  
@@ -187,7 +186,7 @@ Copyright (c) 2019 Stephane Dallongeville
 　F11 Start / Stop Video Recording  
 　F12 Reset  
 
-８．Setting View
+８．Setting View  
 ■Window  
 　Turn the check ON to open the specified window  
 ■View  
