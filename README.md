@@ -152,7 +152,9 @@ Copyright (c) 2019 Stephane Dallongeville
 　3.Press the key you want to change to open Button Select.  
 　　　To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
 　4.Press the button on the desired device to complete the key mapping.  
-
+  ![menu2](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu2.png)  
+  ![menu3](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu4.png)  
+  ![menu4](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/how4.png)  
   
 ６．Menu  
 ■Control  
