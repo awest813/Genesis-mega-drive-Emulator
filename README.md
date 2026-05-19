@@ -145,10 +145,10 @@ Copyright (c) 2019 Stephane Dallongeville
 　　Mode: Return  
 ５．Input Configuration To configure the input settings, follow these steps:  
 　1.Select “Control” → “Setting” → “Setting” from the menu to open the Setting View.  
-  2.Check “I/O” in the “Window” tab to open the I/O View.  
-  3.Press the key you want to change to open Button Select.  
-        To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
-  4.Press the button on the desired device to complete the key mapping.  
+　2.Check “I/O” in the “Window” tab to open the I/O View.  
+　3.Press the key you want to change to open Button Select.  
+　　　To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
+　4.Press the button on the desired device to complete the key mapping.  
 
 ６．Menu  
 ■Control  
