@@ -130,6 +130,7 @@ Copyright (c) 2019 Stephane Dallongeville
 　　Press the “F” key during execution to open the file explorer.  
 　　Select the game file you want to run, and the game will start.  
 　　For previously executed game files, press keys “1” to “9” to re-execute them.  
+  ![menu1](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu1.png)
 ４．Default Keyboard Configuration The default keyboard mapping is as follows:  
 　　Start: Space  
 　　A Button: N  
@@ -149,7 +150,9 @@ Copyright (c) 2019 Stephane Dallongeville
 　3.Press the key you want to change to open Button Select.  
 　　　To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
 　4.Press the button on the desired device to complete the key mapping.  
-
+  ![menu1](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu2.png)
+  ![menu1](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu4.png)
+  ![menu1](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/how4.png)
 ６．Menu  
 ■Control  
 　■Setting　　　　 Display the settings screen  
