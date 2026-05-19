@@ -123,7 +123,7 @@ This project is licensed under the MIT License.
  
 Copyright (c) 2019 Stephane Dallongeville
 
-##How to Use MDTracer
+## How to Use MDTracer
 １．Extract the Executable File Extract the downloaded executable file.
 ２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.
 ３．Select a Game File
