@@ -124,123 +124,84 @@ This project is licensed under the MIT License.
 Copyright (c) 2019 Stephane Dallongeville
 
 ## How to Use MDTracer
-１．Extract the Executable File Extract the downloaded executable file.
-２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.
-３．Select a Game File
-　　Press the “F” key during execution to open the file explorer.
-　　Select the game file you want to run, and the game will start.
-　　For previously executed game files, press keys “1” to “9” to re-execute them.
-４．Default Keyboard Configuration The default keyboard mapping is as follows:
-　　Start: Space
-　　A Button: N
-　　B Button: M
-　　C Button: ,
-　　Up: W
-　　Down: S
-　　Left: A
-　　Right: D
-　　X Button: H
-　　Y Button: J
-　　Z Button: K
-　　Mode: Return
-５．Input Configuration To configure the input settings, follow these steps:
-　1.Select “Control” → “Setting” → “Setting” from the menu to open the Setting View.
-  2.Check “I/O” in the “Window” tab to open the I/O View.
-  3.Press the key you want to change to open Button Select.
-        To configure a joypad, press “Rescan” and select the device from the “Joystick” list.
-  4.Press the button on the desired device to complete the key mapping.
+１．Extract the Executable File Extract the downloaded executable file.  
+２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.  
+３．Select a Game File  
+　　Press the “F” key during execution to open the file explorer.  
+　　Select the game file you want to run, and the game will start.  
+　　For previously executed game files, press keys “1” to “9” to re-execute them.  
+  ![menu1](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/manu1.png)  
+  
+４．Default Keyboard Configuration The default keyboard mapping is as follows:  
+　　Start: Space  
+　　A Button: N  
+　　B Button: M  
+　　C Button: ,  
+　　Up: W  
+　　Down: S  
+　　Left: A  
+　　Right: D  
+　　X Button: H  
+　　Y Button: J  
+　　Z Button: K  
+　　Mode: Return  
+  
+５．Input Configuration To configure the input settings, follow these steps:  
+　1.Select “Control” → “Setting” → “Setting” from the menu to open the Setting View.  
+　2.Check “I/O” in the “Window” tab to open the I/O View.  
+　3.Press the key you want to change to open Button Select.  
+　　　To configure a joypad, press “Rescan” and select the device from the “Joystick” list.  
+　4.Press the button on the desired device to complete the key mapping.  
+  ![menu2](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/menu2.png)  
+  ![menu3](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/menu4.png)  
+  ![menu4](https://www.jppass.jp/mdtracer/wp-content/uploads/2025/01/how4.png)  
+  
+６．Menu  
+■Control  
+　■Setting　　　　 Display the settings screen  
+　■Exit　　　　　　Exit  
+■Capture  
+　■Screenshot　　　Save a screen capture  
+　■Video Recording Start video recording. Press again while recording to stop  
+　■Open Screenshot Folder Open the folder where screen captures are stored  
+　■Open Video Folder　　　Open the folder where videos are stored  
+■Emulation  
+　■Pause / Resume　Pause the game. Press again while paused to resume  
+　■Reset　　　　　 Reset the game  
+　■Frame Advance　 Advance the game one frame at a time. Resume with ESC  
+　■State Capture  
+　　■Save　　　　　Save the current game state  
+　　■Load　　　　　Restore the most recently saved game state  
+　　■List　　　　　Display a list of saved game states  
+　■Input Capture  
+　　■Record　　　　Start recording input operations. Press again while recording to stop  
+　　■Replay　　　　Replay the most recently saved input operations  
+　　■List　　　　　Display a list of saved input operations  
 
+７．Shortcut Key List  
+　Esc Pause / Resume  
+　F1 Save State Capture  
+　F2 Load State Capture  
+　F3 Display State Capture List  
+　F4 Open Setting  
+　F5 Start / Stop Input Capture Recording  
+　F6 Start / Stop Input Capture Replay  
+　F7 Display Input Capture List  
+　F9 Frame Advance  
+　F10 Save Screenshot  
+　F11 Start / Stop Video Recording  
+　F12 Reset  
 
+８．Setting View  
+■Window  
+　Turn the check ON to open the specified window  
+■View  
+　■View　　　　　　Turn the specified display of the game screen ON / OFF  
+　■Priority High 　Color the dots whose Priority is High in the specified display  
+　■Priority Low　　Color the dots whose Priority is Low in the specified display  
 
-１．Menu
-■Control
-　■Setting　　　　 Display the settings screen
-　■Exit　　　　　　Exit
-■Capture
-　■Screenshot　　　Save a screen capture
-　■Video Recording Start video recording. Press again while recording to stop
-　■Open Screenshot Folder Open the folder where screen captures are stored
-　■Open Video Folder　　　Open the folder where videos are stored
-■Emulation
-　■Pause / Resume　Pause the game. Press again while paused to resume
-　■Reset　　　　　 Reset the game
-　■Frame Advance　 Advance the game one frame at a time. Resume with ESC
-　■State Capture
-　　■Save　　　　　Save the current game state
-　　■Load　　　　　Restore the most recently saved game state
-　　■List　　　　　Display a list of saved game states
-　■Input Capture
-　　■Record　　　　Start recording input operations. Press again while recording to stop
-　　■Replay　　　　Replay the most recently saved input operations
-　　■List　　　　　Display a list of saved input operations
-
-２．Shortcut Key List
-Esc Pause / Resume
-F1 Save State Capture
-F2 Load State Capture
-F3 Display State Capture List
-F4 Open Setting
-F5 Start / Stop Input Capture Recording
-F6 Start / Stop Input Capture Replay
-F7 Display Input Capture List
-F9 Frame Advance
-F10 Save Screenshot
-F11 Start / Stop Video Recording
-F12 Reset
-3．Setting View
-■Window
-　Turn the check ON to open the specified window
-■View
-　■View　　　　　　Turn the specified display of the game screen ON / OFF
-　■Priority High 　Color the dots whose Priority is High in the specified display
-　■Priority Low　　Color the dots whose Priority is Low in the specified display
-4．VDP Memory View
-■Grid 　　　　　　Display an 8×8-dot grid
-■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window
+９．VDP Memory View  
+■Grid 　　　　　　Display an 8×8-dot grid  
+■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window  
 ■Video Recording　When ON, this works together with Video Recording (F11) and starts recording video of this window
-5．Menu
-■Control
-　■Setting　　　　 Display the settings screen
-　■Exit　　　　　　Exit
-■Capture
-　■Screenshot　　　Save a screen capture
-　■Video Recording Start video recording. Press again while recording to stop
-　■Open Screenshot Folder Open the folder where screen captures are stored
-　■Open Video Folder　　　Open the folder where videos are stored
-■Emulation
-　■Pause / Resume　Pause the game. Press again while paused to resume
-　■Reset　　　　　 Reset the game
-　■Frame Advance　 Advance the game one frame at a time. Resume with ESC
-　■State Capture
-　　■Save　　　　　Save the current game state
-　　■Load　　　　　Restore the most recently saved game state
-　　■List　　　　　Display a list of saved game states
-　■Input Capture
-　　■Record　　　　Start recording input operations. Press again while recording to stop
-　　■Replay　　　　Replay the most recently saved input operations
-　　■List　　　　　Display a list of saved input operations
 
-6．Shortcut Key List
-Esc Pause / Resume
-F1 Save State Capture
-F2 Load State Capture
-F3 Display State Capture List
-F4 Open Setting
-F5 Start / Stop Input Capture Recording
-F6 Start / Stop Input Capture Replay
-F7 Display Input Capture List
-F9 Frame Advance
-F10 Save Screenshot
-F11 Start / Stop Video Recording
-F12 Reset
-7．Setting View
-■Window
-　Turn the check ON to open the specified window
-■View
-　■View　　　　　　Turn the specified display of the game screen ON / OFF
-　■Priority High 　Color the dots whose Priority is High in the specified display
-　■Priority Low　　Color the dots whose Priority is Low in the specified display
-8．VDP Memory View
-■Grid 　　　　　　Display an 8×8-dot grid
-■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window
-■Video Recording　When ON, this works together with Video Recording (F11) and starts recording video of this window
