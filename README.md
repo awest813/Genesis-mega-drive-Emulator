@@ -124,25 +124,26 @@ This project is licensed under the MIT License.
 Copyright (c) 2019 Stephane Dallongeville
 
 ## How to Use MDTracer
-１．Extract the Executable File Extract the downloaded executable file.
-２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.
-３．Select a Game File
-　　Press the “F” key during execution to open the file explorer.
-　　Select the game file you want to run, and the game will start.
-　　For previously executed game files, press keys “1” to “9” to re-execute them.
-４．Default Keyboard Configuration The default keyboard mapping is as follows:
-　　Start: Space
-　　A Button: N
-　　B Button: M
-　　C Button: ,
-　　Up: W
-　　Down: S
-　　Left: A
-　　Right: D
-　　X Button: H
-　　Y Button: J
-　　Z Button: K
-　　Mode: Return
+## How to Use MDTracer
+１．Extract the Executable File Extract the downloaded executable file.  
+２．Run MDTracer.exe Run MDTracer.exe from the extracted folder.  
+３．Select a Game File  
+　　Press the “F” key during execution to open the file explorer.  
+　　Select the game file you want to run, and the game will start.  
+　　For previously executed game files, press keys “1” to “9” to re-execute them.  
+４．Default Keyboard Configuration The default keyboard mapping is as follows:  
+　　Start: Space  
+　　A Button: N  
+　　B Button: M  
+　　C Button: ,  
+　　Up: W  
+　　Down: S  
+　　Left: A  
+　　Right: D  
+　　X Button: H  
+　　Y Button: J  
+　　Z Button: K  
+　　Mode: Return  
 ５．Input Configuration To configure the input settings, follow these steps:
 　1.Select “Control” → “Setting” → “Setting” from the menu to open the Setting View.
   2.Check “I/O” in the “Window” tab to open the I/O View.
