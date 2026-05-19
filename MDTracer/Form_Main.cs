@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
 namespace MDTracer
@@ -20,6 +21,9 @@ namespace MDTracer
         private Bitmap g_work_bitmap = null;
         private int g_work_bitmapW = -1;
         private int g_work_bitmapH = -1;
+        private readonly object g_videoRecordLock = new object();
+        private Form_Main_AviRecorder? g_videoRecorder;
+        private string g_videoRecordPath = "";
 
         //----------------------------------------------------------------
         //form
@@ -58,9 +62,12 @@ namespace MDTracer
 
         private void Form_Main_FormClosing(object sender, FormClosingEventArgs e)
         {
+            videoRecordingStop(false);
+            vdpScreensVideoRecordingStop();
             md_main.g_md_io.input_record_stop();
             md_main.g_md_io.input_replay_stop();
-        }        private void Form_Main_SizeChanged(object sender, EventArgs e)
+        }
+        private void Form_Main_SizeChanged(object sender, EventArgs e)
         {
             if (this.WindowState != FormWindowState.Normal) return;
             if (g_filelist_view == false)
@@ -72,10 +79,10 @@ namespace MDTracer
                     w_y = (int)(224 * ((w_x - 16) / 320.0f)) + 85;
                 }
                 else
-                if ((w_y - 85) != g_screen_size_y)
-                {
-                    w_x = (int)(320 * ((w_y - 85) / 224.0f)) + 16;
-                }
+                    if ((w_y - 85) != g_screen_size_y)
+                    {
+                        w_x = (int)(320 * ((w_y - 85) / 224.0f)) + 16;
+                    }
                 this.Size = new Size(w_x, w_y);
             }
         }
@@ -110,6 +117,65 @@ namespace MDTracer
         //----------------------------------------------------------------
         //Event Handling: key operations
         //----------------------------------------------------------------
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (g_filelist_view == false)
+            {
+                switch (keyData)
+                {
+                    case Keys.Escape:
+                        stopGame();
+                        return true;
+                    case Keys.F1:
+                        StateSave();
+                        return true;
+                    case Keys.F2:
+                        StateRestoreLatest();
+                        return true;
+                    case Keys.F3:
+                        state_capture_list();
+                        return true;
+                    case Keys.F5:
+                        if (md_main.g_md_io.g_input_replaying == true)
+                        {
+                            input_capture_Stop();
+                        }
+                        else if (md_main.g_md_io.g_input_recording == true)
+                        {
+                            input_capture_Stop();
+                        }
+                        else
+                        {
+                            input_capture_Start();
+                        }
+                        return true;
+                    case Keys.F6:
+                        if (md_main.g_md_io.g_input_replaying == true)
+                        {
+                            input_capture_Stop();
+                        }
+                        else
+                        {
+                            input_capture_ReplayLatest();
+                        }
+                        return true;
+                    case Keys.F7:
+                        input_capture_list();
+                        return true;
+
+                    case Keys.F9:
+                        frameAdvance();
+                        return true;
+                    case Keys.F10:
+                        screenshot();
+                        return true;
+                    case Keys.F11:
+                        videoRecordingToggle();
+                        return true;
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         private void Form_Main_KeyDown(object sender, KeyEventArgs e)
         {
             string w_filename = "";
@@ -148,35 +214,7 @@ namespace MDTracer
                 }
             }
         }
-        private void file_list_update(string in_file)
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                if (g_file_name[i] == in_file)
-                {
-                    for (int m = i; m < 8; m++)
-                    {
-                        g_file_name[m] = g_file_name[m + 1];
-                    }
-                    break;
-                }
-            }
-            for (int i = 8; i >= 1; i--)
-            {
-                g_file_name[i] = g_file_name[i - 1];
-            }
-            g_file_name[0] = in_file;
-            md_main.write_setting();
-        }
-        //----------------------------------------------------------------
-        //Event Handling: mouse operations
-        //----------------------------------------------------------------
-        private void pictureBox_game_MouseClick(object sender, MouseEventArgs e)
-        {
-            g_mouseclick_pos_x = (int)((float)e.X * (float)md_main.g_md_vdp.g_display_xsize / (float)g_screen_size_x);
-            g_mouseclick_pos_y = (int)((float)e.Y * (float)md_main.g_md_vdp.g_display_ysize / (float)g_screen_size_y);
-            g_mouseclick_interrupt = true;
-        }
+
         //----------------------------------------------------------------
         //Event Handling: menu
         //----------------------------------------------------------------
@@ -186,55 +224,78 @@ namespace MDTracer
         }
         private void hardResetMenuItem_Click(object sender, EventArgs e)
         {
-            md_main.g_hard_reset_req = true;
-        }
-        private void inputRecordStartMenuItem_Click(object sender, EventArgs e)
-        {
-            using SaveFileDialog w_dialog = new SaveFileDialog();
-            w_dialog.Filter = "MDTracer input record (*.mdi)|*.mdi|All files (*.*)|*.*";
-            w_dialog.FileName = "input.mdi";
-            if (w_dialog.ShowDialog() != DialogResult.OK) return;
+            if (MessageBox.Show("Do you want to reset?", "Reset", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
-            try
-            {
-                md_main.g_md_io.input_record_start(w_dialog.FileName);
-                toolStripStatusLabel1.Text = "input recording";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Input Record Start");
-            }
+            md_main.request_hard_reset();
         }
-        private void inputRecordStopMenuItem_Click(object sender, EventArgs e)
+        private void input_capture_ReplayMenuItem_Click(object sender, EventArgs e)
         {
-            md_main.g_md_io.input_record_stop();
-            toolStripStatusLabel1.Text = "input record stopped";
+            input_capture_ReplayLatest();
         }
-        private void inputReplayStartMenuItem_Click(object sender, EventArgs e)
-        {
-            using OpenFileDialog w_dialog = new OpenFileDialog();
-            w_dialog.Filter = "MDTracer input record (*.mdi)|*.mdi|All files (*.*)|*.*";
-            if (w_dialog.ShowDialog() != DialogResult.OK) return;
 
-            try
-            {
-                md_main.g_md_io.input_replay_start(w_dialog.FileName);
-                toolStripStatusLabel1.Text = "input replaying";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Input Replay Start");
-            }
-        }
-        private void inputReplayStopMenuItem_Click(object sender, EventArgs e)
+        private void input_capture_RecodeMenuItem_Click(object sender, EventArgs e)
         {
-            md_main.g_md_io.input_replay_stop();
-            toolStripStatusLabel1.Text = "input replay stopped";
+            input_capture_Start();
+        }
+
+        private void input_capture_ListMenuItem_Click(object sender, EventArgs e)
+        {
+            input_capture_list();
+        }
+        private void state_capture_saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StateSave();
+        }
+        private void state_capture_loadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StateRestoreLatest();
+        }
+        private void state_capture_state_capture_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            state_capture_list();
+        }
+        private void pauseResumeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            stopGame();
+        }
+        private void frameAdvanceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frameAdvance();
+        }
+        private void screenshotToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            screenshot();
+        }
+        private void videoRecordingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            videoRecordingToggle();
+        }
+        private void openVideoFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openSaveFolder("Video");
+        }
+        private void openCaptureFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openSaveFolder("Screenshot");
+        }
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
         }
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var newForm = new Form_About();
             newForm.ShowDialog();
+        }
+        private static void openSaveFolder(string in_folderName)
+        {
+            string w_directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MDTracer", in_folderName);
+            Directory.CreateDirectory(w_directoryPath);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = w_directoryPath,
+                UseShellExecute = true,
+            });
         }
 
         //----------------------------------------------------------------
@@ -245,7 +306,7 @@ namespace MDTracer
         {
             if (this.WindowState == FormWindowState.Minimized) return;
             g_filelist_view = false;
-            toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "");
+            toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "") + (g_videoRecorder != null ? " VIDEO" : "") + (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
             lock (g_bitmapLock)
             {
                 int w_bitmap_x = panel_game.ClientSize.Width;
@@ -284,6 +345,7 @@ namespace MDTracer
                     }
                 }
                 g_work_bitmap.UnlockBits(game_bmpData);
+                videoRecordingAddFrame(g_work_bitmap);
                 try
                 {
                     this.Invoke((Action)(() =>
@@ -297,6 +359,303 @@ namespace MDTracer
                 catch { }
             }
         }
+        //----------------------------------------------------------------
+        //Sub
+        //----------------------------------------------------------------
+        private void stopGame()
+        {
+            bool w_stopped = md_main.request_stop();
+            toolStripStatusLabel1.Text = w_stopped ? "Pause" : "";
+        }
+        private void frameAdvance()
+        {
+            bool w_requested = md_main.request_frame_advance();
+        }
+
+        private void screenshot()
+        {
+            try
+            {
+                Image? w_image = pictureBox_game.Image;
+                if (w_image == null)
+                {
+                    toolStripStatusLabel1.Text = "screenshot image is empty";
+                    return;
+                }
+
+                string w_basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string w_directoryPath = Path.Combine(w_basePath, "MDTracer", "Screenshot");
+                Directory.CreateDirectory(w_directoryPath);
+
+                string w_romName = md_main.g_state_capture_rom_file_name;
+                if (string.IsNullOrEmpty(w_romName) == true) w_romName = "screenshot";
+                foreach (char w_char in Path.GetInvalidFileNameChars())
+                {
+                    w_romName = w_romName.Replace(w_char, '_');
+                }
+
+                string w_timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                string w_filePrefix = w_romName + "_screenshot_" + w_timeStamp + "_screen";
+                string w_filePath = Path.Combine(w_directoryPath, w_filePrefix + ".png");
+                int w_suffix = 1;
+                while (File.Exists(w_filePath) == true)
+                {
+                    w_filePath = Path.Combine(w_directoryPath, w_filePrefix + "_" + w_suffix + ".png");
+                    w_suffix++;
+                }
+
+                using Bitmap w_bitmap = new Bitmap(w_image);
+                w_bitmap.Save(w_filePath, ImageFormat.Png);
+                vdpScreensScreenshot(w_timeStamp);
+                toolStripStatusLabel1.Text = "screenshot saved: " + Path.GetFileName(w_filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Screenshot");
+            }
+        }
+        private void videoRecordingToggle()
+        {
+            lock (g_videoRecordLock)
+            {
+                if (g_videoRecorder != null)
+                {
+                    videoRecordingStop(true);
+                    return;
+                }
+            }
+
+            videoRecordingStart();
+        }
+        private void videoRecordingStart()
+        {
+            try
+            {
+                Image? w_image = pictureBox_game.Image;
+                int w_width = g_work_bitmap?.Width ?? w_image?.Width ?? 0;
+                int w_height = g_work_bitmap?.Height ?? w_image?.Height ?? 0;
+                if (w_width <= 0 || w_height <= 0)
+                {
+                    toolStripStatusLabel1.Text = "video recording image is empty";
+                    return;
+                }
+
+                string w_basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string w_directoryPath = Path.Combine(w_basePath, "MDTracer", "Video");
+                Directory.CreateDirectory(w_directoryPath);
+
+                string w_romName = md_main.g_state_capture_rom_file_name;
+                if (string.IsNullOrEmpty(w_romName) == true) w_romName = "video";
+                foreach (char w_char in Path.GetInvalidFileNameChars())
+                {
+                    w_romName = w_romName.Replace(w_char, '_');
+                }
+
+                string w_timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                string w_filePrefix = w_romName + "_video_" + w_timeStamp + "_screen";
+                string w_filePath = Path.Combine(w_directoryPath, w_filePrefix + ".avi");
+                int w_suffix = 1;
+                while (File.Exists(w_filePath) == true)
+                {
+                    w_filePath = Path.Combine(w_directoryPath, w_filePrefix + "_" + w_suffix + ".avi");
+                    w_suffix++;
+                }
+
+                lock (g_videoRecordLock)
+                {
+                    g_videoRecorder = new Form_Main_AviRecorder(w_filePath, w_width, w_height, 60);
+                    g_videoRecordPath = w_filePath;
+                }
+                videoRecordingToolStripMenuItem.Checked = true;
+                vdpScreensVideoRecordingStart(w_timeStamp);
+                toolStripStatusLabel1.Text = "video recording: " + Path.GetFileName(w_filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Video Recording");
+            }
+        }
+        private void videoRecordingStop(bool in_updateStatus)
+        {
+            Form_Main_AviRecorder? w_recorder;
+            string w_filePath;
+            int w_frameCount;
+            lock (g_videoRecordLock)
+            {
+                if (g_videoRecorder == null) return;
+
+                w_recorder = g_videoRecorder;
+                w_filePath = g_videoRecordPath;
+                w_frameCount = w_recorder.FrameCount;
+                g_videoRecorder = null;
+                g_videoRecordPath = "";
+            }
+
+            w_recorder.Dispose();
+            vdpScreensVideoRecordingStop();
+            videoRecordingToolStripMenuItem.Checked = false;
+            if (in_updateStatus == true)
+            {
+                toolStripStatusLabel1.Text = "video saved: " + Path.GetFileName(w_filePath) + " (" + w_frameCount + " frames)";
+            }
+        }
+        private void videoRecordingAddFrame(Bitmap in_bitmap)
+        {
+            Form_Main_AviRecorder? w_recorder;
+            lock (g_videoRecordLock)
+            {
+                w_recorder = g_videoRecorder;
+            }
+            if (w_recorder == null) return;
+
+            try
+            {
+                w_recorder.AddFrame(in_bitmap);
+            }
+            catch (ObjectDisposedException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                lock (g_videoRecordLock)
+                {
+                    if (ReferenceEquals(g_videoRecorder, w_recorder) == true)
+                    {
+                        g_videoRecorder = null;
+                        g_videoRecordPath = "";
+                    }
+                }
+                w_recorder.Dispose();
+                vdpScreensVideoRecordingStop();
+                BeginInvoke((Action)(() =>
+                {
+                    videoRecordingToolStripMenuItem.Checked = false;
+                    toolStripStatusLabel1.Text = "video recording error: " + ex.Message;
+                }));
+            }
+        }
+        public void videoRecordingAddAudioSamples(byte[] in_buffer, int in_offset, int in_count)
+        {
+            Form_Main_AviRecorder? w_recorder;
+            lock (g_videoRecordLock)
+            {
+                w_recorder = g_videoRecorder;
+            }
+            if (w_recorder != null)
+            {
+                try
+                {
+                    w_recorder.AddAudioSamples(in_buffer, in_offset, in_count);
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
+            vdpScreensVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+        }
+
+        private void vdpScreensScreenshot(string in_timeStamp)
+        {
+            md_main.g_form_screenA.SyncScreenshot(in_timeStamp);
+            md_main.g_form_screenB.SyncScreenshot(in_timeStamp);
+            md_main.g_form_screenW.SyncScreenshot(in_timeStamp);
+            md_main.g_form_screenS.SyncScreenshot(in_timeStamp);
+        }
+        private void vdpScreensVideoRecordingStart(string in_timeStamp)
+        {
+            md_main.g_form_screenA.SyncVideoRecordingStart(in_timeStamp);
+            md_main.g_form_screenB.SyncVideoRecordingStart(in_timeStamp);
+            md_main.g_form_screenW.SyncVideoRecordingStart(in_timeStamp);
+            md_main.g_form_screenS.SyncVideoRecordingStart(in_timeStamp);
+        }
+        private void vdpScreensVideoRecordingStop()
+        {
+            md_main.g_form_screenA.SyncVideoRecordingStop();
+            md_main.g_form_screenB.SyncVideoRecordingStop();
+            md_main.g_form_screenW.SyncVideoRecordingStop();
+            md_main.g_form_screenS.SyncVideoRecordingStop();
+        }
+        private void vdpScreensVideoRecordingAddAudioSamples(byte[] in_buffer, int in_offset, int in_count)
+        {
+            md_main.g_form_screenA.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            md_main.g_form_screenB.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            md_main.g_form_screenW.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            md_main.g_form_screenS.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+        }
+        private void state_capture_list()
+        {
+            try
+            {
+                using Form_Main_StateCapture_list w_form = new Form_Main_StateCapture_list();
+                if (w_form.ShowDialog(this) != DialogResult.OK || w_form.SelectedEntry == null) return;
+
+                md_main.request_state_capture_restore_file(w_form.SelectedEntry.FilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "State Capture History");
+            }
+        }
+        private void StateSave()
+        {
+            if (md_main.StateStore.IsAvailable() == false) return;
+            md_main.request_state_capture_save();
+        }
+        private void StateRestoreLatest()
+        {
+            md_main.request_state_capture_restore_latest();
+        }
+        private void input_capture_list()
+        {
+            try
+            {
+                using Form_Main_InputCapture_list w_form = new Form_Main_InputCapture_list();
+                if (w_form.ShowDialog(this) != DialogResult.OK || w_form.SelectedEntry == null) return;
+
+                md_main.input_capture_replay_file(w_form.SelectedEntry.FilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Input Capture History");
+            }
+        }
+        private void input_capture_Start()
+        {
+            md_main.input_capture_record_start();
+        }
+        private void input_capture_Stop()
+        {
+            md_main.input_capture_record_stop();
+        }
+        private void input_capture_ReplayLatest()
+        {
+            md_main.input_capture_restore_latest();
+        }
+        private void input_capture_ReplayStop()
+        {
+            md_main.input_capture_replay_stop();
+        }
+        private void file_list_update(string in_file)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (g_file_name[i] == in_file)
+                {
+                    for (int m = i; m < 8; m++)
+                    {
+                        g_file_name[m] = g_file_name[m + 1];
+                    }
+                    break;
+                }
+            }
+            for (int i = 8; i >= 1; i--)
+            {
+                g_file_name[i] = g_file_name[i - 1];
+            }
+            g_file_name[0] = in_file;
+            md_main.write_setting();
+        }
+
     }
 }
-

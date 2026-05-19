@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             groupBox1 = new GroupBox();
+            checkBox_io = new CheckBox();
             checkBox_flow = new CheckBox();
             checkBox_register = new CheckBox();
             checkBox_music = new CheckBox();
-            checkBox_io = new CheckBox();
             checkBox_code = new CheckBox();
             checkBox_pallete = new CheckBox();
             checkBox_pattern = new CheckBox();
@@ -50,6 +50,18 @@
             label1 = new Label();
             comboBox_videoformat = new ComboBox();
             groupBox4 = new GroupBox();
+            label7 = new Label();
+            checkBox_S_Low = new CheckBox();
+            checkBox_S_High = new CheckBox();
+            checkBox_W_Low = new CheckBox();
+            checkBox_W_High = new CheckBox();
+            checkBox_B_Low = new CheckBox();
+            checkBox_B_High = new CheckBox();
+            label6 = new Label();
+            checkBox_A_Low = new CheckBox();
+            label5 = new Label();
+            label4 = new Label();
+            checkBox_A_High = new CheckBox();
             checkBox_viewS = new CheckBox();
             checkBox_viewW = new CheckBox();
             checkBox_viewB = new CheckBox();
@@ -62,10 +74,10 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(checkBox_io);
             groupBox1.Controls.Add(checkBox_flow);
             groupBox1.Controls.Add(checkBox_register);
             groupBox1.Controls.Add(checkBox_music);
-            groupBox1.Controls.Add(checkBox_io);
             groupBox1.Controls.Add(checkBox_code);
             groupBox1.Controls.Add(checkBox_pallete);
             groupBox1.Controls.Add(checkBox_pattern);
@@ -79,6 +91,17 @@
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Window";
+            // 
+            // checkBox_io
+            // 
+            checkBox_io.AutoSize = true;
+            checkBox_io.Location = new Point(99, 55);
+            checkBox_io.Name = "checkBox_io";
+            checkBox_io.Size = new Size(43, 19);
+            checkBox_io.TabIndex = 12;
+            checkBox_io.Text = "I/O";
+            checkBox_io.UseVisualStyleBackColor = true;
+            checkBox_io.CheckedChanged += checkBox_io_CheckedChanged;
             // 
             // checkBox_flow
             // 
@@ -112,17 +135,6 @@
             checkBox_music.Text = "Music";
             checkBox_music.UseVisualStyleBackColor = true;
             checkBox_music.CheckedChanged += checkBox_music_CheckedChanged;
-            // 
-            // checkBox_io
-            // 
-            checkBox_io.AutoSize = true;
-            checkBox_io.Location = new Point(99, 55);
-            checkBox_io.Name = "checkBox_io";
-            checkBox_io.Size = new Size(43, 19);
-            checkBox_io.TabIndex = 7;
-            checkBox_io.Text = "I/O";
-            checkBox_io.UseVisualStyleBackColor = true;
-            checkBox_io.CheckedChanged += checkBox_io_CheckedChanged;
             // 
             // checkBox_code
             // 
@@ -299,23 +311,151 @@
             // 
             // groupBox4
             // 
+            groupBox4.Controls.Add(label7);
+            groupBox4.Controls.Add(checkBox_S_Low);
+            groupBox4.Controls.Add(checkBox_S_High);
+            groupBox4.Controls.Add(checkBox_W_Low);
+            groupBox4.Controls.Add(checkBox_W_High);
+            groupBox4.Controls.Add(checkBox_B_Low);
+            groupBox4.Controls.Add(checkBox_B_High);
+            groupBox4.Controls.Add(label6);
+            groupBox4.Controls.Add(checkBox_A_Low);
+            groupBox4.Controls.Add(label5);
+            groupBox4.Controls.Add(label4);
+            groupBox4.Controls.Add(checkBox_A_High);
             groupBox4.Controls.Add(checkBox_viewS);
             groupBox4.Controls.Add(checkBox_viewW);
             groupBox4.Controls.Add(checkBox_viewB);
             groupBox4.Controls.Add(checkBox_viewA);
-            groupBox4.Location = new Point(12, 207);
+            groupBox4.Location = new Point(12, 202);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(176, 125);
-            groupBox4.TabIndex = 3;
+            groupBox4.Size = new Size(176, 150);
+            groupBox4.TabIndex = 4;
             groupBox4.TabStop = false;
             groupBox4.Text = "View";
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(22, 31);
+            label7.Name = "label7";
+            label7.Size = new Size(32, 15);
+            label7.TabIndex = 19;
+            label7.Text = "View";
+            // 
+            // checkBox_S_Low
+            // 
+            checkBox_S_Low.AutoSize = true;
+            checkBox_S_Low.Location = new Point(141, 126);
+            checkBox_S_Low.Name = "checkBox_S_Low";
+            checkBox_S_Low.Size = new Size(15, 14);
+            checkBox_S_Low.TabIndex = 18;
+            checkBox_S_Low.UseVisualStyleBackColor = true;
+            checkBox_S_Low.CheckedChanged += checkBox_S_Low_CheckedChanged;
+            // 
+            // checkBox_S_High
+            // 
+            checkBox_S_High.AutoSize = true;
+            checkBox_S_High.Location = new Point(107, 126);
+            checkBox_S_High.Name = "checkBox_S_High";
+            checkBox_S_High.Size = new Size(15, 14);
+            checkBox_S_High.TabIndex = 17;
+            checkBox_S_High.UseVisualStyleBackColor = true;
+            checkBox_S_High.CheckedChanged += checkBox_S_High_CheckedChanged;
+            // 
+            // checkBox_W_Low
+            // 
+            checkBox_W_Low.AutoSize = true;
+            checkBox_W_Low.Location = new Point(141, 101);
+            checkBox_W_Low.Name = "checkBox_W_Low";
+            checkBox_W_Low.Size = new Size(15, 14);
+            checkBox_W_Low.TabIndex = 16;
+            checkBox_W_Low.UseVisualStyleBackColor = true;
+            checkBox_W_Low.CheckedChanged += checkBox_W_Low_CheckedChanged;
+            // 
+            // checkBox_W_High
+            // 
+            checkBox_W_High.AutoSize = true;
+            checkBox_W_High.Location = new Point(107, 101);
+            checkBox_W_High.Name = "checkBox_W_High";
+            checkBox_W_High.Size = new Size(15, 14);
+            checkBox_W_High.TabIndex = 15;
+            checkBox_W_High.UseVisualStyleBackColor = true;
+            checkBox_W_High.CheckedChanged += checkBox_W_High_CheckedChanged;
+            // 
+            // checkBox_B_Low
+            // 
+            checkBox_B_Low.AutoSize = true;
+            checkBox_B_Low.Location = new Point(141, 76);
+            checkBox_B_Low.Name = "checkBox_B_Low";
+            checkBox_B_Low.Size = new Size(15, 14);
+            checkBox_B_Low.TabIndex = 14;
+            checkBox_B_Low.UseVisualStyleBackColor = true;
+            checkBox_B_Low.CheckedChanged += checkBox_B_Low_CheckedChanged;
+            // 
+            // checkBox_B_High
+            // 
+            checkBox_B_High.AutoSize = true;
+            checkBox_B_High.Location = new Point(107, 76);
+            checkBox_B_High.Name = "checkBox_B_High";
+            checkBox_B_High.Size = new Size(15, 14);
+            checkBox_B_High.TabIndex = 13;
+            checkBox_B_High.UseVisualStyleBackColor = true;
+            checkBox_B_High.CheckedChanged += checkBox_B_High_CheckedChanged;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(133, 31);
+            label6.Name = "label6";
+            label6.Size = new Size(29, 15);
+            label6.TabIndex = 12;
+            label6.Text = "Low";
+            // 
+            // checkBox_A_Low
+            // 
+            checkBox_A_Low.AutoSize = true;
+            checkBox_A_Low.Location = new Point(141, 49);
+            checkBox_A_Low.Name = "checkBox_A_Low";
+            checkBox_A_Low.Size = new Size(15, 14);
+            checkBox_A_Low.TabIndex = 11;
+            checkBox_A_Low.UseVisualStyleBackColor = true;
+            checkBox_A_Low.CheckedChanged += checkBox_A_Low_CheckedChanged;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(99, 31);
+            label5.Name = "label5";
+            label5.Size = new Size(33, 15);
+            label5.TabIndex = 10;
+            label5.Text = "High";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(99, 16);
+            label4.Name = "label4";
+            label4.Size = new Size(45, 15);
+            label4.TabIndex = 9;
+            label4.Text = "Priority";
+            // 
+            // checkBox_A_High
+            // 
+            checkBox_A_High.AutoSize = true;
+            checkBox_A_High.Location = new Point(107, 49);
+            checkBox_A_High.Name = "checkBox_A_High";
+            checkBox_A_High.Size = new Size(15, 14);
+            checkBox_A_High.TabIndex = 8;
+            checkBox_A_High.UseVisualStyleBackColor = true;
+            checkBox_A_High.CheckedChanged += checkBox_A_High_CheckedChanged;
             // 
             // checkBox_viewS
             // 
             checkBox_viewS.AutoSize = true;
             checkBox_viewS.Checked = true;
             checkBox_viewS.CheckState = CheckState.Checked;
-            checkBox_viewS.Location = new Point(24, 98);
+            checkBox_viewS.Location = new Point(24, 124);
             checkBox_viewS.Name = "checkBox_viewS";
             checkBox_viewS.Size = new Size(67, 19);
             checkBox_viewS.TabIndex = 7;
@@ -328,7 +468,7 @@
             checkBox_viewW.AutoSize = true;
             checkBox_viewW.Checked = true;
             checkBox_viewW.CheckState = CheckState.Checked;
-            checkBox_viewW.Location = new Point(24, 73);
+            checkBox_viewW.Location = new Point(24, 99);
             checkBox_viewW.Name = "checkBox_viewW";
             checkBox_viewW.Size = new Size(72, 19);
             checkBox_viewW.TabIndex = 6;
@@ -341,7 +481,7 @@
             checkBox_viewB.AutoSize = true;
             checkBox_viewB.Checked = true;
             checkBox_viewB.CheckState = CheckState.Checked;
-            checkBox_viewB.Location = new Point(24, 48);
+            checkBox_viewB.Location = new Point(24, 74);
             checkBox_viewB.Name = "checkBox_viewB";
             checkBox_viewB.Size = new Size(68, 19);
             checkBox_viewB.TabIndex = 5;
@@ -354,7 +494,7 @@
             checkBox_viewA.AutoSize = true;
             checkBox_viewA.Checked = true;
             checkBox_viewA.CheckState = CheckState.Checked;
-            checkBox_viewA.Location = new Point(24, 23);
+            checkBox_viewA.Location = new Point(24, 49);
             checkBox_viewA.Name = "checkBox_viewA";
             checkBox_viewA.Size = new Size(69, 19);
             checkBox_viewA.TabIndex = 4;
@@ -366,7 +506,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(418, 339);
+            ClientSize = new Size(418, 357);
             Controls.Add(groupBox4);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
@@ -391,12 +531,11 @@
         private CheckBox checkBox_pallete;
         private CheckBox checkBox_pattern;
         private CheckBox checkBox_screenS;
-        private CheckBox checkBox4;
+        private CheckBox checkBox_B_High;
         private CheckBox checkBox_screenB;
         private CheckBox checkBox_screenA;
         private CheckBox checkBox_register;
         private CheckBox checkBox_music;
-        private CheckBox checkBox_io;
         private CheckBox checkBox_code;
         private GroupBox groupBox2;
         private CheckBox checkBox_fsb;
@@ -409,10 +548,22 @@
         private CheckBox checkBox_flow;
         private CheckBox checkBox_sip;
         private Label label3;
+        private CheckBox checkBox_io;
         private GroupBox groupBox4;
         private CheckBox checkBox_viewS;
         private CheckBox checkBox_viewW;
         private CheckBox checkBox_viewB;
         private CheckBox checkBox_viewA;
+        private Label label7;
+        private CheckBox checkBox_S_Low;
+        private CheckBox checkBox_S_High;
+        private CheckBox checkBox_W_Low;
+        private CheckBox checkBox_W_High;
+        private CheckBox checkBox_B_Low;
+        private Label label6;
+        private CheckBox checkBox_A_Low;
+        private Label label5;
+        private Label label4;
+        private CheckBox checkBox_A_High;
     }
 }

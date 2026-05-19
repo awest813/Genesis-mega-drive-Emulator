@@ -29,14 +29,28 @@
         private void InitializeComponent()
         {
             menuStrip1 = new MenuStrip();
-            settingToolStripMenuItem = new ToolStripMenuItem();
+            fileToolStripMenuItem = new ToolStripMenuItem();
             SettingMenuItem1 = new ToolStripMenuItem();
-            hardResetMenuItem = new ToolStripMenuItem();
-            inputRecordStartMenuItem = new ToolStripMenuItem();
-            inputRecordStopMenuItem = new ToolStripMenuItem();
-            inputReplayStartMenuItem = new ToolStripMenuItem();
-            inputReplayStopMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
+            screenshotToolStripMenuItem = new ToolStripMenuItem();
+            videoRecordingToolStripMenuItem = new ToolStripMenuItem();
+            openCaptureFolderToolStripMenuItem = new ToolStripMenuItem();
+            openVideoFolderToolStripMenuItem = new ToolStripMenuItem();
+            emulationToolStripMenuItem = new ToolStripMenuItem();
+            pauseResumeToolStripMenuItem = new ToolStripMenuItem();
+            resetToolStripMenuItem = new ToolStripMenuItem();
+            frameAdvanceToolStripMenuItem = new ToolStripMenuItem();
+            stateCaptureToolStripMenuItem = new ToolStripMenuItem();
+            state_capture_saveToolStripMenuItem = new ToolStripMenuItem();
+            state_capture_loadToolStripMenuItem = new ToolStripMenuItem();
+            state_capture_listToolStripMenuItem = new ToolStripMenuItem();
+            inputCaptureToolStripMenuItem = new ToolStripMenuItem();
+            input_capture_recode_MenuItem = new ToolStripMenuItem();
+            input_capture_ReplayMenuItem = new ToolStripMenuItem();
+            input_capture_ListMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             panel_game = new Panel();
@@ -50,67 +64,165 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { settingToolStripMenuItem, aboutToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, toolStripMenuItem1, emulationToolStripMenuItem, aboutToolStripMenuItem, toolStripMenuItem2 });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(320, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             // 
-            // settingToolStripMenuItem
+            // fileToolStripMenuItem
             // 
-            settingToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { SettingMenuItem1, hardResetMenuItem, inputRecordStartMenuItem, inputRecordStopMenuItem, inputReplayStartMenuItem, inputReplayStopMenuItem });
-            settingToolStripMenuItem.Name = "settingToolStripMenuItem";
-            settingToolStripMenuItem.Size = new Size(56, 20);
-            settingToolStripMenuItem.Text = "Setting";
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { SettingMenuItem1, exitToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(58, 20);
+            fileToolStripMenuItem.Text = "Control";
             // 
             // SettingMenuItem1
             // 
             SettingMenuItem1.Name = "SettingMenuItem1";
             SettingMenuItem1.ShortcutKeys = Keys.F4;
-            SettingMenuItem1.Size = new Size(180, 22);
+            SettingMenuItem1.Size = new Size(135, 22);
             SettingMenuItem1.Text = "Setting";
             SettingMenuItem1.Click += SettingMenuItem1_Click;
             // 
-            // hardResetMenuItem
+            // exitToolStripMenuItem
             // 
-            hardResetMenuItem.Name = "hardResetMenuItem";
-            hardResetMenuItem.ShortcutKeys = Keys.F12;
-            hardResetMenuItem.Size = new Size(180, 22);
-            hardResetMenuItem.Text = "Hard Reset";
-            hardResetMenuItem.Click += hardResetMenuItem_Click;
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
+            exitToolStripMenuItem.Size = new Size(135, 22);
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
-            // inputRecordStartMenuItem
+            // toolStripMenuItem1
             // 
-            inputRecordStartMenuItem.Name = "inputRecordStartMenuItem";
-            inputRecordStartMenuItem.ShortcutKeys = Keys.F8;
-            inputRecordStartMenuItem.Size = new Size(180, 22);
-            inputRecordStartMenuItem.Text = "Input Record Start";
-            inputRecordStartMenuItem.Click += inputRecordStartMenuItem_Click;
+            toolStripMenuItem1.DropDownItems.AddRange(new ToolStripItem[] { screenshotToolStripMenuItem, videoRecordingToolStripMenuItem, openCaptureFolderToolStripMenuItem, openVideoFolderToolStripMenuItem });
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(60, 20);
+            toolStripMenuItem1.Text = "Capture";
             // 
-            // inputRecordStopMenuItem
+            // screenshotToolStripMenuItem
             // 
-            inputRecordStopMenuItem.Name = "inputRecordStopMenuItem";
-            inputRecordStopMenuItem.ShortcutKeys = Keys.Shift | Keys.F8;
-            inputRecordStopMenuItem.Size = new Size(180, 22);
-            inputRecordStopMenuItem.Text = "Input Record Stop";
-            inputRecordStopMenuItem.Click += inputRecordStopMenuItem_Click;
+            screenshotToolStripMenuItem.Name = "screenshotToolStripMenuItem";
+            screenshotToolStripMenuItem.ShortcutKeys = Keys.F10;
+            screenshotToolStripMenuItem.Size = new Size(200, 22);
+            screenshotToolStripMenuItem.Text = "Screenshot";
+            screenshotToolStripMenuItem.Click += screenshotToolStripMenuItem_Click;
             // 
-            // inputReplayStartMenuItem
+            // videoRecordingToolStripMenuItem
             // 
-            inputReplayStartMenuItem.Name = "inputReplayStartMenuItem";
-            inputReplayStartMenuItem.ShortcutKeys = Keys.F9;
-            inputReplayStartMenuItem.Size = new Size(180, 22);
-            inputReplayStartMenuItem.Text = "Input Replay Start";
-            inputReplayStartMenuItem.Click += inputReplayStartMenuItem_Click;
+            videoRecordingToolStripMenuItem.Name = "videoRecordingToolStripMenuItem";
+            videoRecordingToolStripMenuItem.ShortcutKeyDisplayString = "F11";
+            videoRecordingToolStripMenuItem.Size = new Size(200, 22);
+            videoRecordingToolStripMenuItem.Text = "Video Recording";
+            videoRecordingToolStripMenuItem.Click += videoRecordingToolStripMenuItem_Click;
             // 
-            // inputReplayStopMenuItem
+            // openCaptureFolderToolStripMenuItem
             // 
-            inputReplayStopMenuItem.Name = "inputReplayStopMenuItem";
-            inputReplayStopMenuItem.ShortcutKeys = Keys.Shift | Keys.F9;
-            inputReplayStopMenuItem.Size = new Size(180, 22);
-            inputReplayStopMenuItem.Text = "Input Replay Stop";
-            inputReplayStopMenuItem.Click += inputReplayStopMenuItem_Click;
+            openCaptureFolderToolStripMenuItem.Name = "openCaptureFolderToolStripMenuItem";
+            openCaptureFolderToolStripMenuItem.Size = new Size(200, 22);
+            openCaptureFolderToolStripMenuItem.Text = "Open Screenshot Folder";
+            openCaptureFolderToolStripMenuItem.Click += openCaptureFolderToolStripMenuItem_Click;
+            // 
+            // openVideoFolderToolStripMenuItem
+            // 
+            openVideoFolderToolStripMenuItem.Name = "openVideoFolderToolStripMenuItem";
+            openVideoFolderToolStripMenuItem.Size = new Size(200, 22);
+            openVideoFolderToolStripMenuItem.Text = "Open Video Folder";
+            openVideoFolderToolStripMenuItem.Click += openVideoFolderToolStripMenuItem_Click;
+            // 
+            // emulationToolStripMenuItem
+            // 
+            emulationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { pauseResumeToolStripMenuItem, resetToolStripMenuItem, frameAdvanceToolStripMenuItem, stateCaptureToolStripMenuItem, inputCaptureToolStripMenuItem });
+            emulationToolStripMenuItem.Name = "emulationToolStripMenuItem";
+            emulationToolStripMenuItem.Size = new Size(72, 20);
+            emulationToolStripMenuItem.Text = "Emulation";
+            // 
+            // pauseResumeToolStripMenuItem
+            // 
+            pauseResumeToolStripMenuItem.Name = "pauseResumeToolStripMenuItem";
+            pauseResumeToolStripMenuItem.ShortcutKeyDisplayString = "Esc";
+            pauseResumeToolStripMenuItem.Size = new Size(181, 22);
+            pauseResumeToolStripMenuItem.Text = "Pause / Resume";
+            pauseResumeToolStripMenuItem.Click += pauseResumeToolStripMenuItem_Click;
+            // 
+            // resetToolStripMenuItem
+            // 
+            resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+            resetToolStripMenuItem.ShortcutKeyDisplayString = "F12";
+            resetToolStripMenuItem.Size = new Size(181, 22);
+            resetToolStripMenuItem.Text = "Reset";
+            resetToolStripMenuItem.Click += hardResetMenuItem_Click;
+            // 
+            // frameAdvanceToolStripMenuItem
+            // 
+            frameAdvanceToolStripMenuItem.Name = "frameAdvanceToolStripMenuItem";
+            frameAdvanceToolStripMenuItem.ShortcutKeyDisplayString = "F9";
+            frameAdvanceToolStripMenuItem.Size = new Size(181, 22);
+            frameAdvanceToolStripMenuItem.Text = "Frame Advance";
+            frameAdvanceToolStripMenuItem.Click += frameAdvanceToolStripMenuItem_Click;
+            // 
+            // stateCaptureToolStripMenuItem
+            // 
+            stateCaptureToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { state_capture_saveToolStripMenuItem, state_capture_loadToolStripMenuItem, state_capture_listToolStripMenuItem });
+            stateCaptureToolStripMenuItem.Name = "stateCaptureToolStripMenuItem";
+            stateCaptureToolStripMenuItem.Size = new Size(181, 22);
+            stateCaptureToolStripMenuItem.Text = "State Capture";
+            // 
+            // state_capture_saveToolStripMenuItem
+            // 
+            state_capture_saveToolStripMenuItem.Name = "state_capture_saveToolStripMenuItem";
+            state_capture_saveToolStripMenuItem.ShortcutKeys = Keys.F1;
+            state_capture_saveToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_saveToolStripMenuItem.Text = "Save";
+            state_capture_saveToolStripMenuItem.Click += state_capture_saveToolStripMenuItem_Click;
+            // 
+            // state_capture_loadToolStripMenuItem
+            // 
+            state_capture_loadToolStripMenuItem.Name = "state_capture_loadToolStripMenuItem";
+            state_capture_loadToolStripMenuItem.ShortcutKeys = Keys.F2;
+            state_capture_loadToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_loadToolStripMenuItem.Text = "Load(Latest)";
+            state_capture_loadToolStripMenuItem.Click += state_capture_loadToolStripMenuItem_Click;
+            // 
+            // state_capture_listToolStripMenuItem
+            // 
+            state_capture_listToolStripMenuItem.Name = "state_capture_listToolStripMenuItem";
+            state_capture_listToolStripMenuItem.ShortcutKeys = Keys.F3;
+            state_capture_listToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_listToolStripMenuItem.Text = "List";
+            state_capture_listToolStripMenuItem.Click += state_capture_state_capture_ToolStripMenuItem_Click;
+            // 
+            // inputCaptureToolStripMenuItem
+            // 
+            inputCaptureToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { input_capture_recode_MenuItem, input_capture_ReplayMenuItem, input_capture_ListMenuItem });
+            inputCaptureToolStripMenuItem.Name = "inputCaptureToolStripMenuItem";
+            inputCaptureToolStripMenuItem.Size = new Size(181, 22);
+            inputCaptureToolStripMenuItem.Text = "Input Capture";
+            // 
+            // input_capture_recode_MenuItem
+            // 
+            input_capture_recode_MenuItem.Name = "input_capture_recode_MenuItem";
+            input_capture_recode_MenuItem.ShortcutKeys = Keys.F5;
+            input_capture_recode_MenuItem.Size = new Size(191, 22);
+            input_capture_recode_MenuItem.Text = "Record(Start/Stop)";
+            input_capture_recode_MenuItem.Click += input_capture_RecodeMenuItem_Click;
+            // 
+            // input_capture_ReplayMenuItem
+            // 
+            input_capture_ReplayMenuItem.Name = "input_capture_ReplayMenuItem";
+            input_capture_ReplayMenuItem.ShortcutKeys = Keys.F6;
+            input_capture_ReplayMenuItem.Size = new Size(191, 22);
+            input_capture_ReplayMenuItem.Text = "Replay(Latest)";
+            input_capture_ReplayMenuItem.Click += input_capture_ReplayMenuItem_Click;
+            // 
+            // input_capture_ListMenuItem
+            // 
+            input_capture_ListMenuItem.Name = "input_capture_ListMenuItem";
+            input_capture_ListMenuItem.ShortcutKeys = Keys.F7;
+            input_capture_ListMenuItem.Size = new Size(191, 22);
+            input_capture_ListMenuItem.Text = "List";
+            input_capture_ListMenuItem.Click += input_capture_ListMenuItem_Click;
             // 
             // aboutToolStripMenuItem
             // 
@@ -118,6 +230,11 @@
             aboutToolStripMenuItem.Size = new Size(50, 20);
             aboutToolStripMenuItem.Text = "about";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(12, 20);
             // 
             // statusStrip1
             // 
@@ -184,14 +301,28 @@
         private Panel panel_game;
         private PictureBox pictureBox_game;
         private ToolStripStatusLabel toolStripStatusLabel1;
-        private ToolStripMenuItem settingToolStripMenuItem;
+        private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem SettingMenuItem1;
-        private ToolStripMenuItem hardResetMenuItem;
         private OpenFileDialog openFileDialog1;
         private ToolStripMenuItem aboutToolStripMenuItem;
-        private ToolStripMenuItem inputRecordStartMenuItem;
-        private ToolStripMenuItem inputRecordStopMenuItem;
-        private ToolStripMenuItem inputReplayStartMenuItem;
-        private ToolStripMenuItem inputReplayStopMenuItem;
+        private ToolStripMenuItem input_capture_recode_MenuItem;
+        private ToolStripMenuItem input_capture_ReplayMenuItem;
+        private ToolStripMenuItem input_capture_ListMenuItem;
+        private ToolStripMenuItem emulationToolStripMenuItem;
+        private ToolStripMenuItem stateCaptureToolStripMenuItem;
+        private ToolStripMenuItem state_capture_saveToolStripMenuItem;
+        private ToolStripMenuItem state_capture_loadToolStripMenuItem;
+        private ToolStripMenuItem state_capture_listToolStripMenuItem;
+        private ToolStripMenuItem pauseResumeToolStripMenuItem;
+        private ToolStripMenuItem resetToolStripMenuItem;
+        private ToolStripMenuItem frameAdvanceToolStripMenuItem;
+        private ToolStripMenuItem openVideoFolderToolStripMenuItem;
+        private ToolStripMenuItem openCaptureFolderToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem inputCaptureToolStripMenuItem;
+        private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem toolStripMenuItem2;
+        private ToolStripMenuItem screenshotToolStripMenuItem;
+        private ToolStripMenuItem videoRecordingToolStripMenuItem;
     }
 }

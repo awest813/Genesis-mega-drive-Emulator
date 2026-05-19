@@ -202,8 +202,13 @@ namespace MDTracer
             g_flag_C = 0;
             g_interruptMode = 0;
             g_halt = false;
+            g_halt_out = false;
             g_IFF1 = false;
             g_IFF2 = false;
+            g_interrupt_irq = false;
+            g_interrupt_nmi = false;
+            g_clock = 0;
+            g_clock_total = 0;
 
             g_bank_register = 0xff8000;
         }

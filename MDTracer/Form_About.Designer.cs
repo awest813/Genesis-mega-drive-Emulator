@@ -41,7 +41,7 @@
             label1.Name = "label1";
             label1.Size = new Size(92, 15);
             label1.TabIndex = 0;
-            label1.Text = "MD tracer  00.01";
+            label1.Text = "MD tracer  01.04";
             // 
             // label2
             // 

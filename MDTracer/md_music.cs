@@ -15,6 +15,7 @@ namespace MDTracer
         const int BIT = 16;
         const int CHANNELS = 2;
         const int BUFSIZE = 1024;
+        const short SILENCE_THRESHOLD = 16;
         const float CLOCK_PER_SAMPLE = CPU_CLOCK / SAMPLING;
         public bool[] g_master_chk;
         public int[] g_master_vol;
@@ -54,6 +55,16 @@ namespace MDTracer
             g_md_ym2612.YM2612_Start();
             g_waveOut.Play();
         }
+        public void reset()
+        {
+            g_bufferedwaveprovider.ClearBuffer();
+            Array.Clear(g_buffer, 0, g_buffer.Length);
+            Array.Clear(g_freq_out, 0, g_freq_out.Length);
+            g_buffer_cur = 0;
+            g_clock_total = 0;
+            g_md_sn76489.SN76489_Start();
+            g_md_ym2612.YM2612_Start();
+        }
         public void setting()
         {
             for(int i = 0; i <= 9; i++)
@@ -81,6 +92,7 @@ namespace MDTracer
                 int result2 = g_md_sn76489.SN76489_Update();
                 short w_mix_total1 = Clip16(result.out1 + result2);
                 short w_mix_total2 = Clip16(result.out2 + result2);
+                SilenceGate16(ref w_mix_total1, ref w_mix_total2);
 
                 g_buffer[g_buffer_cur + 1] = (byte)((short)w_mix_total1 >> 8);
                 g_buffer[g_buffer_cur + 0] = (byte)((short)w_mix_total1 & 0xff);
@@ -91,6 +103,7 @@ namespace MDTracer
                 {
                     WaitForBufferSpace();
                     g_bufferedwaveprovider.AddSamples(g_buffer, 0, BUFSIZE);
+                    Form_Main.Instance.videoRecordingAddAudioSamples(g_buffer, 0, BUFSIZE);
                     g_buffer_cur = 0;
                 }
             }
@@ -109,6 +122,16 @@ namespace MDTracer
             if (in_val > short.MaxValue) return short.MaxValue;
             if (in_val < short.MinValue) return short.MinValue;
             return (short)in_val;
+        }
+
+        private void SilenceGate16(ref short in_left, ref short in_right)
+        {
+            if ((in_left > -SILENCE_THRESHOLD) && (in_left < SILENCE_THRESHOLD)
+                && (in_right > -SILENCE_THRESHOLD) && (in_right < SILENCE_THRESHOLD))
+            {
+                in_left = 0;
+                in_right = 0;
+            }
         }
 
     }

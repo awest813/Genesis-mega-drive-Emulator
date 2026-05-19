@@ -253,49 +253,52 @@ namespace MDTracer
                     int w_reverse = ((w_val3 >> 11) & 0x0003);
                     int w_char = w_val3 & 0x07ff;
 
-                    for (int cy = 0; cy < w_ycell_size; cy++)
+                    if (g_sprite_enable[i] == true)
                     {
-                        for (int cx = 0; cx < w_xcell_size; cx++)
+                        for (int cy = 0; cy < w_ycell_size; cy++)
                         {
-                            int w_char_cur = 0;
-                            switch (w_reverse)
+                            for (int cx = 0; cx < w_xcell_size; cx++)
                             {
-                                case 0:
-                                    w_char_cur = w_char + (w_ycell_size * cx) + cy;
-                                    break;
-                                case 1:
-                                    w_char_cur = w_char + (w_ycell_size * (w_xcell_size - cx - 1)) + cy;
-                                    break;
-                                case 2:
-                                    w_char_cur = w_char + (w_ycell_size * cx) + (w_ycell_size - cy - 1);
-                                    break;
-                                default:
-                                    w_char_cur = w_char + (w_ycell_size * (w_xcell_size - cx - 1)) + (w_ycell_size - cy - 1);
-                                    break;
-                            }
-                            if(w_char_cur <= 0x7ff)
-                            {
-                                int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char_cur << 4));
-                                int wx = w_pos_x + (cx * 8);
-                                int wy = w_pos_y + (cy * 8);
-                                int pixelOffset3 = (dest_stride * wy) + (bytesPerPixel * wx);
-                                for (int dy = 0; dy < 8; dy++)
+                                int w_char_cur = 0;
+                                switch (w_reverse)
                                 {
-                                    int pixelOffset4 = pixelOffset3;
-                                    for (int dx = 0; dx < 8; dx++)
+                                    case 0:
+                                        w_char_cur = w_char + (w_ycell_size * cx) + cy;
+                                        break;
+                                    case 1:
+                                        w_char_cur = w_char + (w_ycell_size * (w_xcell_size - cx - 1)) + cy;
+                                        break;
+                                    case 2:
+                                        w_char_cur = w_char + (w_ycell_size * cx) + (w_ycell_size - cy - 1);
+                                        break;
+                                    default:
+                                        w_char_cur = w_char + (w_ycell_size * (w_xcell_size - cx - 1)) + (w_ycell_size - cy - 1);
+                                        break;
+                                }
+                                if(w_char_cur <= 0x7ff)
+                                {
+                                    int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char_cur << 4));
+                                    int wx = w_pos_x + (cx * 8);
+                                    int wy = w_pos_y + (cy * 8);
+                                    int pixelOffset3 = (dest_stride * wy) + (bytesPerPixel * wx);
+                                    for (int dy = 0; dy < 8; dy++)
                                     {
-                                        uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
-                                        uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
-                                        uint color = g_snap_color[w_palette + w_pic];
-
-                                        if (((wy + dy) < 512) && ((wx + dx) < 512))
+                                        int pixelOffset4 = pixelOffset3;
+                                        for (int dx = 0; dx < 8; dx++)
                                         {
-                                            uint* pixel2 = (uint*)(pixels + pixelOffset4);
-                                            *pixel2 = color;
-                                            pixelOffset4 += bytesPerPixel;
+                                            uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
+                                            uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
+                                            uint color = g_snap_color[w_palette + w_pic];
+
+                                            if (((wy + dy) < 512) && ((wx + dx) < 512))
+                                            {
+                                                uint* pixel2 = (uint*)(pixels + pixelOffset4);
+                                                *pixel2 = color;
+                                                pixelOffset4 += bytesPerPixel;
+                                            }
                                         }
+                                        pixelOffset3 += dest_stride;
                                     }
-                                    pixelOffset3 += dest_stride;
                                 }
                             }
                         }

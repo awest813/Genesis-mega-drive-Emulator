@@ -41,6 +41,11 @@ namespace MDTracer
         public List<string> g_joy_name_list;
         public int g_joy_device_cur;
         public string g_joy_name;
+        private long g_joy_last_rescan_time;
+        private int g_joy_rescan_in_progress;
+        private readonly object g_joy_device_lock = new object();
+        private readonly object g_joy_rescan_lock = new object();
+        private const int JOY_RESCAN_INTERVAL_MS = 4000;
         public int[] g_key_allocation;
         public int[] g_joy_allocation;
 

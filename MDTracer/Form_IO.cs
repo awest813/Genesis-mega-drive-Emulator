@@ -233,7 +233,6 @@
                 }
             }
         }
-
         private void Form_IO_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_io_enable = false;
@@ -259,41 +258,57 @@
         public void rescan()
         {
             md_main.g_md_io.rescan();
+            update_joystick_combo(true);
+        }
 
+        public void update_joystick_combo_from_device_scan()
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(update_joystick_combo_from_device_scan));
+                return;
+            }
+            update_joystick_combo(true);
+        }
+
+        private void update_joystick_combo(bool in_write_setting)
+        {
             comboBox1.Items.Clear();
-            int w_index = -1;
+            if (md_main.g_md_io.g_joy_name_list.Count == 0)
+            {
+                md_main.g_md_io.g_joy_device_cur = -1;
+                comboBox1.SelectedIndex = -1;
+                if (in_write_setting) md_main.write_setting();
+                return;
+            }
+
+            int w_index = 0;
             for (int i = 0; i < md_main.g_md_io.g_joy_name_list.Count; i++)
             {
-                w_index = 0;
                 comboBox1.Items.Add(md_main.g_md_io.g_joy_name_list[i]);
                 if (md_main.g_md_io.g_joy_name == md_main.g_md_io.g_joy_name_list[i])
                 {
                     w_index = i;
                 }
             }
-            if (w_index == 0)
+
+            if (!md_main.g_md_io.g_joy_name_list.Contains(md_main.g_md_io.g_joy_name))
             {
                 md_main.g_md_io.g_joy_name = md_main.g_md_io.g_joy_name_list[0];
                 w_index = 0;
             }
+
             md_main.g_md_io.g_joy_device_cur = w_index;
             comboBox1.SelectedIndex = w_index;
-            md_main.write_setting();
+            if (in_write_setting) md_main.write_setting();
         }
         //----------------------------------------------------------------
         //initialize
         //----------------------------------------------------------------
         public void initialize()
         {
-            if (md_main.g_md_io.g_joy_name_list.Count > 0)
-            {
-                for (int i = 0; i < md_main.g_md_io.g_joy_name_list.Count; i++)
-                {
-                    comboBox1.Items.Add(md_main.g_md_io.g_joy_name_list[i]);
-                }
-                comboBox1.SelectedIndex = 0;
-            }
-            md_main.g_md_io.g_joy_device_cur = 0;
+            update_joystick_combo(false);
 
             for (int i = 0; i < md_main.g_md_io.KEY_ALLCATION_NUM; i++)
             {

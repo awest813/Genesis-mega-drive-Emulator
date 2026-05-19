@@ -18,11 +18,12 @@ namespace MDTracer
             {
                 g_game_cmap[dx] = 0;
                 g_game_primap[dx] = 0;
+                g_game_plain[dx] = 0;
                 g_game_shadowmap[dx] = 0;
                 g_game_spmap[dx] = 0;
             }
             //rendering the scroll screenB
-            if(md_main.g_form_setting.g_view_screenB == true)
+            if (md_main.g_form_setting.g_view_screenB == true)
             {
                 int w_view_x = g_line_snap[g_scanline].hscrollB;
                 uint w_priority = 0;
@@ -58,15 +59,9 @@ namespace MDTracer
                     uint w_pic = (w_pic_w >> ((3 - (w_view_dx & 3)) << 2)) & 0x0f;
                     if (w_pic != 0)
                     {
-                        //if(w_priority==0)
-                        //{
                         g_game_cmap[wx] = w_palette + w_pic;
-                        //}
-                        //else
-                        //{
-                        //    g_game_cmap[wx] = 0x1f;
-                        //}
                         g_game_primap[wx] = w_priority;
+                        g_game_plain[wx] = 2;
                     }
                     g_game_shadowmap[wx] = w_priority;
                     w_view_x += 1;
@@ -121,15 +116,9 @@ namespace MDTracer
                             uint w_pic = (w_pic_w >> ((3 - (w_view_dx & 3)) << 2)) & 0x0f;
                             if (w_pic != 0)
                             {
-                                //if(w_priority==0)
-                                //{
-                                    g_game_cmap[wx] = w_palette + w_pic;
-                                //}
-                                //else
-                                //{
-                                //    g_game_cmap[wx] = 0x1f;
-                                //}
+                                g_game_cmap[wx] = w_palette + w_pic;
                                 g_game_primap[wx] = w_priority;
+                                g_game_plain[wx] = 1;
                             }
                             g_game_shadowmap[wx] |= w_priority;
                         }
@@ -141,7 +130,7 @@ namespace MDTracer
             }
 
             //rendering the sprite screen
-            if(md_main.g_form_setting.g_view_screenS == true)
+            if (md_main.g_form_setting.g_view_screenS == true)
             {
                 for (int i = 0; i < g_line_snap[g_scanline].sprite_rendrere_num; i++)
                 {
@@ -193,6 +182,8 @@ namespace MDTracer
                                         {
                                             g_game_cmap[w_posx] = w_color;
                                             g_game_primap[w_posx] = (uint)w_priority;
+                                            g_game_plain[w_posx] = 4;
+
                                             g_game_spmap[w_posx] = w_color;
                                             if (g_game_spmap[w_posx] != 0)
                                             {
@@ -215,6 +206,7 @@ namespace MDTracer
                                         {
                                             g_game_cmap[w_posx] = w_color;
                                             g_game_primap[w_posx] = (uint)w_priority;
+                                            g_game_plain[w_posx] = 4;
                                             g_game_shadowmap[w_posx] = 0x1000;
                                             g_game_spmap[w_posx] = w_color;
                                             if (g_game_spmap[w_posx] != 0)
@@ -226,6 +218,7 @@ namespace MDTracer
                                         {
                                             g_game_cmap[w_posx] = w_color;
                                             g_game_primap[w_posx] = (uint)w_priority;
+                                            g_game_plain[w_posx] = 4;
                                             g_game_shadowmap[w_posx] |= (uint)w_priority;
                                             g_game_spmap[w_posx] = w_color;
                                             if (g_game_spmap[w_posx] != 0)
@@ -271,6 +264,7 @@ namespace MDTracer
                                 {
                                     g_game_cmap[w_posx] = w_palette + w_pic;
                                     g_game_primap[w_posx] = w_priority;
+                                    g_game_plain[w_posx] = 3;
                                 }
                                 g_game_shadowmap[w_posx] |= w_priority;
                             }
@@ -300,12 +294,73 @@ namespace MDTracer
                         if (w_shadow == 2) color = g_color_highlight[w_colnum];
                         else color = g_color[w_colnum];
                     }
-                    /*
-                    if (((wx % 8) == 0)||((g_scanline%8)==0))
+                    switch (g_game_plain[wx])
                     {
-                        color = 0xffff0000;
+                        case 1:
+                            if (g_game_primap[wx] == 0)
+                            {
+                                if (md_main.g_form_setting.g_screenA_Low == true)
+                                {
+                                    color = 0xff800000;
+                                }
+                            }
+                            else
+                            {
+                                if (md_main.g_form_setting.g_screenA_High == true)
+                                {
+                                    color = 0xffff0000;
+                                }
+                            }
+                            break;
+                        case 2:
+                            if (g_game_primap[wx] == 0)
+                            {
+                                if (md_main.g_form_setting.g_screenB_Low == true)
+                                {
+                                    color = 0xff008000;
+                                }
+                            }
+                            else
+                            {
+                                if (md_main.g_form_setting.g_screenB_High == true)
+                                {
+                                    color = 0xff00ff00;
+                                }
+                            }
+                            break;
+                        case 3:
+                            if (g_game_primap[wx] == 0)
+                            {
+                                if (md_main.g_form_setting.g_screenW_Low == true)
+                                {
+                                    color = 0xff808000;
+                                }
+                            }
+                            else
+                            {
+                                if (md_main.g_form_setting.g_screenW_High == true)
+                                {
+                                    color = 0xffffff00;
+                                }
+                            }
+                            break;
+                        case 4:
+                            if (g_game_primap[wx] == 0)
+                            {
+                                if (md_main.g_form_setting.g_screenS_Low == true)
+                                {
+                                    color = 0xff008080;
+                                }
+                            }
+                            else
+                            {
+                                if (md_main.g_form_setting.g_screenS_High == true)
+                                {
+                                    color = 0xff00ffff;
+                                }
+                            }
+                            break;
                     }
-                    */
 
 
                     g_game_screen[w_base + wx] = color;

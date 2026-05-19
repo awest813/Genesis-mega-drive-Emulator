@@ -8,6 +8,14 @@ namespace MDTracer
         public bool g_view_screenB = true;
         public bool g_view_screenW = true;
         public bool g_view_screenS = true;
+        public bool g_screenA_High = false;
+        public bool g_screenB_High = false;
+        public bool g_screenW_High = false;
+        public bool g_screenS_High = false;
+        public bool g_screenA_Low = false;
+        public bool g_screenB_Low = false;
+        public bool g_screenW_Low = false;
+        public bool g_screenS_Low = false;
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
@@ -84,7 +92,6 @@ namespace MDTracer
             show_window();
             md_main.write_setting();
         }
-
         private void checkBox_io_CheckedChanged(object sender, EventArgs e)
         {
             md_main.g_io_enable = checkBox_io.Checked;
@@ -144,6 +151,18 @@ namespace MDTracer
             checkBox_sip.Checked = md_main.g_trace_sip;
             comboBox_videoformat.SelectedIndex = md_main.g_md_vdp.g_vdp_status_0_tvmode;
             comboBox_rendering.SelectedIndex = (md_main.g_md_vdp.rendering_gpu == false) ? 0 : 1;
+            checkBox_viewA.Checked = g_view_screenA;
+            checkBox_viewB.Checked = g_view_screenB;
+            checkBox_viewW.Checked = g_view_screenW;
+            checkBox_viewS.Checked = g_view_screenS;
+            checkBox_A_High.Checked = g_screenA_High;
+            checkBox_A_Low.Checked = g_screenA_Low;
+            checkBox_B_High.Checked = g_screenB_High;
+            checkBox_B_Low.Checked = g_screenB_Low;
+            checkBox_W_High.Checked = g_screenW_High;
+            checkBox_W_Low.Checked = g_screenW_Low;
+            checkBox_S_High.Checked = g_screenS_High;
+            checkBox_S_Low.Checked = g_screenS_Low;
             show_window();
         }
         public void show_window()
@@ -164,21 +183,73 @@ namespace MDTracer
         private void checkBox_viewA_CheckedChanged(object sender, EventArgs e)
         {
             g_view_screenA = checkBox_viewA.Checked;
+            md_main.write_setting();
         }
 
         private void checkBox_viewB_CheckedChanged(object sender, EventArgs e)
         {
             g_view_screenB = checkBox_viewB.Checked;
+            md_main.write_setting();
         }
 
         private void checkBox_viewW_CheckedChanged(object sender, EventArgs e)
         {
             g_view_screenW = checkBox_viewW.Checked;
+            md_main.write_setting();
         }
 
         private void checkBox_viewS_CheckedChanged(object sender, EventArgs e)
         {
             g_view_screenS = checkBox_viewS.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_A_High_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenA_High = checkBox_A_High.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_B_High_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenB_High = checkBox_B_High.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_W_High_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenW_High = checkBox_W_High.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_S_High_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenS_High = checkBox_S_High.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_A_Low_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenA_Low = checkBox_A_Low.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_B_Low_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenB_Low = checkBox_B_Low.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_W_Low_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenW_Low = checkBox_W_Low.Checked;
+            md_main.write_setting();
+        }
+
+        private void checkBox_S_Low_CheckedChanged(object sender, EventArgs e)
+        {
+            g_screenS_Low = checkBox_S_Low.Checked;
+            md_main.write_setting();
         }
     }
 }

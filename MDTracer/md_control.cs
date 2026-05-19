@@ -5,6 +5,11 @@
         public byte g_io_a11200_z80reset;
         public byte g_io_a11100_z80active;
         //public byte g_io_a11000_memmode;
+        public void reset()
+        {
+            g_io_a11200_z80reset = 0;
+            g_io_a11100_z80active = 0;
+        }
         //----------------------------------------------------------------
         //read
         //----------------------------------------------------------------

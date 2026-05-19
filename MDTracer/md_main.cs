@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 namespace MDTracer
 {
     internal partial class md_main
@@ -51,7 +51,11 @@ namespace MDTracer
         //----------------------------------------------------------------
         public static bool run(string in_romname)
         {
+            g_stop_req = false;
+            g_state_capture_rom_file_name = "";
             if (false == g_md_cartridge.load(in_romname)) return false;
+            g_state_capture_rom_file_name = Path.GetFileName(in_romname);
+            g_state_capture_status = "";
             g_md_m68k.reset();
             g_form_code_trace.update();
             g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
@@ -64,12 +68,12 @@ namespace MDTracer
                 write_setting();
             }
 
+            g_md_vdp.g_waitHandle = new ManualResetEvent(false);
             Task<int> task = Task.Run<int>(() =>
             {
                 md_run();
                 return 0;
             });
-            g_md_vdp.g_waitHandle = new ManualResetEvent(false);
             Task<int> task_ppu = Task.Run<int>(() =>
             {
                 g_md_vdp.run_event();
@@ -116,14 +120,23 @@ namespace MDTracer
             {
                 if (g_hard_reset_req == true)
                 {
-                    g_md_m68k.reset();
-                    read_setting();
-                    g_form_code_trace.analyses_reset();
-                    if (g_trace_fsb == true)
-                    {
-                        g_form_code_trace.Trace_FirstStepBreak();
-                    }
+                    hard_reset();
                     g_hard_reset_req = false;
+                }
+                bool w_frame_advance = false;
+                if (g_stop_req == true)
+                {
+                    w_frame_advance = consume_frame_advance_request();
+                }
+                if ((g_stop_req == true) && (w_frame_advance == false))
+                {
+                    w_stopwatch.Restart();
+                    Thread.Sleep(10);
+                    continue;
+                }
+                if (w_frame_advance == true)
+                {
+                    request_frame_advance_update();
                 }
                 if(g_trace_nextframe == true)
                 {
@@ -132,6 +145,7 @@ namespace MDTracer
                     g_trace_nextframe = false;
                 }
                 g_md_io.input_update_frame();
+                process_state_capture_request();
                 for (int w_vline = 0; w_vline < g_md_vdp.g_vertical_line_max; w_vline++)
                 {
                     g_md_vdp.run(w_vline);
@@ -167,6 +181,24 @@ namespace MDTracer
                 w_stopwatch.Restart();
             }
         }
-
+        private static void hard_reset()
+        {
+            g_trace_nextframe = false;
+            g_state_capture_status = "";
+            g_md_m68k.reset();
+            g_md_z80.reset();
+            g_md_vdp.reset();
+            g_md_music.reset();
+            g_md_control.reset();
+            g_md_z80.g_active = false;
+            read_setting();
+            g_md_music.setting();
+            g_form_code_trace.analyses_reset();
+            g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
+            if (g_trace_fsb == true)
+            {
+                g_form_code_trace.Trace_FirstStepBreak();
+            }
+        }
     }
 }

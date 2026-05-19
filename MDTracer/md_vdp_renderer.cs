@@ -24,6 +24,7 @@ namespace MDTracer
         private VDP_LINE_SNAP[] g_line_snap;
         private uint[] g_game_cmap;
         private uint[] g_game_primap;
+        private uint[] g_game_plain;      //0:back,1:A,2:B,3:W,4:S
         private uint[] g_game_shadowmap;
         private uint[] g_game_spmap;
 
@@ -102,6 +103,7 @@ namespace MDTracer
             {
                 g_waitHandle.WaitOne(Timeout.Infinite);
                 g_waitHandle.Reset();
+                if ((md_main.is_stop_requested() == true) && (md_main.consume_frame_advance_update_request() == false)) continue;
                 if (rendering_gpu == true)
                 {
                     if (g_snap_register.vdp_reg_1_6_display == 1)
