@@ -150,9 +150,7 @@ Copyright (c) 2019 Stephane Dallongeville
         To configure a joypad, press “Rescan” and select the device from the “Joystick” list.
   4.Press the button on the desired device to complete the key mapping.
 
-
-
-１．Menu
+６．Menu
 ■Control
 　■Setting　　　　 Display the settings screen
 　■Exit　　　　　　Exit
@@ -174,73 +172,30 @@ Copyright (c) 2019 Stephane Dallongeville
 　　■Replay　　　　Replay the most recently saved input operations
 　　■List　　　　　Display a list of saved input operations
 
-２．Shortcut Key List
-Esc Pause / Resume
-F1 Save State Capture
-F2 Load State Capture
-F3 Display State Capture List
-F4 Open Setting
-F5 Start / Stop Input Capture Recording
-F6 Start / Stop Input Capture Replay
-F7 Display Input Capture List
-F9 Frame Advance
-F10 Save Screenshot
-F11 Start / Stop Video Recording
-F12 Reset
-3．Setting View
-■Window
-　Turn the check ON to open the specified window
-■View
-　■View　　　　　　Turn the specified display of the game screen ON / OFF
-　■Priority High 　Color the dots whose Priority is High in the specified display
-　■Priority Low　　Color the dots whose Priority is Low in the specified display
-4．VDP Memory View
-■Grid 　　　　　　Display an 8×8-dot grid
-■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window
-■Video Recording　When ON, this works together with Video Recording (F11) and starts recording video of this window
-5．Menu
-■Control
-　■Setting　　　　 Display the settings screen
-　■Exit　　　　　　Exit
-■Capture
-　■Screenshot　　　Save a screen capture
-　■Video Recording Start video recording. Press again while recording to stop
-　■Open Screenshot Folder Open the folder where screen captures are stored
-　■Open Video Folder　　　Open the folder where videos are stored
-■Emulation
-　■Pause / Resume　Pause the game. Press again while paused to resume
-　■Reset　　　　　 Reset the game
-　■Frame Advance　 Advance the game one frame at a time. Resume with ESC
-　■State Capture
-　　■Save　　　　　Save the current game state
-　　■Load　　　　　Restore the most recently saved game state
-　　■List　　　　　Display a list of saved game states
-　■Input Capture
-　　■Record　　　　Start recording input operations. Press again while recording to stop
-　　■Replay　　　　Replay the most recently saved input operations
-　　■List　　　　　Display a list of saved input operations
+７．Shortcut Key List
+　Esc Pause / Resume
+　F1 Save State Capture
+　F2 Load State Capture
+　F3 Display State Capture List
+　F4 Open Setting
+　F5 Start / Stop Input Capture Recording
+　F6 Start / Stop Input Capture Replay
+　F7 Display Input Capture List
+　F9 Frame Advance
+　F10 Save Screenshot
+　F11 Start / Stop Video Recording
+　F12 Reset
 
-6．Shortcut Key List
-Esc Pause / Resume
-F1 Save State Capture
-F2 Load State Capture
-F3 Display State Capture List
-F4 Open Setting
-F5 Start / Stop Input Capture Recording
-F6 Start / Stop Input Capture Replay
-F7 Display Input Capture List
-F9 Frame Advance
-F10 Save Screenshot
-F11 Start / Stop Video Recording
-F12 Reset
-7．Setting View
+８．Setting View
 ■Window
 　Turn the check ON to open the specified window
 ■View
 　■View　　　　　　Turn the specified display of the game screen ON / OFF
 　■Priority High 　Color the dots whose Priority is High in the specified display
 　■Priority Low　　Color the dots whose Priority is Low in the specified display
-8．VDP Memory View
+
+９．VDP Memory View
 ■Grid 　　　　　　Display an 8×8-dot grid
 ■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window
 ■Video Recording　When ON, this works together with Video Recording (F11) and starts recording video of this window
+
