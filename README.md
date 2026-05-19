@@ -153,9 +153,9 @@ Copyright (c) 2019 Stephane Dallongeville
 
 
 １．Menu
-Control
-　Setting　　　　 Display the settings screen
-　Exit　　　　　　Exit
+■Control
+　■Setting　　　　 Display the settings screen
+　■Exit　　　　　　Exit
 ■Capture
 　■Screenshot　　　Save a screen capture
 　■Video Recording Start video recording. Press again while recording to stop
