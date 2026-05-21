@@ -112,9 +112,9 @@ namespace MDTracer
                         {
                             int w_sourceOffset = x * 4;
                             int w_destOffset = x * 3;
-                            g_frameRow[w_destOffset + 0] = g_sourceRow[w_sourceOffset + 0];
-                            g_frameRow[w_destOffset + 1] = g_sourceRow[w_sourceOffset + 1];
-                            g_frameRow[w_destOffset + 2] = g_sourceRow[w_sourceOffset + 2];
+                            g_frameRow[w_destOffset + 2] = g_sourceRow[w_sourceOffset + 0];
+                            g_frameRow[w_destOffset + 0] = g_sourceRow[w_sourceOffset + 1];
+                            g_frameRow[w_destOffset + 1] = g_sourceRow[w_sourceOffset + 2];
                         }
                         g_writer.Write(g_frameRow);
                     }
