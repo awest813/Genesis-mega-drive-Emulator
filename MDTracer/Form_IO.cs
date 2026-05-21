@@ -61,6 +61,7 @@
         };
         public int g_screen_xpos;
         public int g_screen_ypos;
+        private volatile bool g_waitingKeyboardRelease;
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
@@ -149,6 +150,8 @@
             if (e.RowIndex >= in_joyAllocation.Length || e.RowIndex >= in_keyAllocation.Length) return;
 
             string w_columnName = dgv.Columns[e.ColumnIndex].Name;
+            if (g_waitingKeyboardRelease == true && w_columnName == "keyboard") return;
+
             if (w_columnName == "joystick")
             {
                 using (var form1 = new Form_IO_Setting())
@@ -180,6 +183,7 @@
                     form1.g_mode = 1;
                     form1.ShowDialog();
                     int w_result = form1.g_result;
+                    SuppressKeyboardCellActivationUntilRelease(dgv);
 
                     if (w_result == -1) return;
                     if (w_result == -2)
@@ -196,6 +200,29 @@
                     in_keyAllocation[e.RowIndex] = w_result;
                     md_main.write_setting();
                 }
+            }
+        }
+
+        private async void SuppressKeyboardCellActivationUntilRelease(DataGridView in_dataGridView)
+        {
+            g_waitingKeyboardRelease = true;
+            in_dataGridView.Enabled = false;
+
+            try
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    if (md_main.g_md_io.read_device_keyboard_for_setting() == -1) break;
+                    await Task.Delay(10);
+                }
+            }
+            finally
+            {
+                if (IsDisposed == false && in_dataGridView.IsDisposed == false)
+                {
+                    in_dataGridView.Enabled = true;
+                }
+                g_waitingKeyboardRelease = false;
             }
         }
 

@@ -4,6 +4,8 @@ namespace MDTracer
 {
     public partial class Form_IO_Setting : Form
     {
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_SYSKEYDOWN = 0x0104;
         public int g_mode;
         public int g_result;
         private volatile bool g_closingByUser;
@@ -100,6 +102,48 @@ namespace MDTracer
             g_result = -2;
             if (backgroundWorker1.IsBusy == true) backgroundWorker1.CancelAsync();
             Close();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (g_mode == 1 && TryGetDirectInputKeyNo(msg, out int w_keyNo) == true)
+            {
+                SetKeyboardResult(w_keyNo);
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void SetKeyboardResult(int in_keyNo)
+        {
+            if (in_keyNo <= 0 || in_keyNo >= md_io.KEY_STATUS_NUM) return;
+
+            g_result = in_keyNo;
+            g_closingByUser = true;
+            if (backgroundWorker1.IsBusy == true) backgroundWorker1.CancelAsync();
+            Close();
+        }
+
+        private static bool TryGetDirectInputKeyNo(Message in_msg, out int out_keyNo)
+        {
+            out_keyNo = -1;
+            if (in_msg.Msg != WM_KEYDOWN && in_msg.Msg != WM_SYSKEYDOWN) return false;
+
+            Keys w_virtualKey = (Keys)(int)in_msg.WParam;
+            if (w_virtualKey == Keys.Pause)
+            {
+                out_keyNo = (int)SharpDX.DirectInput.Key.Pause;
+                return true;
+            }
+
+            long w_lParam = in_msg.LParam.ToInt64();
+            int w_scanCode = (int)((w_lParam >> 16) & 0xff);
+            if (w_scanCode == 0) return false;
+
+            bool w_extended = (w_lParam & (1L << 24)) != 0;
+            out_keyNo = w_extended == true ? w_scanCode | 0x80 : w_scanCode;
+            return true;
         }
 
         private void Form_IO_Setting_FormClosing(object? sender, FormClosingEventArgs e)
