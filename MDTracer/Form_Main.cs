@@ -175,6 +175,9 @@ namespace MDTracer
                     case Keys.F11:
                         videoRecordingToggle();
                         return true;
+                    case Keys.F12:
+                        hardReset();
+                        return true;
                 }
             }
             return base.ProcessCmdKey(ref msg, keyData);
@@ -227,7 +230,12 @@ namespace MDTracer
         }
         private void hardResetMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Do you want to reset?", "Reset", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            hardReset();
+        }
+
+        private void hardReset()
+        {
+            if (MessageBox.Show("Are you sure you want to reset?", "Reset", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             md_main.request_hard_reset();
         }
