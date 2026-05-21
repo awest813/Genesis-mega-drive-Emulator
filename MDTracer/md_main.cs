@@ -1,4 +1,5 @@
 using System.Diagnostics;
+
 namespace MDTracer
 {
     internal partial class md_main
@@ -51,6 +52,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         public static bool run(string in_romname)
         {
+            g_form_code.SaveCurrentGameCodeSettings();
             g_stop_req = false;
             g_state_capture_rom_file_name = "";
             if (false == g_md_cartridge.load(in_romname)) return false;
@@ -59,6 +61,7 @@ namespace MDTracer
             g_md_m68k.reset();
             g_form_code_trace.update();
             g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
+            g_form_code.LoadCurrentGameCodeSettings();
             if (g_trace_fsb == true)
             {
                 g_form_code_trace.Trace_FirstStepBreak();
@@ -87,26 +90,50 @@ namespace MDTracer
         }
         public static void Screen_Update()
         {
-            g_form_screenA.picture_update(g_md_vdp.g_scrollA_bitmap
-                                            , g_md_vdp.g_scroll_xsize
-                                            , g_md_vdp.g_scroll_ysize);
-            g_form_screenB.picture_update(g_md_vdp.g_scrollB_bitmap
-                                            , g_md_vdp.g_scroll_xsize
-                                            , g_md_vdp.g_scroll_ysize);
-            g_form_screenW.picture_update(g_md_vdp.g_scrollW_bitmap
-                                            , g_md_vdp.g_scroll_xsize
-                                            , g_md_vdp.g_scroll_ysize);
-            g_form_screenS.picture_update(g_md_vdp.g_scrollS_bitmap
-                                            , g_md_vdp.SPRITE_XSIZE
-                                            , g_md_vdp.SPRITE_YSIZE);
-            g_form_pattern.picture_update(g_md_vdp.g_pattern_table);
-            g_form_pallete.Invalidate();
-            for (int i = 0; i < 10; i++)
+            if (g_screenA_enable == true)
             {
-                g_form_music.g_freq_out[i] = g_md_music.g_freq_out[i];
+                g_form_screenA.picture_update(g_md_vdp.g_scrollA_bitmap
+                                                , g_md_vdp.g_scroll_xsize
+                                                , g_md_vdp.g_scroll_ysize);
             }
-            g_form_music.Invalidate();
-            g_form_code.Invalidate();
+            if (g_screenB_enable == true)
+            {
+                g_form_screenB.picture_update(g_md_vdp.g_scrollB_bitmap
+                                                , g_md_vdp.g_scroll_xsize
+                                                , g_md_vdp.g_scroll_ysize);
+            }
+            if (g_screenW_enable == true)
+            {
+                g_form_screenW.picture_update(g_md_vdp.g_scrollW_bitmap
+                                                , g_md_vdp.g_scroll_xsize
+                                                , g_md_vdp.g_scroll_ysize);
+            }
+            if (g_screenS_enable == true)
+            {
+                g_form_screenS.picture_update(g_md_vdp.g_scrollS_bitmap
+                                                , g_md_vdp.SPRITE_XSIZE
+                                                , g_md_vdp.SPRITE_YSIZE);
+            }
+            if (g_pattern_enable == true)
+            {
+                g_form_pattern.picture_update(g_md_vdp.g_pattern_table);
+            }
+            if (g_pallete_enable == true)
+            {
+                g_form_pallete.Invalidate();
+            }
+            if (g_music_enable == true)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    g_form_music.g_freq_out[i] = g_md_music.g_freq_out[i];
+                }
+                g_form_music.Invalidate();
+            }
+            if (g_code_enable == true)
+            {
+                g_form_code.Invalidate();
+            }
         }
 
         private static void md_run()
@@ -141,7 +168,10 @@ namespace MDTracer
                 if(g_trace_nextframe == true)
                 {
                     int w_line = g_form_code_trace.get_code_from_addr(g_md_m68k.g_reg_PC);
-                    g_form_code_trace.g_analyse_code[w_line].break_flash = true;
+                    if (w_line >= 0)
+                    {
+                        g_form_code_trace.g_analyse_code[w_line].break_flash = true;
+                    }
                     g_trace_nextframe = false;
                 }
                 g_md_io.input_update_frame();

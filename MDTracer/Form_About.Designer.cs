@@ -41,7 +41,7 @@
             label1.Name = "label1";
             label1.Size = new Size(92, 15);
             label1.TabIndex = 0;
-            label1.Text = "MD tracer  01.04";
+            label1.Text = "MD tracer  01.05";
             // 
             // label2
             // 
@@ -50,7 +50,7 @@
             label2.Name = "label2";
             label2.Size = new Size(91, 15);
             label2.TabIndex = 1;
-            label2.Text = "(c)sasayaki 2024";
+            label2.Text = "(c)sasayaki 2026";
             // 
             // textBox1
             // 

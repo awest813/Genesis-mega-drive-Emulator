@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using static MDTracer.md_m68k;
 
 namespace MDTracer
@@ -11,6 +11,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         //read
         //----------------------------------------------------------------
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte read8(uint in_address)
         {
             byte w_out = 0;
@@ -18,7 +19,8 @@ namespace MDTracer
             if (in_address < 0x4000)
             {
                 in_address &= 0x1fff;
-                w_out = g_ram[in_address];
+                byte[] w_ram = g_ram;
+                w_out = w_ram[in_address];
             }
             else
             if (in_address <= 0x5fff)
@@ -37,16 +39,18 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_z80_memory.read8", "error");
+                report_z80_warning("md_z80_memory.read8");
             }
             return w_out;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ushort read16(uint in_address)
         {
             return (ushort)((read8(in_address) << 8)
                           | read8(in_address + 1));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint read32(uint in_address)
         {
             return (uint)((read16(in_address) << 16)
@@ -56,13 +60,15 @@ namespace MDTracer
         //----------------------------------------------------------------
         //write
         //----------------------------------------------------------------
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void write8(uint in_address, byte in_data)
         {
             in_address &= 0xffff;
             if (in_address < 0x4000)
             {
                 in_address &= 0x1fff;
-                g_ram[in_address] = in_data;
+                byte[] w_ram = g_ram;
+                w_ram[in_address] = in_data;
             }
             else
             if ((0x4000 <= in_address) && (in_address <= 0x5fff))
@@ -97,15 +103,17 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_z80_memory.write8", "error");
+                report_z80_warning("md_z80_memory.write8");
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void write16(uint in_address, ushort in_data)
         {
             write8(in_address, (byte)(in_data >> 8));
             write8(in_address + 1, (byte)(in_data & 0xff));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void write32(uint in_address, uint in_data)
         {
             write16(in_address, (ushort)(in_data >> 16));

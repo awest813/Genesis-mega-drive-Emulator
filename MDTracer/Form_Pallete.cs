@@ -51,89 +51,60 @@ namespace MDTracer
         }
         private void pictureBox_color_Paint(object sender, PaintEventArgs e)
         {
-            Bitmap dest_bitmap = (Bitmap)((PictureBox)sender).Image;
-            BitmapData dest_bmpData = dest_bitmap.LockBits(new Rectangle(0, 0, dest_bitmap.Width, dest_bitmap.Height),
-                                                 ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            IntPtr dest_ptr = dest_bmpData.Scan0;
-            int dest_stride = dest_bmpData.Stride;
-            int bytesPerPixel = 4;
-            unsafe
-            {
-                for (int wy = 0; wy < 4; wy++)
-                {
-                    for (int wx = 0; wx < 16; wx++)
-                    {
-                        uint w_color = md_main.g_md_vdp.g_color[wy * 16 + wx];
-                        for (int dy = 0; dy < 32; dy++)
-                        {
-                            for (int dx = 0; dx < 16; dx++)
-                            {
-                                uint* pixel = (uint*)(dest_ptr + (((wy * 32) + dy) * dest_stride) + (((wx * 16) + dx) * bytesPerPixel));
-                                *pixel = w_color;
-                            }
-                        }
-                    }
-                }
-            }
-            dest_bitmap.UnlockBits(dest_bmpData);
+            DrawPaletteBitmap(sender, md_main.g_md_vdp.g_color);
         }
 
         private void pictureBox_shadow_Paint(object sender, PaintEventArgs e)
         {
-            Bitmap dest_bitmap = (Bitmap)((PictureBox)sender).Image;
-            BitmapData dest_bmpData = dest_bitmap.LockBits(new Rectangle(0, 0, dest_bitmap.Width, dest_bitmap.Height),
-                                                 ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            IntPtr dest_ptr = dest_bmpData.Scan0;
-            int dest_stride = dest_bmpData.Stride;
-            int bytesPerPixel = 4;
-            unsafe
-            {
-                for (int wy = 0; wy < 4; wy++)
-                {
-                    for (int wx = 0; wx < 16; wx++)
-                    {
-                        uint w_color = md_main.g_md_vdp.g_color_shadow[wy * 16 + wx];
-                        for (int dy = 0; dy < 32; dy++)
-                        {
-                            for (int dx = 0; dx < 16; dx++)
-                            {
-                                uint* pixel = (uint*)(dest_ptr + (((wy * 32) + dy) * dest_stride) + (((wx * 16) + dx) * bytesPerPixel));
-                                *pixel = w_color;
-                            }
-                        }
-                    }
-                }
-            }
-            dest_bitmap.UnlockBits(dest_bmpData);
+            DrawPaletteBitmap(sender, md_main.g_md_vdp.g_color_shadow);
         }
 
         private void pictureBox_highlight_Paint(object sender, PaintEventArgs e)
         {
-            Bitmap dest_bitmap = (Bitmap)((PictureBox)sender).Image;
-            BitmapData dest_bmpData = dest_bitmap.LockBits(new Rectangle(0, 0, dest_bitmap.Width, dest_bitmap.Height),
-                                                 ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            IntPtr dest_ptr = dest_bmpData.Scan0;
-            int dest_stride = dest_bmpData.Stride;
-            int bytesPerPixel = 4;
-            unsafe
+            DrawPaletteBitmap(sender, md_main.g_md_vdp.g_color_highlight);
+        }
+
+        private void DrawPaletteBitmap(object sender, uint[] in_colors)
+        {
+            if (sender is not PictureBox w_pictureBox) return;
+            if (w_pictureBox.Image is not Bitmap dest_bitmap) return;
+            if (in_colors == null || in_colors.Length < 64) return;
+
+            BitmapData dest_bmpData = null;
+            try
             {
-                for (int wy = 0; wy < 4; wy++)
+                dest_bmpData = dest_bitmap.LockBits(new Rectangle(0, 0, dest_bitmap.Width, dest_bitmap.Height),
+                                                     ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+
+                IntPtr dest_ptr = dest_bmpData.Scan0;
+                int dest_stride = dest_bmpData.Stride;
+                int bytesPerPixel = 4;
+                unsafe
                 {
-                    for (int wx = 0; wx < 16; wx++)
+                    for (int wy = 0; wy < 4; wy++)
                     {
-                        uint w_color = md_main.g_md_vdp.g_color_highlight[wy * 16 + wx];
-                        for (int dy = 0; dy < 32; dy++)
+                        for (int wx = 0; wx < 16; wx++)
                         {
-                            for (int dx = 0; dx < 16; dx++)
+                            uint w_color = in_colors[wy * 16 + wx];
+                            for (int dy = 0; dy < 32; dy++)
                             {
-                                uint* pixel = (uint*)(dest_ptr + (((wy * 32) + dy) * dest_stride) + (((wx * 16) + dx) * bytesPerPixel));
-                                *pixel = w_color;
+                                for (int dx = 0; dx < 16; dx++)
+                                {
+                                    uint* pixel = (uint*)(dest_ptr + (((wy * 32) + dy) * dest_stride) + (((wx * 16) + dx) * bytesPerPixel));
+                                    *pixel = w_color;
+                                }
                             }
                         }
                     }
                 }
             }
-            dest_bitmap.UnlockBits(dest_bmpData);
+            finally
+            {
+                if (dest_bmpData != null)
+                {
+                    dest_bitmap.UnlockBits(dest_bmpData);
+                }
+            }
         }
     }
 }

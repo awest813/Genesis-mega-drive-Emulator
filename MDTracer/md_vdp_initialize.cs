@@ -1,5 +1,3 @@
-﻿using System.Xml.Linq;
-
 namespace MDTracer
 {
     internal partial class md_vdp
@@ -14,11 +12,10 @@ namespace MDTracer
             g_color_highlight = new uint[COLOR_MAX];
 
             g_pattern_chk = new bool[PATTERN_MAX];
-            g_game_cmap = new uint[DISPLAY_BUFSIZE];
-            g_game_primap = new uint[DISPLAY_BUFSIZE];
-            g_game_plain = new uint[DISPLAY_BUFSIZE];
-            g_game_shadowmap = new uint[DISPLAY_BUFSIZE];
-            g_game_spmap = new uint[DISPLAY_BUFSIZE];
+            g_game_cmap = new uint[DISPLAY_XSIZE];
+            g_game_primap = new uint[DISPLAY_XSIZE];
+            g_game_plain = new uint[DISPLAY_XSIZE];
+            g_game_shadowmap = new uint[DISPLAY_XSIZE];
 
             g_game_screen = new uint[DISPLAY_BUFSIZE];
             g_renderer_vram = new uint[VRAM_DATASIZE * 4];
@@ -120,7 +117,6 @@ namespace MDTracer
             Array.Clear(g_game_primap, 0, g_game_primap.Length);
             Array.Clear(g_game_plain, 0, g_game_plain.Length);
             Array.Clear(g_game_shadowmap, 0, g_game_shadowmap.Length);
-            Array.Clear(g_game_spmap, 0, g_game_spmap.Length);
             Array.Clear(g_game_screen, 0, g_game_screen.Length);
             Array.Clear(g_renderer_vram, 0, g_renderer_vram.Length);
             Array.Clear(g_snap_renderer_vram, 0, g_snap_renderer_vram.Length);

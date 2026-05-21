@@ -18,6 +18,8 @@ namespace MDTracer
         private readonly int g_fps;
         private readonly int g_rowStride;
         private readonly int g_frameSize;
+        private readonly byte[] g_frameRow;
+        private readonly byte[] g_sourceRow;
         private const int AUDIO_SAMPLES_PER_SECOND = 44100;
         private const int AUDIO_BITS_PER_SAMPLE = 16;
         private const int AUDIO_CHANNELS = 2;
@@ -41,6 +43,8 @@ namespace MDTracer
             g_fps = fps;
             g_rowStride = ((width * 3 + 3) / 4) * 4;
             g_frameSize = g_rowStride * height;
+            g_frameRow = new byte[g_rowStride];
+            g_sourceRow = new byte[width * 4];
             g_stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
             g_writer = new BinaryWriter(g_stream, Encoding.ASCII);
 
@@ -84,35 +88,41 @@ namespace MDTracer
                 WriteUInt32((uint)g_frameSize);
 
                 Rectangle w_rect = new Rectangle(0, 0, g_width, g_height);
-                using Bitmap w_bitmap = source.PixelFormat == PixelFormat.Format32bppArgb
-                    ? new Bitmap(source)
-                    : source.Clone(w_rect, PixelFormat.Format32bppArgb);
+                Bitmap? w_tempBitmap = null;
+                Bitmap w_bitmap = source;
+                if (source.PixelFormat != PixelFormat.Format32bppArgb)
+                {
+                    w_tempBitmap = source.Clone(w_rect, PixelFormat.Format32bppArgb);
+                    w_bitmap = w_tempBitmap;
+                }
 
-                BitmapData w_data = w_bitmap.LockBits(w_rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                BitmapData? w_data = null;
                 try
                 {
-                    byte[] w_row = new byte[g_rowStride];
-                    byte[] w_sourceRow = new byte[Math.Abs(w_data.Stride)];
+                    w_data = w_bitmap.LockBits(w_rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
                     int w_sourceStride = Math.Abs(w_data.Stride);
+                    int w_pixelBytes = g_width * 3;
+                    int w_paddingBytes = g_rowStride - w_pixelBytes;
                     for (int y = g_height - 1; y >= 0; y--)
                     {
-                        Array.Clear(w_row, 0, w_row.Length);
+                        if (w_paddingBytes > 0) Array.Clear(g_frameRow, w_pixelBytes, w_paddingBytes);
                         IntPtr w_source = w_data.Scan0 + y * w_data.Stride;
-                        Marshal.Copy(w_source, w_sourceRow, 0, w_sourceStride);
+                        Marshal.Copy(w_source, g_sourceRow, 0, w_sourceStride);
                         for (int x = 0; x < g_width; x++)
                         {
                             int w_sourceOffset = x * 4;
                             int w_destOffset = x * 3;
-                            w_row[w_destOffset+ 2] = w_sourceRow[w_sourceOffset + 0];
-                            w_row[w_destOffset + 0] = w_sourceRow[w_sourceOffset + 1];
-                            w_row[w_destOffset + 1] = w_sourceRow[w_sourceOffset + 2];
+                            g_frameRow[w_destOffset + 0] = g_sourceRow[w_sourceOffset + 0];
+                            g_frameRow[w_destOffset + 1] = g_sourceRow[w_sourceOffset + 1];
+                            g_frameRow[w_destOffset + 2] = g_sourceRow[w_sourceOffset + 2];
                         }
-                        g_writer.Write(w_row);
+                        g_writer.Write(g_frameRow);
                     }
                 }
                 finally
                 {
-                    w_bitmap.UnlockBits(w_data);
+                    if (w_data != null) w_bitmap.UnlockBits(w_data);
+                    w_tempBitmap?.Dispose();
                 }
 
                 if ((g_frameSize & 1) != 0) g_writer.Write((byte)0);

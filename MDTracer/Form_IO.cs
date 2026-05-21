@@ -133,105 +133,90 @@
         //----------------------------------------------------------------
         private void dataGridView_io_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridView dgv = (DataGridView)sender;
-            if (dgv.Columns[e.ColumnIndex].Name == "joystick")
-            {
-                var form1 = new Form_IO_Setting();
-                form1.g_mode = 0;
-                form1.ShowDialog();
-                int w_result = form1.g_result;
-                form1.Dispose();
-
-                if (w_result != -1)
-                {
-                    if (w_result == -2)
-                    {
-                        dataGridView_io[e.ColumnIndex, e.RowIndex].Value = "";
-                        w_result = -1;
-                    }
-                    if (w_result != -1)
-                    {
-                        dataGridView_io[e.ColumnIndex, e.RowIndex].Value = JOYSTICKS_NAME[w_result];
-                    }
-                    md_main.g_md_io.g_joy_allocation[e.RowIndex] = w_result;
-                }
-                md_main.write_setting();
-            }
-            if (dgv.Columns[e.ColumnIndex].Name == "keyboard")
-            {
-                var form1 = new Form_IO_Setting();
-                form1.g_mode = 1;
-                form1.ShowDialog();
-                int w_result = form1.g_result;
-                form1.Dispose();
-
-                if (w_result != -1)
-                {
-                    if (w_result == -2)
-                    {
-                        dataGridView_io[e.ColumnIndex, e.RowIndex].Value = "";
-                        w_result = 0;
-                    }
-                    if (w_result != -1)
-                    {
-                        dataGridView_io[e.ColumnIndex, e.RowIndex].Value = KEYS_NAME[w_result];
-                    }
-                    md_main.g_md_io.g_key_allocation[e.RowIndex] = w_result;
-                }
-                md_main.write_setting();
-            }
+            UpdateInputGrid(sender, e, md_main.g_md_io.g_joy_allocation, md_main.g_md_io.g_key_allocation);
         }
         private void dataGridView_io2_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+            UpdateInputGrid(sender, e, md_main.g_md_io.g_joy_allocation2, md_main.g_md_io.g_key_allocation2);
+        }
+
+        private void UpdateInputGrid(object sender, DataGridViewCellEventArgs e, int[] in_joyAllocation, int[] in_keyAllocation)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (sender is not DataGridView dgv) return;
+            if (in_joyAllocation == null || in_keyAllocation == null) return;
+            if (e.ColumnIndex >= dgv.Columns.Count || e.RowIndex >= dgv.Rows.Count) return;
+            if (e.RowIndex >= in_joyAllocation.Length || e.RowIndex >= in_keyAllocation.Length) return;
+
+            string w_columnName = dgv.Columns[e.ColumnIndex].Name;
+            if (w_columnName == "joystick")
             {
-                DataGridView dgv = (DataGridView)sender;
-                if (dgv.Columns[e.ColumnIndex].Name == "joystick")
+                using (var form1 = new Form_IO_Setting())
                 {
-                    var form1 = new Form_IO_Setting();
                     form1.g_mode = 0;
                     form1.ShowDialog();
                     int w_result = form1.g_result;
-                    form1.Dispose();
 
-                    if (w_result != -1)
+                    if (w_result == -1) return;
+                    if (w_result == -2)
                     {
-                        if (w_result == -2)
-                        {
-                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = "";
-                            w_result = -1;
-                        }
-                        if (w_result != -1)
-                        {
-                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = JOYSTICKS_NAME[w_result];
-                        }
-                        md_main.g_md_io.g_joy_allocation2[e.RowIndex] = w_result;
+                        dgv[e.ColumnIndex, e.RowIndex].Value = "";
+                        in_joyAllocation[e.RowIndex] = -1;
+                        md_main.write_setting();
+                        return;
                     }
-                    md_main.write_setting();
-                }
-                if (dgv.Columns[e.ColumnIndex].Name == "keyboard")
-                {
-                    var form1 = new Form_IO_Setting();
-                    form1.g_mode = 1;
-                    form1.ShowDialog();
-                    int w_result = form1.g_result;
-                    form1.Dispose();
 
-                    if (w_result != -1)
-                    {
-                        if (w_result == -2)
-                        {
-                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = "";
-                            w_result = 0;
-                        }
-                        if (w_result != -1)
-                        {
-                            dataGridView_io2[e.ColumnIndex, e.RowIndex].Value = KEYS_NAME[w_result];
-                        }
-                        md_main.g_md_io.g_key_allocation2[e.RowIndex] = w_result;
-                    }
+                    if (IsValidJoystickResult(w_result) == false) return;
+
+                    dgv[e.ColumnIndex, e.RowIndex].Value = JOYSTICKS_NAME[w_result];
+                    in_joyAllocation[e.RowIndex] = w_result;
                     md_main.write_setting();
                 }
             }
+            else if (w_columnName == "keyboard")
+            {
+                using (var form1 = new Form_IO_Setting())
+                {
+                    form1.g_mode = 1;
+                    form1.ShowDialog();
+                    int w_result = form1.g_result;
+
+                    if (w_result == -1) return;
+                    if (w_result == -2)
+                    {
+                        dgv[e.ColumnIndex, e.RowIndex].Value = "";
+                        in_keyAllocation[e.RowIndex] = 0;
+                        md_main.write_setting();
+                        return;
+                    }
+
+                    if (IsValidKeyResult(w_result) == false) return;
+
+                    dgv[e.ColumnIndex, e.RowIndex].Value = KEYS_NAME[w_result];
+                    in_keyAllocation[e.RowIndex] = w_result;
+                    md_main.write_setting();
+                }
+            }
+        }
+
+        private bool IsValidJoystickResult(int in_result)
+        {
+            return 0 <= in_result && in_result < JOYSTICKS_NAME.Length;
+        }
+
+        private bool IsValidKeyResult(int in_result)
+        {
+            return 0 <= in_result && in_result < KEYS_NAME.Length;
+        }
+
+        private string GetJoystickName(int in_result)
+        {
+            return IsValidJoystickResult(in_result) == true ? JOYSTICKS_NAME[in_result] : "";
+        }
+
+        private string GetKeyName(int in_result)
+        {
+            return IsValidKeyResult(in_result) == true ? KEYS_NAME[in_result] : "";
         }
         private void Form_IO_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -312,11 +297,11 @@
 
             for (int i = 0; i < md_main.g_md_io.KEY_ALLCATION_NUM; i++)
             {
-                dataGridView_io[1, i].Value = md_main.g_md_io.g_joy_allocation[i] == -1 ? "" : JOYSTICKS_NAME[md_main.g_md_io.g_joy_allocation[i]];
-                dataGridView_io[2, i].Value = KEYS_NAME[md_main.g_md_io.g_key_allocation[i]];
+                dataGridView_io[1, i].Value = GetJoystickName(md_main.g_md_io.g_joy_allocation[i]);
+                dataGridView_io[2, i].Value = GetKeyName(md_main.g_md_io.g_key_allocation[i]);
 
-                dataGridView_io2[1, i].Value = md_main.g_md_io.g_joy_allocation2[i] == -1 ? "" : JOYSTICKS_NAME[md_main.g_md_io.g_joy_allocation2[i]];
-                dataGridView_io2[2, i].Value = KEYS_NAME[md_main.g_md_io.g_key_allocation2[i]];
+                dataGridView_io2[1, i].Value = GetJoystickName(md_main.g_md_io.g_joy_allocation2[i]);
+                dataGridView_io2[2, i].Value = GetKeyName(md_main.g_md_io.g_key_allocation2[i]);
             }
         }
     }

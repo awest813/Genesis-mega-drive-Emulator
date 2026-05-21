@@ -9,7 +9,6 @@ namespace MDTracer
         public bool g_cpu_pause;
         private bool g_chk_enable; 
         private ManualResetEvent g_waitHandle;
-        private int g_stack_num;
 
         public enum STACK_LIST_TYPE : int
         {
@@ -22,7 +21,7 @@ namespace MDTracer
             VINT,
             EXT
         }
-        public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "PEA", "TRAP", "HINT", "VINT", "EXT" };
+        public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "TRAP", "HINT", "VINT", "EXT" };
         public const int STACK_LIST_NUM = 1024;
         public struct STACK_LIST
         {
@@ -39,6 +38,8 @@ namespace MDTracer
         public int g_stack_cur;
         public uint g_func_address;
         public uint g_caller_address;
+        public int g_arrow_start_line;
+        public int g_arrow_end_line;
 
         public Form_Code_Trace()
         {
@@ -90,11 +91,14 @@ namespace MDTracer
             else
             {
                 int w_line = get_code_from_addr(md_main.g_md_m68k.g_reg_PC);
-                if(g_analyse_code[w_line].operand_jsr == true)
+                if ((w_line >= 0) && (g_analyse_code[w_line].operand_jsr == true))
                 {
                     int w_line2 = get_code_from_addr((uint)(md_main.g_md_m68k.g_reg_PC + (g_analyse_code[w_line].leng2 * 2)));
-                    g_analyse_code[w_line2].break_flash = true;
-                    g_cpu_pause = false;
+                    if (w_line2 >= 0)
+                    {
+                        g_analyse_code[w_line2].break_flash = true;
+                        g_cpu_pause = false;
+                    }
                 }
                 g_waitHandle.Set();
             }
@@ -102,24 +106,29 @@ namespace MDTracer
         public void Trace_FirstStepBreak()
         {
             int w_line = get_code_from_addr(md_main.g_md_m68k.g_initial_PC);
-            g_analyse_code[w_line].break_flash = true;
+            if (w_line >= 0)
+            {
+                g_analyse_code[w_line].break_flash = true;
+            }
         }
         public void CPU_Trace_push(STACK_LIST_TYPE in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
         {
             if (in_caller_address == 0) return;
+            if (STACK_LIST_NUM <= g_stack_cur) return;
             in_caller_address &= 0xffffff;
             in_start_address &= 0xffffff;
             in_ret_address &= 0xffffff;
 
             uint w_func_address = (in_caller_address < 256) ? in_caller_address : g_func_address;
             int w_line = get_code_from_addr(in_caller_address);
+            if (w_line < 0) return;
             int w_num = g_analyse_code[w_line].stack.FindIndex(x => x.start_address == in_start_address);
             if (w_num == -1)
             {
                 w_num = g_analyse_code[w_line].stack.Count();
                 g_analyse_code[w_line].stack.Add(new STACK_LIST
                 {
-                    type = g_stack_list[g_stack_cur].type,
+                    type = in_type,
                     caller_address = in_caller_address,
                     caller_num = w_num,
                     func_address = w_func_address,
@@ -143,15 +152,15 @@ namespace MDTracer
         {
             if (g_stack_cur > 0)
             {
-                if (in_stack_address != g_stack_list[g_stack_cur].stack_address)
+                if (in_stack_address != g_stack_list[g_stack_cur - 1].stack_address)
                 {
-                    int w_num = g_stack_cur;
+                    int w_num = g_stack_cur - 1;
                     g_stack_cur = 0;
                     for (int i = w_num; i >= 0; i--)
                     {
                         if (in_stack_address == g_stack_list[i].stack_address)
                         {
-                            g_stack_cur = i;
+                            g_stack_cur = i + 1;
                             break;
                         }
                     }
@@ -161,33 +170,42 @@ namespace MDTracer
             {
                 in_pc &= 0xffffff;
                 in_end_addres &= 0xffffff;
-                int w_line = get_code_from_addr(g_stack_list[g_stack_cur - 1].caller_address);
-                TRACECODE w_trace = g_analyse_code[w_line];
-                STACK_LIST w_stack = w_trace.stack[g_stack_list[g_stack_cur - 1].caller_num];
-                w_stack.end_address = in_end_addres;
-                w_trace.stack[g_stack_list[g_stack_cur - 1].caller_num] = w_stack;
-                g_analyse_code[w_line] = w_trace;
-                g_func_address = g_stack_list[g_stack_cur - 1].start_address;
-                g_caller_address = g_stack_list[g_stack_cur - 1].caller_address;
+                STACK_LIST w_currentStack = g_stack_list[g_stack_cur - 1];
+                int w_line = get_code_from_addr(w_currentStack.caller_address);
+                if (w_line >= 0)
+                {
+                    TRACECODE w_trace = g_analyse_code[w_line];
+                    if ((0 <= w_currentStack.caller_num) && (w_currentStack.caller_num < w_trace.stack.Count))
+                    {
+                        STACK_LIST w_stack = w_trace.stack[w_currentStack.caller_num];
+                        w_stack.end_address = in_end_addres;
+                        w_trace.stack[w_currentStack.caller_num] = w_stack;
+                        g_analyse_code[w_line] = w_trace;
+                    }
+                }
+                g_stack_cur -= 1;
+                if (g_stack_cur > 0)
+                {
+                    g_func_address = g_stack_list[g_stack_cur - 1].start_address;
+                    g_caller_address = g_stack_list[g_stack_cur - 1].caller_address;
+                }
+                else
+                {
+                    g_func_address = in_pc;
+                    g_caller_address = 0;
+                }
             }
         }
         public void CPU_Trace(uint in_addr)
         {
             int w_line = get_code_from_addr(in_addr);
+            if (w_line < 0) return;
             if (g_analyse_code[w_line].type == TRACECODE.TYPE.NON)
             {
                 g_analyse_code[w_line].type = TRACECODE.TYPE.CHK;
                 g_chk_enable = true;
             }
             g_analyse_code[w_line].func_address = g_func_address;
-
-            int w_hit = md_main.g_form_code.g_memory_monitor_hit;
-            if(w_hit != -1)
-            {
-                int w_line2 = get_code_from_addr(md_main.g_md_m68k.g_reg_PC);
-                g_analyse_code[w_line2].break_flash = true;
-                md_main.g_form_code.g_memory_monitor_hit = -1;
-            }
 
             if (((g_cpu_pause == true)&&
                  ((md_main.g_trace_sip == false)||
@@ -204,14 +222,9 @@ namespace MDTracer
                     g_chk_enable = false;
                 }
                 g_analyse_code[w_line].break_flash = false;
-                md_main.g_form_code.g_stop_line = w_line;
-                int w_line_offset = md_main.g_form_code.pictureBox_Code_line_num() >> 1;
-                md_main.g_form_code.picturebox_scroll(w_line, -w_line_offset);
-
-                md_main.g_form_code.Invalidate();
-                md_main.g_form_registry.Invalidate();
-                md_main.g_form_flow.flow_update_req(g_func_address, g_caller_address);
-                md_main.g_form_flow.Invalidate();
+                md_main.g_form_code.RequestTraceBreakView(w_line);
+                md_main.g_form_registry.RequestRegistryRefresh();
+                md_main.g_form_flow.RequestFlowUpdate(g_func_address, g_caller_address);
 
                 g_waitHandle.WaitOne(Timeout.Infinite);
                 g_waitHandle.Reset();

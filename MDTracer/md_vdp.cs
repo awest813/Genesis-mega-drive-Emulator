@@ -3,15 +3,38 @@
     //----------------------------------------------------------------
     //VDP : chips:315-5313
     //----------------------------------------------------------------
-    internal partial class md_vdp
+    internal partial class md_vdp : System.IDisposable
     {
         public int g_scanline;
         private int g_hinterrupt_counter;
+        private bool g_external_interrupt_req;
+        private int g_external_interrupt_x;
+        private int g_external_interrupt_y;
         //----------------------------------------------------------------
         public md_vdp()
         {
             initialize();
-            dx_rendering_initialize();
+        }
+        public void Dispose()
+        {
+            dx_rendering_dispose();
+            g_waitHandle?.Dispose();
+            g_scrollA_bitmap?.Dispose();
+            g_scrollB_bitmap?.Dispose();
+            g_scrollW_bitmap?.Dispose();
+            g_scrollS_bitmap?.Dispose();
+            g_pattern_table?.Dispose();
+        }
+        public void request_external_interrupt(int in_x, int in_y)
+        {
+            g_external_interrupt_x = in_x;
+            g_external_interrupt_y = in_y;
+            g_external_interrupt_req = true;
+            g_vdp_c00008_hvcounter_latched = false;
+        }
+        private static void report_vdp_warning(string in_message)
+        {
+            System.Diagnostics.Debug.WriteLine("[VDP] " + in_message);
         }
         public void run(int in_vline)
         {
@@ -50,18 +73,18 @@
                 g_vdp_status_6_sprite = 0;
             }
         }
-        private void set_hvcounter()
+        private void set_hvcounter(int in_x, int in_y)
         {
             if (g_vdp_reg_12_2_interlacemode == 0)
             {
-                g_vdp_c00008_hvcounter = (ushort)(((Form_Main.g_mouseclick_pos_x >> 1) & 0x00ff)
-                                            + (Form_Main.g_mouseclick_pos_y << 8));
+                g_vdp_c00008_hvcounter = (ushort)(((in_x >> 1) & 0x00ff)
+                                            + (in_y << 8));
             }
             else
             {
-                g_vdp_c00008_hvcounter = (ushort)(((Form_Main.g_mouseclick_pos_x >> 1) & 0x00ff)
-                                            + ((Form_Main.g_mouseclick_pos_y << 8) & 0xfe00)
-                                            + (Form_Main.g_mouseclick_pos_y & 0x0100));
+                g_vdp_c00008_hvcounter = (ushort)(((in_x >> 1) & 0x00ff)
+                                            + ((in_y << 8) & 0xfe00)
+                                            + (in_y & 0x0100));
             }
         }
         private void set_hinterrupt()
@@ -77,24 +100,17 @@
                 set_hinterrupt();
             }
 
-            if (Form_Main.g_mouseclick_interrupt == true)
+            if (g_external_interrupt_req == true)
             {
+                g_external_interrupt_req = false;
                 if (g_vdp_reg_11_3_ext == 1)
                 {
                     md_main.g_md_m68k.g_interrupt_EXT_req = true;
                     if ((g_vdp_reg_0_1_hvcounter == 1) && (g_vdp_c00008_hvcounter_latched == false))
                     {
-                        Form_Main.g_mouseclick_interrupt = true;
-                        set_hvcounter();
+                        set_hvcounter(g_external_interrupt_x, g_external_interrupt_y);
+                        g_vdp_c00008_hvcounter_latched = true;
                     }
-                    else
-                    {
-                        g_vdp_c00008_hvcounter_latched = false;
-                    }
-                }
-                else
-                {
-                    Form_Main.g_mouseclick_interrupt = false;
                 }
             }
         }

@@ -4,7 +4,11 @@
     {
         public byte g_io_a11200_z80reset;
         public byte g_io_a11100_z80active;
-        //public byte g_io_a11000_memmode;
+
+        private static void report_control_warning(string in_message)
+        {
+            System.Diagnostics.Debug.WriteLine("[Control] " + in_message);
+        }
         public void reset()
         {
             g_io_a11200_z80reset = 0;
@@ -22,7 +26,7 @@
             }
             else
             {
-                MessageBox.Show("md_control.read8", "error");
+                report_control_warning("md_control.read8");
             }
             return w_out;
         }
@@ -66,18 +70,11 @@
             }
             else
             {
-                MessageBox.Show("md_control.write8", "error");
+                report_control_warning("md_control.write8");
             }
         }
         public void write16(uint in_address, ushort in_data)
         {
-            /*
-            if (in_address == 0xa11000)
-            {
-                //g_io_a11000_memmode = (byte)((in_data >> 8) & 0x0001);
-            }
-            else
-            */
             if (in_address == 0xa11100)
             {
                 write8(in_address, (byte)(in_data >> 8));
@@ -89,7 +86,7 @@
             }
             else
             {
-                MessageBox.Show("md_control.write16", "error");
+                report_control_warning("md_control.write16");
             }
         }
     }

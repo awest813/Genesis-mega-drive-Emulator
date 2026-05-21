@@ -1,6 +1,3 @@
-﻿using System;
-using System.Diagnostics;
-
 namespace MDTracer
 {
     internal partial class md_vdp
@@ -192,7 +189,7 @@ namespace MDTracer
                     g_vdp_reg_12_7_cellmode1 = (byte)((in_data >> 7) & 0x01);
                     g_vdp_reg_12_3_shadow = (byte)((in_data >> 3) & 0x01);
                     g_vdp_reg_12_2_interlacemode = (byte)((in_data >> 1) & 0x03);
-                    if (g_vdp_reg_12_2_interlacemode != 0) MessageBox.Show("g_vdp_reg_12_2_interlacemode  no support", "error");
+                    if (g_vdp_reg_12_2_interlacemode != 0) report_vdp_warning("g_vdp_reg_12_2_interlacemode no support");
                     if(g_vdp_reg_12_2_interlacemode == 0)
                     {
                         g_sprite_vmask = 0x1ff;
@@ -254,6 +251,8 @@ namespace MDTracer
                     g_scroll_xsize_mask = g_scroll_xsize - 1;
                     break;
                 case 17:
+                    g_vdp_reg_17_7_windows = (byte)((in_data >> 7) & 0x01);
+                    g_vdp_reg_17_4_basspointer = (byte)(in_data & 0x1f);
                     int w_pos = (in_data & 0x1f) << 4;
                     if ((in_data & 0x80) == 0)
                     {
@@ -290,6 +289,8 @@ namespace MDTracer
                     }
                     break;
                 case 18:
+                    g_vdp_reg_18_7_windows = (byte)((in_data >> 7) & 0x01);
+                    g_vdp_reg_18_4_basspointer = (byte)(in_data & 0x1f);
                     w_pos = (in_data & 0x1f) << 3;
                     if ((in_data & 0x80) == 0)
                     {

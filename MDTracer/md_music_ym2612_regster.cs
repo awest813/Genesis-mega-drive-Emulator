@@ -15,6 +15,8 @@ namespace MDTracer
         private bool g_reg_27_load_A;
         private int g_reg_2a_dac_data;
         private int g_reg_2b_dac;
+        private const int DAC_PCM_DISPLAY_FREQ_C1 = 34;
+        private int[] g_ch_display_freq = Array.Empty<int>();
         private double[,] g_reg_30_multi;
         private int[,] g_reg_30_dt;
         private int[,] g_reg_40_tl;
@@ -142,6 +144,10 @@ namespace MDTracer
                                 break;
                             case 0x2B:
                                 g_reg_2b_dac = in_val & 0x80;
+                                if (g_reg_2b_dac == 0)
+                                {
+                                    md_main.g_md_music.ClearChannelDisplay(5);
+                                }
                                 break;
                         }
                     }
@@ -227,7 +233,7 @@ namespace MDTracer
                             g_slot_fnum[w_ch, 0] = wfnum;
                             g_slot_keycode[w_ch, 0] = (int)(((uint)g_reg_a4_block[w_ch, 0] << 2) | KEYCODE_TABLE[g_slot_fnum[w_ch, 0] >> 7]);
                             g_ch_reg_reflesh[w_ch] = true;
-                            md_main.g_md_music.g_freq_out[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
+                            g_ch_display_freq[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
                             break;
                         case 0xa4:
                             w_ch = (w_addr - 0xa4) + (w_mode * 3);
@@ -236,7 +242,7 @@ namespace MDTracer
                             g_reg_a4_block[w_ch, 0] = (in_val & 0x38) >> 3;
                             g_slot_keycode[w_ch, 0] = (int)(((uint)g_reg_a4_block[w_ch, 0] << 2) | KEYCODE_TABLE[g_slot_fnum[w_ch, 0] >> 7]);
                             g_ch_reg_reflesh[w_ch] = true;
-                            md_main.g_md_music.g_freq_out[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
+                            g_ch_display_freq[w_ch] = GetFreqOut(wfnum, g_reg_a4_block[w_ch, 0]);
                             break;
                         case 0xa8:
                             w_slot = ((w_addr - 0xa8) & 0x03) + 1;
@@ -285,6 +291,27 @@ namespace MDTracer
                     }
                 }
             }
+        }
+
+        private void UpdateYm2612Display(int in_ch, int in_output)
+        {
+            if ((in_ch < 0) || (NUM_CHANNELS <= in_ch)) return;
+            if ((in_ch == 5) && (g_reg_2b_dac != 0)) return;
+
+            bool w_panned = g_reg_b4_l[in_ch] || g_reg_b4_r[in_ch];
+            md_main.g_md_music.UpdateChannelDisplayFromSignal(in_ch, g_ch_display_freq[in_ch], in_output, w_panned);
+        }
+
+        private void UpdateDacPcmDisplayFromOutput(int in_output)
+        {
+            if (g_reg_2b_dac == 0)
+            {
+                md_main.g_md_music.ClearChannelDisplay(5);
+                return;
+            }
+
+            bool w_panned = g_reg_b4_l[5] || g_reg_b4_r[5];
+            md_main.g_md_music.UpdateChannelDisplayFromSignal(5, DAC_PCM_DISPLAY_FREQ_C1, in_output, w_panned);
         }
     }
 }

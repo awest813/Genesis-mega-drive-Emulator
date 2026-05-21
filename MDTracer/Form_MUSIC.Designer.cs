@@ -63,6 +63,7 @@
             checkBox_Master = new CheckBox();
             label1 = new Label();
             pictureBox_view = new PictureBox();
+            comboBox_viewMode = new ComboBox();
             groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox_view).BeginInit();
             SuspendLayout();
@@ -102,7 +103,7 @@
             groupBox1.Controls.Add(hScrollBar_Master);
             groupBox1.Controls.Add(checkBox_Master);
             groupBox1.Controls.Add(label1);
-            groupBox1.Location = new Point(12, 12);
+            groupBox1.Location = new Point(686, 9);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(179, 278);
             groupBox1.TabIndex = 0;
@@ -430,19 +431,31 @@
             // pictureBox_view
             // 
             pictureBox_view.BorderStyle = BorderStyle.FixedSingle;
-            pictureBox_view.Location = new Point(227, 9);
+            pictureBox_view.Location = new Point(0, 0);
             pictureBox_view.Margin = new Padding(0);
             pictureBox_view.Name = "pictureBox_view";
-            pictureBox_view.Size = new Size(242, 674);
+            pictureBox_view.Size = new Size(674, 360);
             pictureBox_view.TabIndex = 1;
             pictureBox_view.TabStop = false;
             pictureBox_view.Paint += pictureBox_view_Paint;
+            // 
+            // comboBox_viewMode
+            // 
+            comboBox_viewMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox_viewMode.FormattingEnabled = true;
+            comboBox_viewMode.Items.AddRange(new object[] { "Scroll", "3D Piano Roll", "Aurora Roll", "Crystal Tunnel", "Cyber Rain", "Nebula Stair", "Wave Ocean", "Prism Gate", "Firefly Night", "Matrix Keys", "Ribbon Space", "Mirror Canyon" });
+            comboBox_viewMode.Location = new Point(686, 296);
+            comboBox_viewMode.Name = "comboBox_viewMode";
+            comboBox_viewMode.Size = new Size(179, 23);
+            comboBox_viewMode.TabIndex = 2;
+            comboBox_viewMode.SelectedIndexChanged += comboBox_viewMode_SelectedIndexChanged;
             // 
             // Form_MUSIC
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(478, 696);
+            ClientSize = new Size(877, 366);
+            Controls.Add(comboBox_viewMode);
             Controls.Add(pictureBox_view);
             Controls.Add(groupBox1);
             Name = "Form_MUSIC";
@@ -494,5 +507,6 @@
         private HScrollBar hScrollBar_Psg4;
         private CheckBox checkBox_Psg4;
         private Label label11;
+        private ComboBox comboBox_viewMode;
     }
 }

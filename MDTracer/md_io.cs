@@ -1,4 +1,3 @@
-﻿using Microsoft.VisualBasic.Devices;
 using SharpDX.DirectInput;
 using System.Text;
 namespace MDTracer
@@ -51,7 +50,6 @@ namespace MDTracer
 
         public int[] g_key_allocation2;
         public int[] g_joy_allocation2;
-        int g_key_cur;
 
         private int g_io_port1_th;
         private int g_io_port2_th;
@@ -60,6 +58,10 @@ namespace MDTracer
         private long g_io_port1_last_th_change;
         private long g_io_port2_last_th_change;
         private const int IO_6BUTTON_TIMEOUT_MS = 12;
+        private static void report_io_warning(string in_message)
+        {
+            System.Diagnostics.Debug.WriteLine("[IO] " + in_message);
+        }
         //----------------------------------------------------------------
         public md_io()
         {
@@ -71,6 +73,9 @@ namespace MDTracer
             g_io_a10003_data1 = 0xff;
             g_io_a10005_data2 = 0xff;
             g_io_a10007_data3 = 0xff;
+            g_io_a10011_rxdata1 = 0;
+            g_io_a10017_rxdata2 = 0;
+            g_io_a1001d_rxdata3 = 0;
 
             g_joy_name_list = new List<string>();
             g_joy_device = new List<Joystick>();
@@ -223,7 +228,7 @@ namespace MDTracer
             else if (in_address == 0xa1001f) w_out = g_io_a1001f_s_ctrl3;
             else
             {
-                MessageBox.Show("md_io.read8", "error");
+                report_io_warning("md_io.read8");
             }
             return w_out;
         }
@@ -264,7 +269,7 @@ namespace MDTracer
             else if (in_address == 0xa1001f) g_io_a1001f_s_ctrl3 = in_data;
             else
             {
-                //MessageBox.Show("md_io.write8", "error");
+                report_io_warning("md_io.write8");
             }
         }
         public void write16(uint in_address, ushort in_data)

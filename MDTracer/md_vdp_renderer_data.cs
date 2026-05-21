@@ -1,9 +1,6 @@
-﻿using SharpDX;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Net;
-using System.Runtime.InteropServices;
 
 namespace MDTracer
 {
@@ -21,193 +18,224 @@ namespace MDTracer
         private void rendering_data()
         {
             const int bytesPerPixel = 4;
+            bool w_pattern_enable = md_main.g_pattern_enable;
+            bool w_screenA_enable = md_main.g_screenA_enable;
+            bool w_screenB_enable = md_main.g_screenB_enable;
+            bool w_screenW_enable = md_main.g_screenW_enable;
+            bool w_screenS_enable = md_main.g_screenS_enable;
+            if ((w_pattern_enable == false)
+                && (w_screenA_enable == false)
+                && (w_screenB_enable == false)
+                && (w_screenW_enable == false)
+                && (w_screenS_enable == false))
+            {
+                return;
+            }
 
             //pattern make
+            if (w_pattern_enable == true)
+            {
             BitmapData pattern_bmpData = g_pattern_table.LockBits(new Rectangle(0, 0, g_pattern_table.Width, g_pattern_table.Height),
                                                     ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
             IntPtr dest_ptr = pattern_bmpData.Scan0;
             int dest_stride = pattern_bmpData.Stride;
-            unsafe
+            try
             {
-                byte* pixels = (byte*)dest_ptr;
-                for (int w_char = 0; w_char < PATTERN_MAX; w_char++)
+                unsafe
                 {
-                    if (g_pattern_chk[w_char] == true)
+                    byte* pixels = (byte*)dest_ptr;
+                    for (int w_char = 0; w_char < PATTERN_MAX; w_char++)
                     {
-                        g_pattern_chk[w_char] = false;
-                        int wx = (w_char & 0x0f) << 3;
-                        int wy = (w_char & 0xfff0) >> 1;
-                        int pixelOffset1 = (wy * dest_stride) + (wx * bytesPerPixel);
-                        int w_pic_addr = w_char << 4;
-                        for (int dy = 0; dy < 8; dy++)
+                        if (g_pattern_chk[w_char] == true)
                         {
-                            int pixelOffset2 = pixelOffset1;
-                            for (int dx = 0; dx < 8; dx++)
+                            g_pattern_chk[w_char] = false;
+                            int wx = (w_char & 0x0f) << 3;
+                            int wy = (w_char & 0xfff0) >> 1;
+                            int pixelOffset1 = (wy * dest_stride) + (wx * bytesPerPixel);
+                            int w_pic_addr = w_char << 4;
+                            for (int dy = 0; dy < 8; dy++)
                             {
-                                uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
-                                uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
-                                uint w_color = MONOCOLOR_TABLE[w_pic];
-                                uint* pixel2 = (uint*)(pixels + pixelOffset2);
-                                *pixel2 = w_color;
-                                pixelOffset2 += bytesPerPixel;
+                                int pixelOffset2 = pixelOffset1;
+                                for (int dx = 0; dx < 8; dx++)
+                                {
+                                    uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
+                                    uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
+                                    uint w_color = MONOCOLOR_TABLE[w_pic];
+                                    uint* pixel2 = (uint*)(pixels + pixelOffset2);
+                                    *pixel2 = w_color;
+                                    pixelOffset2 += bytesPerPixel;
+                                }
+                                pixelOffset1 += dest_stride;
                             }
-                            pixelOffset1 += dest_stride;
                         }
                     }
                 }
             }
-            g_pattern_table.UnlockBits(pattern_bmpData);
+            finally
+            {
+                g_pattern_table.UnlockBits(pattern_bmpData);
+            }
+            }
             //scrollA make
+            if (w_screenA_enable == true)
+            {
             BitmapData scrollA_bmpData = g_scrollA_bitmap.LockBits(new Rectangle(0, 0, g_scrollA_bitmap.Width, g_scrollA_bitmap.Height),
                                                     ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            dest_ptr = scrollA_bmpData.Scan0;
-            dest_stride = scrollA_bmpData.Stride;
-            unsafe
+            IntPtr dest_ptr = scrollA_bmpData.Scan0;
+            int dest_stride = scrollA_bmpData.Stride;
+            try
             {
-                byte* pixels = (byte*)dest_ptr;
-                int w_num = g_vdp_reg_2_scrolla >> 1;
-                int pixelOffset1 = 0;
-                for (int wy = 0; wy < g_scroll_ycell; wy++)
+                unsafe
                 {
-                    int pixelOffset2 = pixelOffset1;
-                    for (int wx = 0; wx < g_scroll_xcell; wx++)
+                    byte* pixels = (byte*)dest_ptr;
+                    int w_num = g_vdp_reg_2_scrolla >> 1;
+                    int pixelOffset1 = 0;
+                    for (int wy = 0; wy < g_scroll_ycell; wy++)
                     {
-                        int pixelOffset3 = pixelOffset2;
-                        uint w_val = g_snap_renderer_vram[w_num];
-                        uint w_priority = ((w_val >> 15) & 0x0001);
-                        uint w_palette = (((w_val >> 13) & 0x0003) << 4);
-                        uint w_reverse = ((w_val >> 11) & 0x0003);
-                        uint w_char = (w_val & 0x07ff);
-                        int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
-                        w_num += 1;
-                        for (int dy = 0; dy < 8; dy++)
+                        int pixelOffset2 = pixelOffset1;
+                        for (int wx = 0; wx < g_scroll_xcell; wx++)
                         {
-                            int pixelOffset4 = pixelOffset3;
-                            for (int dx = 0; dx < 8; dx++)
+                            int pixelOffset3 = pixelOffset2;
+                            uint w_val = g_snap_renderer_vram[w_num];
+                            uint w_palette = (((w_val >> 13) & 0x0003) << 4);
+                            uint w_reverse = ((w_val >> 11) & 0x0003);
+                            uint w_char = (w_val & 0x07ff);
+                            int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
+                            w_num += 1;
+                            for (int dy = 0; dy < 8; dy++)
                             {
-                                uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
-                                uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
-                                uint color = g_snap_color[w_palette + w_pic];
-                                /*
-                                if((((wx%2) == 1)&& (dx == 7)) ||(((wy%2) == 1)&& (dy == 7)))
+                                int pixelOffset4 = pixelOffset3;
+                                for (int dx = 0; dx < 8; dx++)
                                 {
-                                    color = g_snap_color[0x1f];
+                                    uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
+                                    uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
+                                    uint color = g_snap_color[w_palette + w_pic];
+                                    uint* pixel2 = (uint*)(pixels + pixelOffset4);
+                                    *pixel2 = color;
+                                    pixelOffset4 += bytesPerPixel;
                                 }
-                                */
-
-
-                                uint* pixel2 = (uint*)(pixels + pixelOffset4);
-                                *pixel2 = color;
-                                pixelOffset4 += bytesPerPixel;
+                                pixelOffset3 += dest_stride;
                             }
-                            pixelOffset3 += dest_stride;
+                            pixelOffset2 += (bytesPerPixel << 3);
                         }
-                        pixelOffset2 += (bytesPerPixel << 3);
+                        pixelOffset1 += (dest_stride << 3);
                     }
-                    pixelOffset1 += (dest_stride << 3);
                 }
             }
-            g_scrollA_bitmap.UnlockBits(scrollA_bmpData);
+            finally
+            {
+                g_scrollA_bitmap.UnlockBits(scrollA_bmpData);
+            }
+            }
             //scrollB make
+            if (w_screenB_enable == true)
+            {
             BitmapData scrollB_bmpData = g_scrollB_bitmap.LockBits(new Rectangle(0, 0, g_scrollB_bitmap.Width, g_scrollB_bitmap.Height),
                                         ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            dest_ptr = scrollB_bmpData.Scan0;
-            dest_stride = scrollB_bmpData.Stride;
-            unsafe
+            IntPtr dest_ptr = scrollB_bmpData.Scan0;
+            int dest_stride = scrollB_bmpData.Stride;
+            try
             {
-                byte* pixels = (byte*)dest_ptr;
-                int w_num = g_vdp_reg_4_scrollb >> 1;
-                int pixelOffset1 = 0;
-                for (int wy = 0; wy < g_scroll_ycell; wy++)
+                unsafe
                 {
-                    int pixelOffset2 = pixelOffset1;
-                    for (int wx = 0; wx < g_scroll_xcell; wx++)
+                    byte* pixels = (byte*)dest_ptr;
+                    int w_num = g_vdp_reg_4_scrollb >> 1;
+                    int pixelOffset1 = 0;
+                    for (int wy = 0; wy < g_scroll_ycell; wy++)
                     {
-                        int pixelOffset3 = pixelOffset2;
-                        uint w_val = g_snap_renderer_vram[w_num];
-                        uint w_priority = ((w_val >> 15) & 0x0001);
-                        uint w_palette = (((w_val >> 13) & 0x0003) << 4);
-                        uint w_reverse = ((w_val >> 11) & 0x0003);
-                        uint w_char = (w_val & 0x07ff);
-                        int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
-                        w_num += 1;
-                        for (int dy = 0; dy < 8; dy++)
+                        int pixelOffset2 = pixelOffset1;
+                        for (int wx = 0; wx < g_scroll_xcell; wx++)
                         {
-                            int pixelOffset4 = pixelOffset3;
-                            for (int dx = 0; dx < 8; dx++)
+                            int pixelOffset3 = pixelOffset2;
+                            uint w_val = g_snap_renderer_vram[w_num];
+                            uint w_palette = (((w_val >> 13) & 0x0003) << 4);
+                            uint w_reverse = ((w_val >> 11) & 0x0003);
+                            uint w_char = (w_val & 0x07ff);
+                            int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
+                            w_num += 1;
+                            for (int dy = 0; dy < 8; dy++)
                             {
-                                uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) +(dx >> 2)];
-                                uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
-                                uint color = g_snap_color[w_palette + w_pic];
-
-                                /*
-                                if (w_priority != 0)
+                                int pixelOffset4 = pixelOffset3;
+                                for (int dx = 0; dx < 8; dx++)
                                 {
-                                    color = 0xffff0000;
+                                    uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) +(dx >> 2)];
+                                    uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
+                                    uint color = g_snap_color[w_palette + w_pic];
+                                    uint* pixel2 = (uint*)(pixels + pixelOffset4);
+                                    *pixel2 = color;
+                                    pixelOffset4 += bytesPerPixel;
                                 }
-                                */
-
-
-                                uint* pixel2 = (uint*)(pixels + pixelOffset4);
-                                *pixel2 = color;
-                                pixelOffset4 += bytesPerPixel;
+                                pixelOffset3 += dest_stride;
                             }
-                            pixelOffset3 += dest_stride;
+                            pixelOffset2 += (bytesPerPixel << 3);
                         }
-                        pixelOffset2 += (bytesPerPixel << 3);
+                        pixelOffset1 += (dest_stride << 3);
                     }
-                    pixelOffset1 += (dest_stride << 3);
                 }
             }
-            g_scrollB_bitmap.UnlockBits(scrollB_bmpData);
+            finally
+            {
+                g_scrollB_bitmap.UnlockBits(scrollB_bmpData);
+            }
+            }
 
 
             //window make
+            if (w_screenW_enable == true)
+            {
             BitmapData scrollW_bmpData = g_scrollW_bitmap.LockBits(new Rectangle(0, 0, g_scrollW_bitmap.Width, g_scrollW_bitmap.Height),
                                         ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            dest_ptr = scrollW_bmpData.Scan0;
-            dest_stride = scrollW_bmpData.Stride;
-            unsafe
+            IntPtr dest_ptr = scrollW_bmpData.Scan0;
+            int dest_stride = scrollW_bmpData.Stride;
+            try
             {
-                byte* pixels = (byte*)dest_ptr;
-                int pixelOffset1 = 0;
-                for (int wy = 0; wy < g_scroll_ycell; wy++)
+                unsafe
                 {
-                    int w_num = (g_vdp_reg_3_windows >> 1) + (wy * g_scroll_xcell);
-                    int pixelOffset2 = pixelOffset1;
-                    for (int wx = 0; wx < g_scroll_xcell; wx++)
+                    byte* pixels = (byte*)dest_ptr;
+                    int pixelOffset1 = 0;
+                    for (int wy = 0; wy < g_scroll_ycell; wy++)
                     {
-                        int pixelOffset3 = pixelOffset2;
-                        uint w_val = g_snap_renderer_vram[w_num];
-                        uint w_priority = ((w_val >> 15) & 0x0001);
-                        uint w_palette = (((w_val >> 13) & 0x0003) << 4);
-                        uint w_reverse = ((w_val >> 11) & 0x0003);
-                        uint w_char = (w_val & 0x07ff);
-                        int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
-                        w_num += 1;
-                        for (int dy = 0; dy < 8; dy++)
+                        int w_num = (g_vdp_reg_3_windows >> 1) + (wy * g_scroll_xcell);
+                        int pixelOffset2 = pixelOffset1;
+                        for (int wx = 0; wx < g_scroll_xcell; wx++)
                         {
-                            int pixelOffset4 = pixelOffset3;
-                            for (int dx = 0; dx < 8; dx++)
+                            int pixelOffset3 = pixelOffset2;
+                            uint w_val = g_snap_renderer_vram[w_num];
+                            uint w_palette = (((w_val >> 13) & 0x0003) << 4);
+                            uint w_reverse = ((w_val >> 11) & 0x0003);
+                            uint w_char = (w_val & 0x07ff);
+                            int w_pic_addr = (int)((w_reverse * VRAM_DATASIZE) + (w_char << 4));
+                            w_num += 1;
+                            for (int dy = 0; dy < 8; dy++)
                             {
-                                uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
-                                uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
-                                uint color = g_snap_color[w_palette + w_pic];
-                                uint* pixel2 = (uint*)(pixels + pixelOffset4);
-                                *pixel2 = color;
+                                int pixelOffset4 = pixelOffset3;
+                                for (int dx = 0; dx < 8; dx++)
+                                {
+                                    uint w_pic_w = g_snap_renderer_vram[w_pic_addr + (dy << 1) + (dx >> 2)];
+                                    uint w_pic = (w_pic_w >> ((3 - (dx & 3)) << 2)) & 0x0f;
+                                    uint color = g_snap_color[w_palette + w_pic];
+                                    uint* pixel2 = (uint*)(pixels + pixelOffset4);
+                                    *pixel2 = color;
 
-                                pixelOffset4 += bytesPerPixel;
+                                    pixelOffset4 += bytesPerPixel;
+                                }
+                                pixelOffset3 += dest_stride;
                             }
-                            pixelOffset3 += dest_stride;
+                            pixelOffset2 += (bytesPerPixel << 3);
                         }
-                        pixelOffset2 += (bytesPerPixel << 3);
+                        pixelOffset1 += (dest_stride << 3);
                     }
-                    pixelOffset1 += (dest_stride << 3);
                 }
             }
-            g_scrollW_bitmap.UnlockBits(scrollW_bmpData);
+            finally
+            {
+                g_scrollW_bitmap.UnlockBits(scrollW_bmpData);
+            }
+            }
 
             //rendering the sprite screen
+            if (w_screenS_enable == true)
+            {
 
             for (int i = 0; i < g_max_sprite_num; i++)
             {
@@ -224,34 +252,36 @@ namespace MDTracer
             }
             BitmapData scrollS_bmpData = g_scrollS_bitmap.LockBits(new Rectangle(0, 0, g_scrollS_bitmap.Width, g_scrollS_bitmap.Height),
                     ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            dest_ptr = scrollS_bmpData.Scan0;
-            dest_stride = scrollS_bmpData.Stride;
-            unsafe
+            IntPtr dest_ptr = scrollS_bmpData.Scan0;
+            int dest_stride = scrollS_bmpData.Stride;
+            try
             {
-                ulong* c_pixels = (ulong*)dest_ptr;
-                for (int i = 0; i < 512 * 256; i++)
+                unsafe
                 {
-                    *c_pixels = 0;
-                    c_pixels += 1;
-                }
-                byte* pixels = (byte*)dest_ptr;
-                for (int i = g_max_sprite_num - 1; i >= 0; i--)
-                {
-                    int w_addr = (g_vdp_reg_5_sprite >> 1) + (i << 2);
-                    ushort w_val1 = (ushort)g_snap_renderer_vram[w_addr];
-                    ushort w_val2 = (ushort)g_snap_renderer_vram[w_addr + 1];
-                    ushort w_val3 = (ushort)g_snap_renderer_vram[w_addr + 2];
-                    ushort w_val4 = (ushort)g_snap_renderer_vram[w_addr + 3];
-                    int w_pos_x = w_val4 & 0x01ff;
-                    int w_pos_y = w_val1 & g_sprite_vmask;
-                    int w_xcell_size = ((w_val2 >> 10) & 0x0003) + 1;
-                    int w_ycell_size = ((w_val2 >> 8) & 0x0003) + 1;
-                    int w_pic_size_x = w_xcell_size << 3;
-                    int w_pic_size_y = w_ycell_size << 3;
-                    int w_priority = ((w_val3 >> 15) & 0x0001) << 2;
-                    int w_palette = ((w_val3 >> 13) & 0x0003) << 4;
-                    int w_reverse = ((w_val3 >> 11) & 0x0003);
-                    int w_char = w_val3 & 0x07ff;
+                    ulong* c_pixels = (ulong*)dest_ptr;
+                    for (int i = 0; i < 512 * 256; i++)
+                    {
+                        *c_pixels = 0;
+                        c_pixels += 1;
+                    }
+                    byte* pixels = (byte*)dest_ptr;
+                    for (int i = g_max_sprite_num - 1; i >= 0; i--)
+                    {
+                        int w_addr = (g_vdp_reg_5_sprite >> 1) + (i << 2);
+                        ushort w_val1 = (ushort)g_snap_renderer_vram[w_addr];
+                        ushort w_val2 = (ushort)g_snap_renderer_vram[w_addr + 1];
+                        ushort w_val3 = (ushort)g_snap_renderer_vram[w_addr + 2];
+                        ushort w_val4 = (ushort)g_snap_renderer_vram[w_addr + 3];
+                        int w_pos_x = w_val4 & 0x01ff;
+                        int w_pos_y = w_val1 & g_sprite_vmask;
+                        int w_xcell_size = ((w_val2 >> 10) & 0x0003) + 1;
+                        int w_ycell_size = ((w_val2 >> 8) & 0x0003) + 1;
+                        int w_pic_size_x = w_xcell_size << 3;
+                        int w_pic_size_y = w_ycell_size << 3;
+                        int w_priority = ((w_val3 >> 15) & 0x0001) << 2;
+                        int w_palette = ((w_val3 >> 13) & 0x0003) << 4;
+                        int w_reverse = ((w_val3 >> 11) & 0x0003);
+                        int w_char = w_val3 & 0x07ff;
 
                     if (g_sprite_enable[i] == true)
                     {
@@ -388,9 +418,12 @@ namespace MDTracer
                     }
                 }
             }
-            g_scrollS_bitmap.UnlockBits(scrollS_bmpData);
-
-            md_main.Screen_Update();
+            }
+            finally
+            {
+                g_scrollS_bitmap.UnlockBits(scrollS_bmpData);
+            }
+            }
         }
     }
 }

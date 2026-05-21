@@ -6,7 +6,6 @@ namespace MDTracer
     {
         private uint g_analyze_address;
         private UNION_UINT g_work_data;
-        private UNION_UINT g_work_data2;
         private UNION_UINT g_work_val1;
         private UNION_UINT g_work_val2;
 

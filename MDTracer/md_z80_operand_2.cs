@@ -298,28 +298,6 @@ namespace MDTracer
             g_reg_PC += 2;
             g_clock = 15;
         }
-        /*
-        private void op_RLC_IX_LD_r()
-        {
-            g_reg_PC += 4;
-            g_clock = 4;
-        }
-        private void op_RLC_IY_LD_r()
-        {
-            g_reg_PC += 4;
-            g_clock = 4;
-        }
-        private void op_RRC_IX_LD_r()
-        {
-            g_reg_PC += 4;
-            g_clock = 4;
-        }
-        private void op_RRC_IY_LD_r()
-        {
-            g_reg_PC += 4;
-            g_clock = 4;
-        }
-        */
         private void op_SLL_IXD()
         {
             ushort w_addr = (ushort)((g_reg_IX + (sbyte)g_opcode3) & 0xffff);

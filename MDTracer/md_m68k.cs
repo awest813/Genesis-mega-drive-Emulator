@@ -1,9 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using System.Text;
-using Microsoft.VisualBasic.Logging;
-using System.Diagnostics;
-
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -86,14 +81,22 @@ namespace MDTracer
         public void run(int in_clock)
         {
             g_clock_total += in_clock;
+            Form_Code_Trace w_trace = md_main.g_form_code_trace;
+            md_vdp w_vdp = md_main.g_md_vdp;
+            OPINFO[] w_opcode_info = g_opcode_info;
             while (g_clock_now < g_clock_total)
             {
-                md_main.g_form_code_trace.CPU_Trace(g_reg_PC);
+                w_trace.CPU_Trace(g_reg_PC);
 
                 interrupt_chk();
-                g_clock = md_main.g_md_vdp.dma_status_update();
+                g_clock = w_vdp.dma_status_update();
                 if (g_clock == 0)
                 {
+                    if (g_68k_stop == true)
+                    {
+                        g_clock_now = g_clock_total;
+                        break;
+                    }
                     g_opcode = read16(g_reg_PC);
                     g_op = (byte)(g_opcode >> 12);
                     g_op1 = (byte)((g_opcode >> 9) & 0x07);
@@ -101,12 +104,7 @@ namespace MDTracer
                     g_op3 = (byte)((g_opcode >> 3) & 0x07);
                     g_op4 = (byte)(g_opcode & 0x07);
 
-                    if (g_68k_stop == true)
-                    {
-                        g_clock_now = g_clock_total;
-                        break;
-                    }
-                    g_opcode_info[g_opcode].opcode();
+                    w_opcode_info[g_opcode].opcode();
                 }
                 g_clock_now += g_clock;
             }
@@ -156,58 +154,6 @@ namespace MDTracer
                 g_interrupt_EXT_req = false;
                 g_interrupt_EXT_act = true;
                 g_68k_stop = false;
-            }
-        }
-        private bool g_log = false;
-        uint g_top;
-        private uint[] log_trace = new uint[100];
-        void traceout()
-        {
-            for (int i=98;i>=0;i--)
-            {
-                log_trace[i+1]= log_trace[i];
-            }
-            log_trace[0] = g_reg_PC;
-        }
-        void logout(string in_log)
-        {
-            if (g_log == true)
-            {
-                System.IO.File.AppendAllText("d:\\md_log.txt", in_log + Environment.NewLine);
-            }
-        }
-        void logout2()
-        {
-            if (g_log == true)
-            {
-                using (FileStream fs = new FileStream("d:\\log2.txt", FileMode.Append, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: false))
-                {
-                    byte[] data = Encoding.UTF8.GetBytes(g_top.ToString("x6").ToString()
-                        //+ "," + g_opcode.ToString("x4")
-
-                        + "," + g_reg_addr[0].l.ToString("x8")
-                        + "," + g_reg_addr[1].l.ToString("x8")
-                        + "," + g_reg_addr[2].l.ToString("x8")
-                        + "," + g_reg_addr[3].l.ToString("x8")
-                        + "," + g_reg_addr[4].l.ToString("x8")
-                        + "," + g_reg_addr[5].l.ToString("x8")
-                        + "," + g_reg_addr[6].l.ToString("x8")
-                        + "," + g_reg_addr[7].l.ToString("x8")
-                        + "  ," + g_reg_data[0].l.ToString("x8")
-                        + "," + g_reg_data[1].l.ToString("x8")
-                        + "," + g_reg_data[2].l.ToString("x8")
-                        + "," + g_reg_data[3].l.ToString("x8")
-                        + "," + g_reg_data[4].l.ToString("x8")
-                        + "," + g_reg_data[5].l.ToString("x8")
-                        + "," + g_reg_data[6].l.ToString("x8")
-                        + "," + g_reg_data[7].l.ToString("x8")
-                        //+ "  ," + g_reg_SR.ToString("x4")
-
-
-
-                        + Environment.NewLine);
-                    fs.Write(data, 0, data.Length);
-                }
             }
         }
     }

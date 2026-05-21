@@ -16,12 +16,7 @@ namespace MDTracer
             write_array(in_writer, g_vdp_reg);
             write_array(in_writer, g_pattern_chk);
             write_array(in_writer, g_renderer_vram);
-            /*
-            write_array(in_writer, g_snap_renderer_vram);
-            write_array(in_writer, g_snap_color);
-            write_array(in_writer, g_snap_color_shadow);
-            write_array(in_writer, g_snap_color_highlight);
-*/
+
             in_writer.Write(g_scanline);
             in_writer.Write(g_hinterrupt_counter);
             in_writer.Write(g_vdp_reg_code);
@@ -114,12 +109,7 @@ namespace MDTracer
             read_array(in_reader, g_vdp_reg);
             read_array(in_reader, g_pattern_chk);
             read_array(in_reader, g_renderer_vram);
-            /*
-            read_array(in_reader, g_snap_renderer_vram);
-            read_array(in_reader, g_snap_color);
-            read_array(in_reader, g_snap_color_shadow);
-            read_array(in_reader, g_snap_color_highlight);
-            */
+
             g_scanline = in_reader.ReadInt32();
             g_hinterrupt_counter = in_reader.ReadInt32();
             g_vdp_reg_code = in_reader.ReadInt32();

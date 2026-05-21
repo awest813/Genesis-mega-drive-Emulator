@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace MDTracer
 {
@@ -18,13 +18,14 @@ namespace MDTracer
         private bool g_command_select;
         private ushort g_command_word;
 
-        private int[] COLOR_NORMAL = { 0, 52, 87, 116, 144, 172, 206, 255 };
-        private int[] COLOR_SHADOW = { 0, 29, 52, 70, 87, 101, 116, 130 };
-        private int[] COLOR_HIGHLIGHT = { 130, 144, 158, 172, 187, 206, 228, 255 };
+        private static readonly int[] COLOR_NORMAL = { 0, 52, 87, 116, 144, 172, 206, 255 };
+        private static readonly int[] COLOR_SHADOW = { 0, 29, 52, 70, 87, 101, 116, 130 };
+        private static readonly int[] COLOR_HIGHLIGHT = { 130, 144, 158, 172, 187, 206, 228, 255 };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint get_vdp_port(uint in_address)
         {
-            return (in_address & 0x1f) & 0xfffffe;
+            return in_address & 0x1e;
         }
         //----------------------------------------------------------------
         //read
@@ -62,7 +63,7 @@ namespace MDTracer
                         w_out = g_vsram[(g_vdp_reg_dest_address >> 1) % 40];
                         break;
                     default:
-                        MessageBox.Show("read16_c0000", "error");
+                        report_vdp_warning("read16_c0000");
                         break;
                 }
                 g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
@@ -80,7 +81,7 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_vdp.read16", "error");
+                report_vdp_warning("md_vdp.read16");
             }
             return w_out;
         }
@@ -94,7 +95,7 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_vdp.read32", "error");
+                report_vdp_warning("md_vdp.read32");
             }
             return w_out;
         }
@@ -123,8 +124,8 @@ namespace MDTracer
                     {
                         case 1:
                             vram_write_w(g_vdp_reg_dest_address, in_data);
-                            pattern_chk(g_vdp_reg_dest_address, (byte)(in_data >> 8));
-                            pattern_chk(g_vdp_reg_dest_address + 1, (byte)(in_data & 0xff));
+                            pattern_chk(g_vdp_reg_dest_address);
+                            pattern_chk(g_vdp_reg_dest_address + 1);
                             g_vdp_reg_dest_address = (ushort)((g_vdp_reg_dest_address + g_vdp_reg_15_autoinc) & 0xffff);
                             break;
                         case 3:
@@ -140,7 +141,6 @@ namespace MDTracer
                             }
                             break;
                         default:
-                            //MessageBox.Show("write16_c0000", "error");
                             break;
                     }
                 }
@@ -192,7 +192,7 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_vdp.write16", "error");
+                report_vdp_warning("md_vdp.write16");
             }
         }
         public void write32(uint in_address, uint in_data)
@@ -205,22 +205,29 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_vdp.write32", "error");
+                report_vdp_warning("md_vdp.write32");
             }
         }
         //----------------------------------------------------------------
         //sub
         //----------------------------------------------------------------
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ushort vram_read_w(int in_addr)
         {
-            return (ushort)((g_vram[in_addr & 0xffff] << 8)
-                          | g_vram[(in_addr ^ 1) & 0xffff]);
+            int w_addr = in_addr & 0xffff;
+            byte[] w_vram = g_vram;
+            return (ushort)((w_vram[w_addr] << 8)
+                          | w_vram[w_addr ^ 1]);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void vram_write_w(int in_addr, ushort in_data)
         {
-            g_vram[in_addr] = (byte)(in_data >> 8);
-            g_vram[(in_addr ^ 1) & 0xffff] = (byte)(in_data & 0xff);
+            int w_addr = in_addr & 0xffff;
+            byte[] w_vram = g_vram;
+            w_vram[w_addr] = (byte)(in_data >> 8);
+            w_vram[w_addr ^ 1] = (byte)in_data;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void cram_set(int in_num, ushort in_data)
         {
             g_cram[in_num] = in_data;
@@ -241,7 +248,8 @@ namespace MDTracer
                                         | (uint)(COLOR_HIGHLIGHT[w_b]));
         }
 
-        private void pattern_chk(int in_address, byte in_val)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void pattern_chk(int in_address)
         {
             int w_address = in_address & 0xfffe;
             uint w_val = vram_read_w(w_address);
@@ -254,20 +262,22 @@ namespace MDTracer
                 int w_addr = (in_address & 0xffe0) >> 1;
                 int wx = (in_address & 0x0002) >> 1;
                 int wy = (in_address & 0x001f) >> 2;
-                g_renderer_vram[w_address >> 1] = w_val;
+                uint[] w_renderer_vram = g_renderer_vram;
+                w_renderer_vram[w_address >> 1] = w_val;
                 if (wx == 0)
                 {
-                    g_renderer_vram[VRAM_DATASIZE + w_addr + (wy << 1) + 1] = w_val_h;
-                    g_renderer_vram[(VRAM_DATASIZE * 2) + w_addr + ((7 - wy) << 1)] = w_val;
-                    g_renderer_vram[(VRAM_DATASIZE * 3) + w_addr + ((7 - wy) << 1) + 1] = w_val_h;
+                    w_renderer_vram[VRAM_DATASIZE + w_addr + (wy << 1) + 1] = w_val_h;
+                    w_renderer_vram[(VRAM_DATASIZE * 2) + w_addr + ((7 - wy) << 1)] = w_val;
+                    w_renderer_vram[(VRAM_DATASIZE * 3) + w_addr + ((7 - wy) << 1) + 1] = w_val_h;
                 }
                 else
                 {
-                    g_renderer_vram[VRAM_DATASIZE + w_addr + (wy << 1)] = w_val_h;
-                    g_renderer_vram[(VRAM_DATASIZE * 2) + w_addr + ((7 - wy) << 1) + 1] = w_val;
-                    g_renderer_vram[(VRAM_DATASIZE * 3) + w_addr + ((7 - wy) << 1)] = w_val_h;
+                    w_renderer_vram[VRAM_DATASIZE + w_addr + (wy << 1)] = w_val_h;
+                    w_renderer_vram[(VRAM_DATASIZE * 2) + w_addr + ((7 - wy) << 1) + 1] = w_val;
+                    w_renderer_vram[(VRAM_DATASIZE * 3) + w_addr + ((7 - wy) << 1)] = w_val_h;
                 }
-                g_pattern_chk[w_char] = true;
+                bool[] w_pattern_chk = g_pattern_chk;
+                w_pattern_chk[w_char] = true;
             }
         }
     }

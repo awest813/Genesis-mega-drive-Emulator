@@ -92,7 +92,7 @@ namespace MDTracer
         private PipelineState CreatePipelineState(string in_hlsl_string, string in_entrypoint)
         {
             SharpDX.Direct3D12.ShaderBytecode w_ShaderBytecode = new SharpDX.Direct3D12.ShaderBytecode(
-                        SharpDX.D3DCompiler.ShaderBytecode.Compile(in_hlsl_string, in_entrypoint, "cs_5_0", ShaderFlags.Debug));
+                        SharpDX.D3DCompiler.ShaderBytecode.Compile(in_hlsl_string, in_entrypoint, "cs_5_0", ShaderFlags.OptimizationLevel3));
             var w_cpsDesc = new ComputePipelineStateDescription()
             {
                 RootSignaturePointer = g_dx_RootSignature,

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
-using System.Xml.Linq;
+using System.Text;
 
 namespace MDTracer
 {
@@ -13,6 +12,54 @@ namespace MDTracer
         public static Configuration g_config;
         public static int g_tvmode_req;
         public static int g_gpu_req;
+        private const string GAME_SETTING_PREFIX = "game_";
+
+        public static string get_game_setting(string in_rom_file_name, string in_suffix)
+        {
+            string w_key = get_game_setting_key(in_rom_file_name, in_suffix);
+            if (string.IsNullOrEmpty(w_key) == true) return "";
+
+            return ConfigurationManager.AppSettings[w_key] ?? "";
+        }
+
+        public static void set_game_setting(string in_rom_file_name, string in_suffix, string in_val)
+        {
+            string w_key = get_game_setting_key(in_rom_file_name, in_suffix);
+            if (string.IsNullOrEmpty(w_key) == true) return;
+
+            Configuration w_config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            KeyValueConfigurationCollection w_settings = w_config.AppSettings.Settings;
+            if (string.IsNullOrWhiteSpace(in_val) == true)
+            {
+                if (w_settings.AllKeys.Contains(w_key) == true)
+                {
+                    w_settings.Remove(w_key);
+                }
+            }
+            else if (w_settings.AllKeys.Contains(w_key) == true)
+            {
+                w_settings[w_key].Value = in_val;
+            }
+            else
+            {
+                w_settings.Add(w_key, in_val);
+            }
+            w_config.Save();
+            ConfigurationManager.RefreshSection("appSettings");
+        }
+
+        private static string get_game_setting_key(string in_rom_file_name, string in_suffix)
+        {
+            string w_file_name = Path.GetFileName(in_rom_file_name ?? "").Trim();
+            string w_suffix = (in_suffix ?? "").Trim();
+            if ((string.IsNullOrEmpty(w_file_name) == true) || (string.IsNullOrEmpty(w_suffix) == true)) return "";
+
+            string w_token = Convert.ToBase64String(Encoding.UTF8.GetBytes(w_file_name))
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+            return GAME_SETTING_PREFIX + w_token + "_" + w_suffix;
+        }
 
         public static void read_setting()
         {
@@ -26,6 +73,7 @@ namespace MDTracer
             if(g_setting_name.Count == 0)
             {
                 read_init();
+                g_form_code.EnsureCodeToolLayoutVisible();
                 return;
             }
             for (int i = 0; i < g_setting_name.Count; i++)
@@ -106,6 +154,9 @@ namespace MDTracer
                         g_form_code.g_screen_xpos = int.Parse(w_val[1]);
                         g_form_code.g_screen_ypos = int.Parse(w_val[2]);
                         break;
+                    case "code_tools":
+                        g_form_code.SetCodeToolLayoutText(g_setting_val[i]);
+                        break;
                     case "io":
                         g_io_enable = (w_val[0] == "1") ? true : false;
                         g_form_io.g_screen_xpos = int.Parse(w_val[1]);
@@ -177,6 +228,7 @@ namespace MDTracer
                     case "file8": Form_Main.g_file_name[8] = g_setting_val[i]; break;
                 }
             }
+            g_form_code.EnsureCodeToolLayoutVisible();
         }
         private static void read_vdp_screen_menu_setting(Form_VDP_Screen in_form, string[] in_val)
         {
@@ -308,6 +360,7 @@ namespace MDTracer
                 + ":" + g_form_code.g_screen_xpos
                 + ":" + g_form_code.g_screen_ypos;
             setting_add("code", w_val);
+            setting_add("code_tools", g_form_code.GetCodeToolLayoutText());
             w_val = ((md_main.g_io_enable == true) ? "1" : "0")
                 + ":" + g_form_io.g_screen_xpos
                 + ":" + g_form_io.g_screen_ypos;
@@ -373,6 +426,7 @@ namespace MDTracer
                 setting_add("file" + i, Form_Main.g_file_name[i]);
             }
             g_config.Save();
+            ConfigurationManager.RefreshSection("appSettings");
         }
         public static void setting_add(string in_name, string in_val)
         {

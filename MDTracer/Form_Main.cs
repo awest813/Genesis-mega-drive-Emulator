@@ -66,6 +66,9 @@ namespace MDTracer
             vdpScreensVideoRecordingStop();
             md_main.g_md_io.input_record_stop();
             md_main.g_md_io.input_replay_stop();
+            md_main.g_form_code.SaveCurrentGameCodeSettings();
+            md_main.g_form_code.FlushCodeToolLayoutSave();
+            md_main.write_setting();
         }
         private void Form_Main_SizeChanged(object sender, EventArgs e)
         {
@@ -102,7 +105,7 @@ namespace MDTracer
         {
             if (g_filelist_view == true)
             {
-                Font wfont = new Font("ÇlÇr ÉSÉVÉbÉN", 10);
+                using Font wfont = new Font("ÇlÇr ÉSÉVÉbÉN", 10);
                 Brush wbrush = Brushes.White;
                 e.Graphics.DrawString("file select", wfont, wbrush, new PointF(20, 20));
                 e.Graphics.DrawString("(F key: Select in File Explorer)", wfont, wbrush, new PointF(30, 40));
@@ -304,15 +307,22 @@ namespace MDTracer
         private readonly object g_bitmapLock = new object();
         public void picture_update(int in_cpu)
         {
-            if (this.WindowState == FormWindowState.Minimized) return;
+            if (IsDisposed == true || IsHandleCreated == false) return;
+            Size w_clientSize = GetGamePanelClientSize();
+            if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
+
             g_filelist_view = false;
-            toolStripStatusLabel1.Text = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "") + (g_videoRecorder != null ? " VIDEO" : "") + (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
+            string w_statusText = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "") + (g_videoRecorder != null ? " VIDEO" : "") + (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
+            Bitmap w_displayBitmap;
+            int w_bitmap_x = w_clientSize.Width;
+            int w_bitmap_y = w_clientSize.Height;
             lock (g_bitmapLock)
             {
-                int w_bitmap_x = panel_game.ClientSize.Width;
-                int w_bitmap_y = panel_game.ClientSize.Height;
-                float w_cx = (float)md_main.g_md_vdp.g_display_xsize / (float)w_bitmap_x;
-                float w_cy = (float)md_main.g_md_vdp.g_display_ysize / (float)w_bitmap_y;
+                int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
+                int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
+                int w_cx = (w_sourceWidth << 16) / w_bitmap_x;
+                int w_cy = (w_sourceHeight << 16) / w_bitmap_y;
+                uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
 
                 if (g_work_bitmap == null || g_work_bitmapW != w_bitmap_x || g_work_bitmapH != w_bitmap_y)
                 {
@@ -323,41 +333,90 @@ namespace MDTracer
                 }
                 BitmapData game_bmpData = g_work_bitmap.LockBits(new Rectangle(0, 0, g_work_bitmap.Width, g_work_bitmap.Height),
                                             ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-                IntPtr dest_ptr = game_bmpData.Scan0;
-                int dest_stride = game_bmpData.Stride;
-                const int bytesPerPixel = 4;
-                unsafe
-                {
-                    float w_dy = 0;
-                    for (int wy = 0; wy < w_bitmap_y; wy++)
-                    {
-                        uint* pixel = (uint*)dest_ptr;
-                        float w_dx = 0;
-                        int w_base = (int)w_dy * md_main.g_md_vdp.g_display_xsize;
-                        for (int wx = 0; wx < w_bitmap_x; wx++)
-                        {
-                            *pixel = md_main.g_md_vdp.g_game_screen[w_base + (int)w_dx];
-                            w_dx += w_cx;
-                            pixel = (uint*)((IntPtr)pixel + bytesPerPixel);
-                        }
-                        dest_ptr += dest_stride;
-                        w_dy += w_cy;
-                    }
-                }
-                g_work_bitmap.UnlockBits(game_bmpData);
-                videoRecordingAddFrame(g_work_bitmap);
                 try
                 {
-                    this.Invoke((Action)(() =>
+                    IntPtr dest_ptr = game_bmpData.Scan0;
+                    int dest_stride = game_bmpData.Stride;
+                    const int bytesPerPixel = 4;
+                    unsafe
                     {
-                        pictureBox_game.Image?.Dispose();
-                        pictureBox_game.Image = new Bitmap(g_work_bitmap);
-                        pictureBox_game.Width = w_bitmap_x;
-                        pictureBox_game.Height = w_bitmap_y;
-                    }));
+                        int w_dy = 0;
+                        for (int wy = 0; wy < w_bitmap_y; wy++)
+                        {
+                            uint* pixel = (uint*)dest_ptr;
+                            int w_dx = 0;
+                            int w_base = (w_dy >> 16) * w_sourceWidth;
+                            for (int wx = 0; wx < w_bitmap_x; wx++)
+                            {
+                                *pixel = w_gameScreen[w_base + (w_dx >> 16)];
+                                w_dx += w_cx;
+                                pixel = (uint*)((IntPtr)pixel + bytesPerPixel);
+                            }
+                            dest_ptr += dest_stride;
+                            w_dy += w_cy;
+                        }
+                    }
                 }
-                catch { }
+                finally
+                {
+                    g_work_bitmap.UnlockBits(game_bmpData);
+                }
+                videoRecordingAddFrame(g_work_bitmap);
+                w_displayBitmap = new Bitmap(g_work_bitmap);
             }
+            UpdateGamePicture(w_displayBitmap, w_bitmap_x, w_bitmap_y, w_statusText);
+        }
+
+        private Size GetGamePanelClientSize()
+        {
+            if (IsDisposed == true || IsHandleCreated == false) return Size.Empty;
+            if (InvokeRequired == true)
+            {
+                try
+                {
+                    return (Size)Invoke(new Func<Size>(GetGamePanelClientSize));
+                }
+                catch
+                {
+                    return Size.Empty;
+                }
+            }
+
+            if (WindowState == FormWindowState.Minimized) return Size.Empty;
+            return panel_game.ClientSize;
+        }
+
+        private void UpdateGamePicture(Bitmap in_bitmap, int in_width, int in_height, string in_statusText)
+        {
+            if (IsDisposed == true || IsHandleCreated == false)
+            {
+                in_bitmap.Dispose();
+                return;
+            }
+            if (InvokeRequired == true)
+            {
+                try
+                {
+                    BeginInvoke(new Action<Bitmap, int, int, string>(UpdateGamePicture), in_bitmap, in_width, in_height, in_statusText);
+                }
+                catch
+                {
+                    in_bitmap.Dispose();
+                }
+                return;
+            }
+
+            if (WindowState == FormWindowState.Minimized)
+            {
+                in_bitmap.Dispose();
+                return;
+            }
+
+            toolStripStatusLabel1.Text = in_statusText;
+            pictureBox_game.Image?.Dispose();
+            pictureBox_game.Image = in_bitmap;
+            pictureBox_game.Width = in_width;
+            pictureBox_game.Height = in_height;
         }
         //----------------------------------------------------------------
         //Sub

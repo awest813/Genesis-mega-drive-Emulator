@@ -1,8 +1,3 @@
-﻿using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using System.Text;
-using Microsoft.VisualBasic.Logging;
-
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -11,6 +6,10 @@ namespace MDTracer
     internal partial class md_z80
     {
         public bool g_active;
+        private static void report_z80_warning(string in_message)
+        {
+            System.Diagnostics.Debug.WriteLine("[Z80] " + in_message);
+        }
 
         private ushort g_reg_PC;
         private byte g_reg_A;
@@ -95,37 +94,10 @@ namespace MDTracer
         }
         public void run(int in_clock)
         {
-            bool www = false;
-            if(www==true)
-            {
-                pgout();
-            }
-
-
             if (g_active == false) return;
             g_clock_total += in_clock;
             while (g_clock_total >= 0)
             {
-                /*
-                //IFF
-                if (g_interrupt_nmi == true)
-                {
-                    //NMI nocheck
-                    if (g_halt == true)
-                    {
-                        g_reg_PC += 1;
-                        g_halt = false;
-                    }
-                    ushort w_pc = g_reg_PC;
-                    stack_push((byte)((w_pc >> 8) & 0xff));
-                    stack_push((byte)(w_pc & 0xff));
-                    g_reg_PC = 0x0066;
-                    g_interrupt_nmi = false;
-                    g_IFF1 = g_IFF2;
-                    g_IFF1 = false;
-                }
-                else
-                */
                 if (g_interrupt_irq == true)
                 {
                     if(g_IFF1 == true)
@@ -156,12 +128,6 @@ namespace MDTracer
                 }
                 g_clock = 0;
                 g_operand[g_opcode1]();
-
-                //traceout();
-                //logout2();
-                //pgout();
-
-
                 g_reg_R = (byte)((g_reg_R + 1) & 0x7f);
                 g_clock_total -= g_clock;
             }
@@ -216,7 +182,7 @@ namespace MDTracer
         {
             if (g_operand_dd[g_opcode2] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_dd", "error");
+                report_z80_warning("md_z80.op_dd");
             }
             g_operand_dd[g_opcode2]();
             g_reg_R += 1;
@@ -225,7 +191,7 @@ namespace MDTracer
         {
             if (g_operand_ddcb[g_opcode4] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_ddcb", "error");
+                report_z80_warning("md_z80.op_ddcb");
             }
             g_operand_ddcb[g_opcode4]();
             g_reg_R += 1;
@@ -234,7 +200,7 @@ namespace MDTracer
         {
             if (g_operand_fd[g_opcode2] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_fd", "error");
+                report_z80_warning("md_z80.op_fd");
             }
             g_operand_fd[g_opcode2]();
             g_reg_R += 1;
@@ -243,7 +209,7 @@ namespace MDTracer
         {
             if (g_operand_fdcb[g_opcode4] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_fdcb", "error");
+                report_z80_warning("md_z80.op_fdcb");
             }
             g_operand_fdcb[g_opcode4]();
             g_reg_R += 1;
@@ -252,7 +218,7 @@ namespace MDTracer
         {
             if (g_operand_ed[g_opcode2] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_ed", "error");
+                report_z80_warning("md_z80.op_ed");
             }
             g_operand_ed[g_opcode2]();
             g_reg_R += 1;
@@ -261,53 +227,12 @@ namespace MDTracer
         {
             if (g_operand_cb[g_opcode2] == op_NOP)
             {
-                MessageBox.Show("md_z80.op_cb", "error");
+                report_z80_warning("md_z80.op_cb");
             }
             g_operand_cb[g_opcode2]();
             g_reg_R += 1;
         }
 
-        private void pgout()
-        {
-            using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(@"d:\t_1.bin")))
-            {
-                writer.Write(g_ram, 0, 8192);
-            }
-        }
-        private uint[] log_trace = new uint[100];
-        void traceout()
-        {
-            for (int i = 98; i >= 0; i--)
-            {
-                log_trace[i + 1] = log_trace[i];
-            }
-            log_trace[0] = g_reg_PC;
-        }
-        /*
-private void logout(string in_log)
-{
-    System.IO.File.AppendAllText("d:\\md_log_z80.txt", in_log + Environment.NewLine);
-}
-*/
-        private void logout2()
-        {
-                    using (FileStream fs = new FileStream("d:\\log2.txt", FileMode.Append, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: false))
-                    {
-                        byte[] data = Encoding.UTF8.GetBytes(
-                            g_reg_PC.ToString("x4").ToString()
-                             + "," + g_reg_A.ToString("x2")
-                             + "," + (g_status_flag & 0xd7).ToString("x2")
-                             + "," + g_reg_BC.ToString("x4")
-                             + "," + g_reg_DE.ToString("x4")
-                             + "," + g_reg_HL.ToString("x4")
-                             + "," + g_reg_IX.ToString("x4")
-                             + "," + g_reg_IY.ToString("x4")
-                             + "," + g_reg_SP.ToString("x4")
-                             + "," + g_bank_register.ToString("x1")
-                             + Environment.NewLine);
-                        fs.Write(data, 0, data.Length);
-                    }
-        }
     }
 }
 

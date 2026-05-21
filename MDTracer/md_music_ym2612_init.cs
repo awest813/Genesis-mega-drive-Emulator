@@ -158,6 +158,7 @@ namespace MDTracer
             g_ch_out = new int[NUM_CHANNELS];
             g_ch_reg_reflesh = new bool[NUM_CHANNELS];
             g_ch_pms_cnt = new double[NUM_CHANNELS];
+            g_ch_display_freq = new int[NUM_CHANNELS];
 
             //slot
 			g_slot_key_scale = new int[NUM_CHANNELS, NUM_SLOT];

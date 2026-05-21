@@ -71,29 +71,50 @@ namespace MDTracer
         {
             pictureBox_pattern.Invalidate();
         }
-        public delegate void UpdatePictureBoxDelegate(PictureBox in_pic, Bitmap in_bitmap);
-        private void UpdatePictureBox(PictureBox in_pic, Bitmap in_bitmap)
+        private void UpdatePictureBox(Bitmap in_bitmap)
         {
-            if (in_pic.InvokeRequired)
+            if (pictureBox_pattern.IsDisposed == true || pictureBox_pattern.IsHandleCreated == false)
             {
-                in_pic.Invoke(new UpdatePictureBoxDelegate(UpdatePictureBox), new object[] { in_bitmap.Clone() });
+                in_bitmap.Dispose();
+                return;
             }
-            else
+
+            if (pictureBox_pattern.InvokeRequired == true)
             {
-                in_pic.Image = (Bitmap)in_bitmap.Clone();
+                try
+                {
+                    pictureBox_pattern.BeginInvoke(new Action<Bitmap>(UpdatePictureBox), in_bitmap);
+                }
+                catch
+                {
+                    in_bitmap.Dispose();
+                }
+                return;
             }
+
+            pictureBox_pattern.Image?.Dispose();
+            pictureBox_pattern.Image = in_bitmap;
         }
 
         public void picture_update(Bitmap in_bitmap)
         {
-            if (this.IsHandleCreated && this.Visible)
+            if (IsDisposed == true || IsHandleCreated == false || Visible == false) return;
+            if (in_bitmap.Width < 128 || in_bitmap.Height < 128) return;
+
+            int w_y = g_cur_char << 3;
+            int w_maxY = in_bitmap.Height - 128;
+            if (w_y < 0)
             {
-                Rectangle rect = new Rectangle(0, g_cur_char << 3, 128, 128);
-                Bitmap bmp_dst = in_bitmap.Clone(rect, in_bitmap.PixelFormat);
-                this.Invoke(new UpdatePictureBoxDelegate(this.UpdatePictureBox), new object[] { pictureBox_pattern, bmp_dst });
-                rect = Rectangle.Empty;
-                bmp_dst.Dispose();
+                w_y = 0;
             }
+            else if (w_y > w_maxY)
+            {
+                w_y = w_maxY;
+            }
+
+            Rectangle rect = new Rectangle(0, w_y, 128, 128);
+            Bitmap bmp_dst = in_bitmap.Clone(rect, in_bitmap.PixelFormat);
+            UpdatePictureBox(bmp_dst);
         }
     }
 }

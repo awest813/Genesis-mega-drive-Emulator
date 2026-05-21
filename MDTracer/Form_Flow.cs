@@ -66,7 +66,10 @@ namespace MDTracer
             g_screen_size_y = pictureBox_flow.Height;
             if((g_screen_size_x != 0) && (g_screen_size_y != 0))
             {
+                Bitmap w_oldBitmap = g_work_bitmap;
                 g_work_bitmap = new Bitmap(g_screen_size_x, g_screen_size_y);
+                pictureBox_flow.Image = g_work_bitmap;
+                w_oldBitmap?.Dispose();
                 scrollbar_set();
             }
         }
@@ -110,8 +113,8 @@ namespace MDTracer
             g_work_offset.X = g_screen_offset.X;
             g_work_offset.Y = g_screen_offset.Y;
             pictureBox_flow.Invalidate();
-            hScrollBar1.Value = g_work_offset.X;
-            vScrollBar1.Value = g_work_offset.Y;
+            hScrollBar1.Value = ClampScrollValue(hScrollBar1, g_work_offset.X);
+            vScrollBar1.Value = ClampScrollValue(vScrollBar1, g_work_offset.Y);
         }
         private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
@@ -174,7 +177,6 @@ namespace MDTracer
             int w_cur_level = in_cur_level;
             int w_x = 0;
             int w_y = 0;
-            Font wfont = new Font("ＭＳ ゴシック", 10);
             Brush wbrush = Brushes.Black;
 
             if (g_flow_max_level < in_level + 1)
@@ -292,6 +294,29 @@ namespace MDTracer
             g_caller_address = in_caller_address;
             g_update_req = true;
         }
+
+        public void RequestFlowUpdate(uint in_func_address, uint in_caller_address)
+        {
+            if (IsDisposed == true || IsHandleCreated == false) return;
+            if (InvokeRequired == true)
+            {
+                try
+                {
+                    BeginInvoke(new Action<uint, uint>(RequestFlowUpdate), in_func_address, in_caller_address);
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (InvalidOperationException)
+                {
+                }
+                return;
+            }
+
+            flow_update_req(in_func_address, in_caller_address);
+            Invalidate();
+        }
+
         public void flow_update()
         {
             g_list_chk.Clear();
@@ -336,6 +361,14 @@ namespace MDTracer
             hScrollBar1.Maximum = g_flow_max_level * 120;
             hScrollBar1.SmallChange = 1;
             hScrollBar1.LargeChange = pictureBox_flow.Width;
+            vScrollBar1.Value = ClampScrollValue(vScrollBar1, vScrollBar1.Value);
+            hScrollBar1.Value = ClampScrollValue(hScrollBar1, hScrollBar1.Value);
+        }
+
+        private int ClampScrollValue(ScrollBar in_scrollBar, int in_value)
+        {
+            int w_max = Math.Max(in_scrollBar.Minimum, in_scrollBar.Maximum - in_scrollBar.LargeChange + 1);
+            return Math.Max(in_scrollBar.Minimum, Math.Min(w_max, in_value));
         }
     }
 }

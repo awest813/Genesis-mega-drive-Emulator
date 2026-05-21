@@ -1,9 +1,3 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using static MDTracer.md_vdp;
-
 namespace MDTracer
 {
     internal partial class md_vdp
@@ -26,7 +20,6 @@ namespace MDTracer
         private uint[] g_game_primap;
         private uint[] g_game_plain;      //0:back,1:A,2:B,3:W,4:S
         private uint[] g_game_shadowmap;
-        private uint[] g_game_spmap;
 
         private VDP_REGISTER g_snap_register;
         private uint[] g_snap_renderer_vram;
@@ -89,13 +82,30 @@ namespace MDTracer
         {
             if (g_waitHandle.WaitOne(0) == false)
             {
-                if (rendering_gpu == true)
+                bool w_snapshot_required = is_rendering_snapshot_required();
+                if ((rendering_gpu == true) && (w_snapshot_required == true))
                 {
+                    dx_rendering_initialize_if_needed();
                     dx_frame_stack();
                 }
-                rendering_frame_snap();
+                if (w_snapshot_required == true)
+                {
+                    rendering_frame_snap();
+                }
                 g_waitHandle.Set();
             }
+        }
+        private bool is_rendering_snapshot_required()
+        {
+            return rendering_gpu == true || is_rendering_data_required() == true;
+        }
+        private static bool is_rendering_data_required()
+        {
+            return md_main.g_screenA_enable == true
+                || md_main.g_screenB_enable == true
+                || md_main.g_screenW_enable == true
+                || md_main.g_screenS_enable == true
+                || md_main.g_pattern_enable == true;
         }
         public void run_event()
         {
@@ -106,6 +116,7 @@ namespace MDTracer
                 if ((md_main.is_stop_requested() == true) && (md_main.consume_frame_advance_update_request() == false)) continue;
                 if (rendering_gpu == true)
                 {
+                    dx_rendering_initialize_if_needed();
                     if (g_snap_register.vdp_reg_1_6_display == 1)
                     {
                         dx_rendering();
@@ -120,7 +131,10 @@ namespace MDTracer
                     }
                 }
                 md_main.Screen_Game_Update();
-                rendering_data();
+                if (is_rendering_data_required() == true)
+                {
+                    rendering_data();
+                }
                 md_main.Screen_Update();
             }
         }

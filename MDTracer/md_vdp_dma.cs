@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Xml.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MDTracer
 {
@@ -63,15 +62,16 @@ namespace MDTracer
             g_vdp_status_1_dma = 1;
             g_vdp_status_8_full = 1;
             int w_loop_cnt = g_dma_leng;
+            md_m68k w_m68k = md_main.g_md_m68k;
             switch (g_vdp_reg_code & 0x0f)
             {
                 case 1:
                     do
                     {
-                        ushort w_val = md_main.g_md_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_m68k.read16(g_dma_src_addr);
                         vram_write_w(g_vdp_reg_dest_address, w_val);
-                        pattern_chk(g_vdp_reg_dest_address, (byte)(w_val >> 8));
-                        pattern_chk(g_vdp_reg_dest_address + 1, (byte)(w_val & 0xff));
+                        pattern_chk(g_vdp_reg_dest_address);
+                        pattern_chk(g_vdp_reg_dest_address + 1);
                         g_dma_src_addr += 2;
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
@@ -79,7 +79,7 @@ namespace MDTracer
                 case 3:
                     do
                     {
-                        ushort w_val = md_main.g_md_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_m68k.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) & 0x3f);
                         cram_set(wcol_num, w_val);
                         g_dma_src_addr += 2;
@@ -89,7 +89,7 @@ namespace MDTracer
                 case 5:
                     do
                     {
-                        ushort w_val = md_main.g_md_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_m68k.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) % 40);
                         g_vsram[wcol_num] = w_val; g_dma_src_addr += 2;
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
@@ -110,13 +110,14 @@ namespace MDTracer
             {
                 case 1:
                     byte w_data = (byte)(g_dma_fill_data & 0x00ff);
-                    g_vram[g_vdp_reg_dest_address] = w_data;
-                    pattern_chk(g_vdp_reg_dest_address, w_data);
+                    byte[] w_vram = g_vram;
+                    w_vram[g_vdp_reg_dest_address] = w_data;
+                    pattern_chk(g_vdp_reg_dest_address);
                     w_data = (byte)((g_dma_fill_data >> 8) & 0x00ff);
                     do
                     {
-                        g_vram[g_vdp_reg_dest_address ^ 1] = w_data;
-                        pattern_chk((g_vdp_reg_dest_address ^ 1), w_data);
+                        w_vram[g_vdp_reg_dest_address ^ 1] = w_data;
+                        pattern_chk(g_vdp_reg_dest_address ^ 1);
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
                     break;
@@ -149,36 +150,40 @@ namespace MDTracer
             switch (g_vdp_reg_code & 0x0f)
             {
                 case 1:
+                    byte[] w_vram = g_vram;
                     do
                     {
-                        byte w_val = g_vram[g_dma_src_addr];
-                        g_vram[g_vdp_reg_dest_address] = w_val;
-                        pattern_chk(g_vdp_reg_dest_address, w_val);
+                        byte w_val = w_vram[g_dma_src_addr];
+                        w_vram[g_vdp_reg_dest_address] = w_val;
+                        pattern_chk(g_vdp_reg_dest_address);
                         g_dma_src_addr = (g_dma_src_addr + 1) & 0xffff;
                         g_vdp_reg_dest_address = (ushort)((g_vdp_reg_dest_address + g_vdp_reg_15_autoinc) & 0xffff);
                     } while (--w_loop_cnt > 0);
                     break;
                 case 3:
-                    MessageBox.Show("md_vdp.dma_run_copy", "error");
+                    report_vdp_warning("md_vdp.dma_run_copy");
                     break;
                 case 5:
-                    MessageBox.Show("md_vdp.dma_run_copy", "error");
+                    report_vdp_warning("md_vdp.dma_run_copy");
                     break;
             }
         }
         //--------------------------------------------------
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint read_dma_src_addr()
         {
             return (uint)(g_vdp_reg_21_dma_source_low
                         + (g_vdp_reg_22_dma_source_mid << 8)
                         + (g_vdp_reg_23_5_dma_high << 16));
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void write_dma_src_addr(uint in_addr)
         {
             g_vdp_reg_21_dma_source_low = (byte)(in_addr & 0x00ff);
             g_vdp_reg_22_dma_source_mid = (byte)(in_addr >> 8);
             g_vdp_reg_23_5_dma_high = (byte)(in_addr >> 16);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int read_dma_leng()
         {
             int out_ling = (g_vdp_reg_19_dma_counter_low
@@ -186,6 +191,7 @@ namespace MDTracer
             if (out_ling == 0) out_ling = 0x10000;
             return out_ling;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void write_dma_leng()
         {
             g_vdp_reg_19_dma_counter_low = (byte)(g_dma_leng & 0x00ff);

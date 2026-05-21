@@ -1,7 +1,5 @@
 
 using System;
-using System.Diagnostics;
-using System.Windows.Forms;
 
 namespace MDTracer
 {
@@ -35,14 +33,9 @@ namespace MDTracer
         }
         public void reset()
         {
-            for (int i = 0; i < 0x1000000; i++)
-            {
-                g_memory[i] = 0;
-            }
-            for (int i = 0; i < md_main.g_md_cartridge.g_file_size; i++)
-            {
-                g_memory[i] = md_main.g_md_cartridge.g_file[i];
-            }
+            Array.Clear(g_memory, 0, g_memory.Length);
+            int w_rom_size = Math.Min(md_main.g_md_cartridge.g_file_size, g_memory.Length);
+            Array.Copy(md_main.g_md_cartridge.g_file, g_memory, w_rom_size);
             g_initial_PC = read32(4);
             g_reg_PC = g_initial_PC;
             g_stack_top = read32(0);

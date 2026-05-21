@@ -1,12 +1,4 @@
-﻿using SharpDX;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MDTracer
 {
@@ -40,7 +32,30 @@ namespace MDTracer
             Array.Copy(g_color, g_snap_color, g_color.Length);
             Array.Copy(g_color_shadow, g_snap_color_shadow, g_color_shadow.Length);
             Array.Copy(g_color_highlight, g_snap_color_highlight, g_color_highlight.Length);
-            Array.Copy(g_line_snap, g_snap_line_snap, g_line_snap.Length);
+            copy_line_snap(g_line_snap, g_snap_line_snap);
+        }
+        private static void copy_line_snap(VDP_LINE_SNAP[] in_src, VDP_LINE_SNAP[] in_dst)
+        {
+            for (int i = 0; i < DISPLAY_YSIZE; i++)
+            {
+                in_dst[i].hscrollA = in_src[i].hscrollA;
+                in_dst[i].hscrollB = in_src[i].hscrollB;
+                Array.Copy(in_src[i].vscrollA, in_dst[i].vscrollA, VSRAM_DATASIZE);
+                Array.Copy(in_src[i].vscrollB, in_dst[i].vscrollB, VSRAM_DATASIZE);
+                in_dst[i].window_x_st = in_src[i].window_x_st;
+                in_dst[i].window_x_ed = in_src[i].window_x_ed;
+                in_dst[i].sprite_rendrere_num = in_src[i].sprite_rendrere_num;
+                Array.Copy(in_src[i].sprite_left, in_dst[i].sprite_left, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_right, in_dst[i].sprite_right, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_top, in_dst[i].sprite_top, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_bottom, in_dst[i].sprite_bottom, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_xcell_size, in_dst[i].sprite_xcell_size, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_ycell_size, in_dst[i].sprite_ycell_size, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_priority, in_dst[i].sprite_priority, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_palette, in_dst[i].sprite_palette, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_reverse, in_dst[i].sprite_reverse, MAX_SPRITE);
+                Array.Copy(in_src[i].sprite_char, in_dst[i].sprite_char, MAX_SPRITE);
+            }
         }
         private void rendering_line_snap()
         {
@@ -54,8 +69,8 @@ namespace MDTracer
                 w_addr >>= 1;
                 int w_hscrollA = (int)(g_renderer_vram[w_addr] & 0x3ff);
                 int w_hscrollB = (int)(g_renderer_vram[w_addr + 1] & 0x3ff);
-                int w_view_xA = ((g_scroll_xsize << 2) - w_hscrollA) % g_scroll_xsize;
-                int w_view_xB = ((g_scroll_xsize << 2) - w_hscrollB) % g_scroll_xsize;
+                int w_view_xA = ((g_scroll_xsize << 2) - w_hscrollA) & g_scroll_xsize_mask;
+                int w_view_xB = ((g_scroll_xsize << 2) - w_hscrollB) & g_scroll_xsize_mask;
                 g_line_snap[g_scanline].hscrollA = w_view_xA;
                 g_line_snap[g_scanline].hscrollB = w_view_xB;
             }
@@ -77,8 +92,8 @@ namespace MDTracer
 
                     for (int i = 0; i < VSRAM_DATASIZE; i++)
                     {
-                        g_line_snap[g_scanline].vscrollA[i] = ((w_vscrollA + g_scanline) % g_scroll_ysize);
-                        g_line_snap[g_scanline].vscrollB[i] = ((w_vscrollB + g_scanline) % g_scroll_ysize);
+                        g_line_snap[g_scanline].vscrollA[i] = ((w_vscrollA + g_scanline) & g_scroll_ysize_mask);
+                        g_line_snap[g_scanline].vscrollB[i] = ((w_vscrollB + g_scanline) & g_scroll_ysize_mask);
                     }
                 }
                 else
@@ -97,8 +112,8 @@ namespace MDTracer
                             w_vscrollA &= 0x7ff;
                             w_vscrollB &= 0x7ff;
                         }
-                        g_line_snap[g_scanline].vscrollA[i] = ((w_vscrollA + g_scanline) % g_scroll_ysize);
-                        g_line_snap[g_scanline].vscrollB[i] = ((w_vscrollB + g_scanline) % g_scroll_ysize);
+                        g_line_snap[g_scanline].vscrollA[i] = ((w_vscrollA + g_scanline) & g_scroll_ysize_mask);
+                        g_line_snap[g_scanline].vscrollB[i] = ((w_vscrollB + g_scanline) & g_scroll_ysize_mask);
                     }
                 }
             }

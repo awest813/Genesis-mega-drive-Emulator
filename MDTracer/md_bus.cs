@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 
+using System.Runtime.CompilerServices;
+
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -7,15 +9,22 @@ namespace MDTracer
     //----------------------------------------------------------------
     internal class md_bus
     {
+        private static void report_bus_warning(string in_message)
+        {
+            Debug.WriteLine("[Bus] " + in_message);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool is_vdp_range(uint in_address)
         {
             return (0xc00000 <= in_address) && (in_address <= 0xdfffff);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool is_psg_port(uint in_address)
         {
             uint w_port = in_address & 0x1f;
             return is_vdp_range(in_address) && (0x10 <= w_port) && (w_port <= 0x17);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool is_tmss_address(uint in_address)
         {
             return (0xa14000 <= in_address) && (in_address <= 0xa14003);
@@ -26,7 +35,7 @@ namespace MDTracer
         public byte read8(uint in_address)
         {
             byte w_out = 0;
-            in_address = in_address & 0xffffff;
+            in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
                 w_out = md_main.g_md_m68k.read8(in_address);
@@ -68,15 +77,16 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_bus.read8", "error");
+                report_bus_warning("md_bus.read8");
             }
-            md_main.g_form_code.memory_monitor_check(in_address, w_out, false);
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 1);
             return w_out;
         }
         public ushort read16(uint in_address)
         {
             ushort w_out = 0;
-            in_address = in_address & 0xffffff;
+            in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
                 w_out = md_main.g_md_m68k.read16(in_address);
@@ -113,15 +123,16 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_bus.read16", "error");
+                report_bus_warning("md_bus.read16");
             }
-            md_main.g_form_code.memory_monitor_check(in_address, w_out, false);
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 2);
             return w_out;
         }
         public uint read32(uint in_address)
         {
             uint w_out = 0;
-            in_address = in_address & 0xffffff;
+            in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
                 w_out = md_main.g_md_m68k.read32(in_address);
@@ -158,9 +169,10 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_bus.read32", "error");
+                report_bus_warning("md_bus.read32");
             }
-            md_main.g_form_code.memory_monitor_check(in_address, w_out, false);
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 4);
             return w_out;
         }
         //----------------------------------------------------------------
@@ -168,8 +180,9 @@ namespace MDTracer
         //----------------------------------------------------------------
         public void write8(uint in_address, byte in_data)
         {
-            in_address = in_address & 0xffffff;
-            md_main.g_form_code.memory_monitor_check(in_address, in_data, true);
+            in_address &= 0xffffff;
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 1);
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write8(in_address, in_data);
@@ -211,13 +224,14 @@ namespace MDTracer
             }
             else
             {
-                //MessageBox.Show("md_bus.write8", "error");
+                report_bus_warning("md_bus.write8");
             }
         }
         public void write16(uint in_address, ushort in_data)
         {
-            in_address = in_address & 0xffffff;
-            md_main.g_form_code.memory_monitor_check(in_address, in_data, true);
+            in_address &= 0xffffff;
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 2);
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write16(in_address, in_data);
@@ -260,13 +274,14 @@ namespace MDTracer
             }
             else
             {
-                MessageBox.Show("md_bus.write16", "error");
+                report_bus_warning("md_bus.write16");
             }
         }
         public void write32(uint in_address, uint in_data)
         {
-            in_address = in_address & 0xffffff;
-            md_main.g_form_code.memory_monitor_check(in_address, in_data, true);
+            in_address &= 0xffffff;
+            var w_form_code = md_main.g_form_code;
+            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 4);
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write32(in_address, in_data);
@@ -307,16 +322,11 @@ namespace MDTracer
             else
             if ((0xa00000 <= in_address) && (in_address <= 0xa0ffff))
             {
-                if (in_address == 0xa01ffc) in_address = in_address;
-                if (in_address == 0xa01ffd) in_address = in_address;
-                if (in_address == 0xa01ffe) in_address = in_address;
-                if (in_address == 0xa01fff) in_address = in_address;
-
                 md_main.g_md_z80.write32(in_address, in_data);
             }
             else
             {
-                MessageBox.Show("md_bus.write32", "error");
+                report_bus_warning("md_bus.write32");
             }
         }
     }

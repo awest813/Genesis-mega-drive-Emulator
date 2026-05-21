@@ -20,6 +20,10 @@ namespace MDTracer
         private Form_Main_AviRecorder? g_videoRecorder;
         private string g_videoRecordPath = "";
         private bool g_sizeChanging;
+        private volatile bool g_gridEnabled;
+        private volatile bool g_screenshotEnabled;
+        private volatile bool g_videoRecordingEnabled;
+        private volatile bool g_viewActive;
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
@@ -28,6 +32,7 @@ namespace MDTracer
             InitializeComponent();
             screenshotToolStripMenuItem.Click += vdpMenuSettingToolStripMenuItem_Click;
             videoRecordingToolStripMenuItem.Click += vdpMenuSettingToolStripMenuItem_Click;
+            VisibleChanged += (sender, e) => g_viewActive = Visible;
         }
         //----------------------------------------------------------------
         //initialize
@@ -44,6 +49,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         private void Form_VDP_Screen_FormClosing(object sender, FormClosingEventArgs e)
         {
+            g_viewActive = false;
             SyncVideoRecordingStop();
             switch (g_screen_type)
             {
@@ -68,6 +74,7 @@ namespace MDTracer
         }
         private void Form_VDP_Screen_Shown(object sender, EventArgs e)
         {
+            g_viewActive = true;
             this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
             g_content_xsize_change = panel_screen.ClientSize.Width;
             g_content_ysize_change = panel_screen.ClientSize.Height;
@@ -121,89 +128,93 @@ namespace MDTracer
         //----------------------------------------------------------------
         //Event Handling: Painting
         //----------------------------------------------------------------
-        public delegate void UpdatePictureBoxDelegate(Bitmap in_bitmap);
         private void UpdatePictureBox(Bitmap in_bitmap)
         {
-            if (IsUpdateTargetAvailable() == false)
+            QueueDisplayUpdate(in_bitmap, false);
+        }
+
+        private void QueueDisplayUpdate(Bitmap in_bitmap, bool in_screenSizeChanged)
+        {
+            if (IsDisposed == true)
             {
                 in_bitmap.Dispose();
                 return;
             }
-            if (pictureBox_screen.InvokeRequired)
+
+            try
             {
-                try
-                {
-                    pictureBox_screen.BeginInvoke(new UpdatePictureBoxDelegate(UpdatePictureBox), new object[] { in_bitmap });
-                }
-                catch
+                if (IsHandleCreated == false)
                 {
                     in_bitmap.Dispose();
+                    return;
                 }
+                BeginInvoke(new Action<Bitmap, bool>(ApplyDisplayUpdate), in_bitmap, in_screenSizeChanged);
             }
-            else
+            catch (ObjectDisposedException)
             {
-                pictureBox_screen.Image?.Dispose();
-                pictureBox_screen.Image = in_bitmap;
+                in_bitmap.Dispose();
             }
+            catch (InvalidOperationException)
+            {
+                in_bitmap.Dispose();
+            }
+        }
+
+        private void ApplyDisplayUpdate(Bitmap in_bitmap, bool in_screenSizeChanged)
+        {
+            if (IsUpdateTargetAvailable() == false || Visible == false || WindowState == FormWindowState.Minimized)
+            {
+                in_bitmap.Dispose();
+                return;
+            }
+
+            pictureBox_screen.Image?.Dispose();
+            pictureBox_screen.Image = in_bitmap;
+            if (in_screenSizeChanged == true)
+            {
+                ForceClientSizeToImageSize();
+            }
+            Invalidate();
         }
 
         public void picture_update(Bitmap in_bitmap, int in_screen_xsize, int in_screen_ysize)
         {
-            if (IsUpdateTargetAvailable() == false) return;
-            if (this.WindowState == FormWindowState.Minimized) return;
-            if (this.IsHandleCreated && this.Visible)
+            if (IsDisposed == true || g_viewActive == false) return;
+
+            bool w_screenSizeChanged;
+            lock (g_bitmapLock)
             {
-                bool w_screenSizeChanged = g_source_xsize != in_screen_xsize || g_source_ysize != in_screen_ysize;
-                Bitmap bmp_dst = CreateDisplayBitmap(in_bitmap, in_screen_xsize, in_screen_ysize);
-                bool w_updateQueued = false;
-                lock (g_bitmapLock)
-                {
-                    g_source_bitmap?.Dispose();
-                    g_source_bitmap = new Bitmap(in_bitmap);
-                    g_source_xsize = in_screen_xsize;
-                    g_source_ysize = in_screen_ysize;
-                }
-                videoRecordingAddFrame(bmp_dst);
-                try
-                {
-                    if (IsUpdateTargetAvailable() == true)
-                    {
-                        this.BeginInvoke(new UpdatePictureBoxDelegate(this.UpdatePictureBox), new object[] { bmp_dst });
-                        w_updateQueued = true;
-                    }
-                    if (w_screenSizeChanged == true && IsUpdateTargetAvailable() == true)
-                    {
-                        this.BeginInvoke(new Action(ForceClientSizeToImageSize));
-                    }
-                }
-                catch (ObjectDisposedException)
-                {
-                    if (w_updateQueued == false) bmp_dst.Dispose();
-                    return;
-                }
-                catch (InvalidOperationException)
-                {
-                    if (w_updateQueued == false) bmp_dst.Dispose();
-                    return;
-                }
-                if (w_updateQueued == false) bmp_dst.Dispose();
+                w_screenSizeChanged = g_source_xsize != in_screen_xsize || g_source_ysize != in_screen_ysize;
+                g_source_bitmap?.Dispose();
+                g_source_bitmap = new Bitmap(in_bitmap);
+                g_source_xsize = in_screen_xsize;
+                g_source_ysize = in_screen_ysize;
             }
-            if (IsUpdateTargetAvailable() == true) this.Invalidate();
+
+            Bitmap bmp_dst = CreateDisplayBitmap(in_bitmap, in_screen_xsize, in_screen_ysize);
+            videoRecordingAddFrame(bmp_dst);
+            QueueDisplayUpdate(bmp_dst, w_screenSizeChanged);
         }
 
         private void gridToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            g_gridEnabled = gridToolStripMenuItem.Checked;
             RefreshImageFromSource();
             md_main.write_setting();
         }
 
         private void vdpMenuSettingToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            g_screenshotEnabled = screenshotToolStripMenuItem.Checked;
+            g_videoRecordingEnabled = videoRecordingToolStripMenuItem.Checked;
             md_main.write_setting();
         }
 
         public void SetMenuSetting(bool in_grid, bool in_screenshot, bool in_videoRecording)
         {
+            g_gridEnabled = in_grid;
+            g_screenshotEnabled = in_screenshot;
+            g_videoRecordingEnabled = in_videoRecording;
             gridToolStripMenuItem.Checked = in_grid;
             screenshotToolStripMenuItem.Checked = in_screenshot;
             videoRecordingToolStripMenuItem.Checked = in_videoRecording;
@@ -211,14 +222,14 @@ namespace MDTracer
 
         public string GetMenuSettingText()
         {
-            return ((gridToolStripMenuItem.Checked == true) ? "1" : "0")
-                + ":" + ((screenshotToolStripMenuItem.Checked == true) ? "1" : "0")
-                + ":" + ((videoRecordingToolStripMenuItem.Checked == true) ? "1" : "0");
+            return ((g_gridEnabled == true) ? "1" : "0")
+                + ":" + ((g_screenshotEnabled == true) ? "1" : "0")
+                + ":" + ((g_videoRecordingEnabled == true) ? "1" : "0");
         }
 
         public void SyncScreenshot(string in_timeStamp)
         {
-            if (screenshotToolStripMenuItem.Checked == false) return;
+            if (g_screenshotEnabled == false) return;
 
             try
             {
@@ -240,7 +251,7 @@ namespace MDTracer
 
         public void SyncVideoRecordingStart(string in_timeStamp)
         {
-            if (videoRecordingToolStripMenuItem.Checked == false) return;
+            if (g_videoRecordingEnabled == false) return;
 
             try
             {
@@ -338,7 +349,7 @@ namespace MDTracer
             using (Graphics g = Graphics.FromImage(w_sourceBitmap))
             {
                 g.DrawImage(in_bitmap, new Rectangle(0, 0, w_width, w_height), new Rectangle(0, 0, w_width, w_height), GraphicsUnit.Pixel);
-                if (gridToolStripMenuItem.Checked == true)
+                if (g_gridEnabled == true)
                 {
                     using Pen w_pen = new Pen(Color.FromArgb(128, 255, 255, 255), 1);
                     for (int x = 0; x < w_width; x += 8) g.DrawLine(w_pen, x, 0, x, w_height - 1);

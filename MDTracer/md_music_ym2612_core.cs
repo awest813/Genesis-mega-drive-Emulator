@@ -1,6 +1,3 @@
-﻿using System.Diagnostics;
-using System.Windows.Forms;
-
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -12,6 +9,11 @@ namespace MDTracer
         {
             int w_out_l = 0;
             int w_out_r = 0;
+            md_music w_music = md_main.g_md_music;
+            float[] w_out_vol = w_music.g_out_vol;
+            int[] w_ch_out = g_ch_out;
+            bool[] w_reg_b4_l = g_reg_b4_l;
+            bool[] w_reg_b4_r = g_reg_b4_r;
 
             lfo_calc();
             for (int w_ch = 0; w_ch < NUM_CHANNELS; w_ch++)
@@ -22,16 +24,18 @@ namespace MDTracer
                 if ((w_ch != 5) || (g_reg_2b_dac == 0))
                 {
                     operator_update(w_ch);
-                    if (g_ch_out[w_ch] > OUT_CH_LIMIT) g_ch_out[w_ch] = OUT_CH_LIMIT;
-                    else if (g_ch_out[w_ch] < -OUT_CH_LIMIT) g_ch_out[w_ch] = -OUT_CH_LIMIT;
-                    if (g_reg_b4_l[w_ch] == true) w_out_l += (int)(g_ch_out[w_ch] * md_main.g_md_music.g_out_vol[w_ch]);
-                    if (g_reg_b4_r[w_ch] == true) w_out_r += (int)(g_ch_out[w_ch] * md_main.g_md_music.g_out_vol[w_ch]);
+                    if (w_ch_out[w_ch] > OUT_CH_LIMIT) w_ch_out[w_ch] = OUT_CH_LIMIT;
+                    else if (w_ch_out[w_ch] < -OUT_CH_LIMIT) w_ch_out[w_ch] = -OUT_CH_LIMIT;
+                    UpdateYm2612Display(w_ch, w_ch_out[w_ch]);
+                    if (w_reg_b4_l[w_ch] == true) w_out_l += (int)(w_ch_out[w_ch] * w_out_vol[w_ch]);
+                    if (w_reg_b4_r[w_ch] == true) w_out_r += (int)(w_ch_out[w_ch] * w_out_vol[w_ch]);
                 }
                 else
                 {
                     int w_dac = dac_control();
-                    if (g_reg_b4_l[5] == true) w_out_l += (int)(w_dac * md_main.g_md_music.g_out_vol[5]);
-                    if (g_reg_b4_r[5] == true) w_out_r += (int)(w_dac * md_main.g_md_music.g_out_vol[5]);
+                    UpdateDacPcmDisplayFromOutput(w_dac);
+                    if (w_reg_b4_l[5] == true) w_out_l += (int)(w_dac * w_out_vol[5]);
+                    if (w_reg_b4_r[5] == true) w_out_r += (int)(w_dac * w_out_vol[5]);
                 }
             }
             timer_control();

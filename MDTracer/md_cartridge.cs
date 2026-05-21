@@ -1,4 +1,6 @@
 ﻿using System.IO.Compression;
+using System.Diagnostics;
+using System.Text;
 
 namespace MDTracer
 {
@@ -24,47 +26,34 @@ namespace MDTracer
         {
             try
             {
-                using (BinaryReader reader = new BinaryReader(File.Open(in_romname, FileMode.Open)))
-                {
-                    FileInfo fileInfo = new FileInfo(in_romname);
-                    g_file_size = (int)fileInfo.Length;
-                    g_file = new byte[g_file_size];
-                    reader.Read(g_file, 0, g_file_size);
-                }
+                g_file = File.ReadAllBytes(in_romname);
+                g_file_size = g_file.Length;
             }
-            catch (FileNotFoundException ex)
+            catch (IOException ex)
             {
-                MessageBox.Show("The file cannot be found", "error");
+                Debug.WriteLine("[Cartridge] ROM load failed: " + ex.Message);
                 return false;
             }
+            if (g_file_size < 4) return false;
             if ((g_file[0] == 0x50) && (g_file[1] == 0x4b) && (g_file[2] == 0x03) && (g_file[3] == 0x04))
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (FileStream fileStream = new FileStream(in_romname, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (ZipArchive archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
                 {
-                    using (FileStream fileStream = new FileStream(in_romname, FileMode.Open))
+                    foreach (ZipArchiveEntry entry in archive.Entries)
                     {
-                        using (ZipArchive archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
-                        {
-                            foreach (ZipArchiveEntry entry in archive.Entries)
-                            {
-                                using (Stream zipEntryStream = entry.Open())
-                                {
-                                    zipEntryStream.CopyTo(memoryStream);
-                                }
-                            }
-                        }
-                    }
-                    byte[] uncompressedData = memoryStream.ToArray();
+                        if (entry.Length == 0) continue;
 
-
-                    g_file_size = (int)memoryStream.Length;
-                    g_file = new byte[g_file_size];
-                    for (int i = 0; i < g_file_size; i++)
-                    {
-                        g_file[i] = uncompressedData[i];
+                        using Stream zipEntryStream = entry.Open();
+                        using MemoryStream memoryStream = new MemoryStream((int)entry.Length);
+                        zipEntryStream.CopyTo(memoryStream);
+                        g_file = memoryStream.ToArray();
+                        g_file_size = g_file.Length;
+                        break;
                     }
                 }
             }
+            if (g_file_size <= 0x1f2) return false;
 
             g_system_type = get_string(0x100, 0x10f).Trim();
             if ((g_system_type != "SEGA MEGA DRIVE") &&
@@ -89,12 +78,10 @@ namespace MDTracer
         }
         public string get_string(int in_start, int in_end)
         {
-            string w_text = "";
-            for (int i = in_start; i <= in_end; i++)
-            {
-                w_text += ((char)g_file[i]).ToString();
-            }
-            return w_text;
+            if (in_start < 0 || in_start >= g_file_size) return "";
+
+            int w_length = Math.Min(in_end - in_start + 1, g_file_size - in_start);
+            return Encoding.ASCII.GetString(g_file, in_start, w_length);
         }
         public uint get_uint(int in_start)
         {

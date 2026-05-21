@@ -106,7 +106,11 @@
                 g_analyse_code[129 + (i * 2)].leng2 = 1;
                 g_analyse_code[129 + (i * 2)].front = 1;
             }
-            g_analyse_code[(int)(((g_analyse_code[2].val << 16) + g_analyse_code[3].val)) / 2].type = TRACECODE.TYPE.CHK;
+            int w_initialPcLine = get_code_from_addr((uint)((g_analyse_code[2].val << 16) + g_analyse_code[3].val));
+            if (w_initialPcLine >= 0)
+            {
+                g_analyse_code[w_initialPcLine].type = TRACECODE.TYPE.CHK;
+            }
 
 
             g_op_comment = new List<OP_COMMENT1>();
@@ -329,7 +333,7 @@
                 int w_jmp_cur = in_line + 1 + (w_jmp_offset / 2);
                 int w_jmp_addr = in_addr + 2 + w_jmp_offset;
                 g_analyse_code[in_line].jmp_address = w_jmp_addr;
-                if (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON)
+                if ((0 <= w_jmp_cur) && (w_jmp_cur < MEMSIZE) && (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON))
                 {
                     g_analyse_code[w_jmp_cur].type = TRACECODE.TYPE.CHK;
                 }
@@ -340,7 +344,7 @@
                 int w_jmp_cur = in_line + 1 + (w_jmp_offset / 2);
                 int w_jmp_addr = in_addr + 2 + w_jmp_offset;
                 g_analyse_code[in_line].jmp_address = w_jmp_addr;
-                if (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON)
+                if ((0 <= w_jmp_cur) && (w_jmp_cur < MEMSIZE) && (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON))
                 {
                     g_analyse_code[w_jmp_cur].type = TRACECODE.TYPE.CHK;
                 }
@@ -352,7 +356,7 @@
                     int w_jmp_cur = in_jmpaddr & 0x00ffffff;
                     g_analyse_code[in_line].jmp_address = w_jmp_cur;
                     int w_jmp_line = get_code_from_addr((uint)w_jmp_cur);
-                    if (g_analyse_code[w_jmp_line].type == TRACECODE.TYPE.NON)
+                    if ((0 <= w_jmp_line) && (g_analyse_code[w_jmp_line].type == TRACECODE.TYPE.NON))
                     {
                         g_analyse_code[w_jmp_line].type = TRACECODE.TYPE.CHK;
                     }
@@ -564,17 +568,20 @@
         //----------------------------------------------------------------
         public int get_code_from_addr(uint in_addr)
         {
-            int w_out;
             int w_addr = (int)(in_addr & 0x00ffffff);
             if (w_addr < 0x400000)
             {
-                w_out = w_addr / 2;
+                return w_addr / 2;
             }
-            else
+            if ((0xff0000 <= w_addr) && (w_addr < 0x1000000))
             {
-                w_out = ROMSIZE + ((w_addr - 0xff0000) / 2);
+                return ROMSIZE + ((w_addr - 0xff0000) / 2);
             }
-            return w_out;
+            if ((0xe00000 <= w_addr) && (w_addr < 0xe10000))
+            {
+                return ROMSIZE + ((w_addr - 0xe00000) / 2);
+            }
+            return -1;
         }
     }
 }

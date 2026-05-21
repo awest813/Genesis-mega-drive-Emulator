@@ -14,6 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Remove="Form_Code_dock.resx" />
+    <None Include="Form_Code_dock.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="md_vdp_renderer_directx_update.hlsl" />
   </ItemGroup>
 
@@ -42,6 +47,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DockPanelSuite" Version="3.1.1" />
+    <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.1" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />

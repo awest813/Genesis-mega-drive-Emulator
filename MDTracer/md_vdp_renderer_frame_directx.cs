@@ -105,7 +105,14 @@ namespace MDTracer
         private IntPtr g_dx_line_snap_update_buffers_ptr;
         private IntPtr g_dx_screen_download_buffers_ptr;
         private IntPtr g_dx_register_buffers_ptr;
+        private bool g_dx_rendering_initialized;
         //---------------------------
+        private void dx_rendering_initialize_if_needed()
+        {
+            if (g_dx_rendering_initialized == true) return;
+
+            dx_rendering_initialize();
+        }
         public void dx_rendering_initialize()
         {
             //device
@@ -194,8 +201,77 @@ namespace MDTracer
             g_dx_color_highlight_update_buffers_ptr = g_dx_color_highlight_update_buffers.Map(0);
             g_dx_line_snap_update_buffers_ptr = g_dx_line_snap_update_buffers.Map(0);
             g_dx_screen_download_buffers_ptr = g_dx_screen_download_buffers.Map(0);
+            g_dx_rendering_initialized = true;
         }
 
+        private void dx_rendering_dispose()
+        {
+            if (g_dx_rendering_initialized == false) return;
+
+            g_dx_rendering_initialized = false;
+            unmap_resource(g_dx_register_buffers, ref g_dx_register_buffers_ptr);
+            unmap_resource(g_dx_vram_update_buffers, ref g_dx_vram_update_buffers_ptr);
+            unmap_resource(g_dx_color_update_buffers, ref g_dx_color_update_buffers_ptr);
+            unmap_resource(g_dx_color_shadow_update_buffers, ref g_dx_color_shadow_update_buffers_ptr);
+            unmap_resource(g_dx_color_highlight_update_buffers, ref g_dx_color_highlight_update_buffers_ptr);
+            unmap_resource(g_dx_line_snap_update_buffers, ref g_dx_line_snap_update_buffers_ptr);
+            unmap_resource(g_dx_screen_download_buffers, ref g_dx_screen_download_buffers_ptr);
+
+            dispose_dx(g_dx_screen_download_buffers);
+            dispose_dx(g_dx_line_snap_update_buffers);
+            dispose_dx(g_dx_color_highlight_update_buffers);
+            dispose_dx(g_dx_color_shadow_update_buffers);
+            dispose_dx(g_dx_color_update_buffers);
+            dispose_dx(g_dx_vram_update_buffers);
+            dispose_dx(g_dx_register_buffers);
+            dispose_dx(g_dx_shadowmap_buffers);
+            dispose_dx(g_dx_primap_buffers);
+            dispose_dx(g_dx_cmap_buffers);
+            dispose_dx(g_dx_screen_buffers);
+            dispose_dx(g_dx_line_snap_buffers);
+            dispose_dx(g_dx_color_highlight_buffers);
+            dispose_dx(g_dx_colorshadow_buffers);
+            dispose_dx(g_dx_color_buffers);
+            dispose_dx(g_dx_vram_buffers);
+            dispose_dx(g_dx_PipelineState_final);
+            dispose_dx(g_dx_PipelineState_window);
+            dispose_dx(g_dx_PipelineState_sprite);
+            dispose_dx(g_dx_PipelineState_screena);
+            dispose_dx(g_dx_PipelineState_screenb);
+            dispose_dx(g_dx_RootSignature);
+            dispose_dx(g_dx_FenceEvent);
+            dispose_dx(g_dx_Fence);
+            dispose_dx(g_dx_CommandList);
+            dispose_dx(g_dx_CommandAllocator);
+            dispose_dx(g_dx_Heap);
+            dispose_dx(g_dx_CommandQueue);
+            dispose_dx(g_dx_device);
+        }
+        private static void unmap_resource(Resource in_resource, ref IntPtr in_ptr)
+        {
+            if ((in_resource == null) || (in_ptr == IntPtr.Zero)) return;
+
+            try
+            {
+                in_resource.Unmap(0);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.WriteLine("[VDP] DirectX unmap failed: " + ex.Message);
+            }
+            in_ptr = IntPtr.Zero;
+        }
+        private static void dispose_dx(System.IDisposable in_disposable)
+        {
+            try
+            {
+                in_disposable?.Dispose();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.WriteLine("[VDP] DirectX dispose failed: " + ex.Message);
+            }
+        }
         private void dx_frame_stack()
         {
 
@@ -277,11 +353,9 @@ namespace MDTracer
             g_dx_CommandList.CopyBufferRegion(g_dx_screen_download_buffers, 0, g_dx_screen_buffers, 0, DISPLAY_BUFSIZE * Utilities.SizeOf<uint>());
             g_dx_CommandList.Close();
             g_dx_CommandQueue.ExecuteCommandList(g_dx_CommandList);
-            g_dx_CommandQueue.Signal(g_dx_Fence, g_dx_FenceNum);
-            g_dx_CommandQueue.Wait(g_dx_Fence, g_dx_FenceNum);
-            var fence = g_dx_FenceNum;
-            g_dx_CommandQueue.Signal(g_dx_Fence, fence);
+            int fence = g_dx_FenceNum;
             g_dx_FenceNum++;
+            g_dx_CommandQueue.Signal(g_dx_Fence, fence);
 
             if (g_dx_Fence.CompletedValue < fence)
             {
