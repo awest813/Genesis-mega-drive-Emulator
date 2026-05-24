@@ -50,6 +50,7 @@ namespace MDTracer
 
         public int[] g_key_allocation2;
         public int[] g_joy_allocation2;
+        private bool g_block_input_until_release;
 
         private int g_io_port1_th;
         private int g_io_port2_th;
@@ -108,6 +109,13 @@ namespace MDTracer
         private bool is_button_down(int[] in_key_allocation, int[] in_joy_allocation, int in_index)
         {
             return is_key_down(in_key_allocation, in_index) || is_joy_down(in_joy_allocation, in_index);
+        }
+
+        public void block_input_until_release()
+        {
+            g_block_input_until_release = true;
+            Array.Clear(g_key_status, 0, g_key_status.Length);
+            Array.Clear(g_joy_status, 0, g_joy_status.Length);
         }
 
         private byte read_pad(int[] in_key_allocation, int[] in_joy_allocation, byte in_data, byte in_ctrl, int in_phase)

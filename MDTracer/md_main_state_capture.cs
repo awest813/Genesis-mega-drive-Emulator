@@ -60,7 +60,19 @@ namespace MDTracer
                 return GetEntries().FirstOrDefault();
             }
 
+            public static StateListEntry? GetEntryByFileNameWithoutExtension(string in_fileNameWithoutExtension)
+            {
+                return GetEntries().FirstOrDefault(in_entry =>
+                    string.Equals(Path.GetFileNameWithoutExtension(in_entry.FilePath), in_fileNameWithoutExtension, StringComparison.OrdinalIgnoreCase) == true);
+            }
+
             public static StateListEntry Save()
+            {
+                string w_filePrefix = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
+                return Save(w_filePrefix);
+            }
+
+            public static StateListEntry Save(string in_filePrefix)
             {
                 string w_directoryPath = GetCurrentRomDirectoryPath();
                 if (string.IsNullOrEmpty(w_directoryPath) == true)
@@ -69,7 +81,7 @@ namespace MDTracer
                 }
                 Directory.CreateDirectory(w_directoryPath);
 
-                string w_filePrefix = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
+                string w_filePrefix = SanitizeFilePrefix(in_filePrefix);
                 string w_filePath = Path.Combine(w_directoryPath, w_filePrefix + FileExtension);
                 int w_suffix = 1;
                 while (File.Exists(w_filePath) == true)
@@ -163,6 +175,20 @@ namespace MDTracer
                     && (g_md_music != null)
                     && (g_md_z80 != null)
                     && (string.IsNullOrEmpty(g_state_capture_rom_file_name) == false);
+            }
+
+            private static string SanitizeFilePrefix(string in_filePrefix)
+            {
+                string w_filePrefix = in_filePrefix;
+                if (string.IsNullOrEmpty(w_filePrefix) == true)
+                {
+                    w_filePrefix = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
+                }
+                foreach (char w_char in Path.GetInvalidFileNameChars())
+                {
+                    w_filePrefix = w_filePrefix.Replace(w_char, '_');
+                }
+                return w_filePrefix;
             }
 
             private static string GetCurrentRomDirectoryPath()

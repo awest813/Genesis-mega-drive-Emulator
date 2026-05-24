@@ -5,8 +5,10 @@ namespace MDTracer
         private static volatile bool g_stop_req;
         private static volatile bool g_frame_advance_req;
         private static volatile bool g_frame_advance_update_req;
+        private static volatile bool g_clock_wait_skip;
         private static readonly object g_state_capture_request_lock = new object();
         private static bool g_state_capture_save_req;
+        private static string g_state_capture_save_file_prefix_req = "";
         private static bool g_state_capture_restore_latest_req;
         private static string g_state_capture_restore_file_req = "";
         public static string g_state_capture_rom_file_name = "";
@@ -14,9 +16,14 @@ namespace MDTracer
         //----------------------------------------------------------------
         public static void request_state_capture_save()
         {
+            request_state_capture_save("");
+        }
+        public static void request_state_capture_save(string in_filePrefix)
+        {
             lock (g_state_capture_request_lock)
             {
                 g_state_capture_save_req = true;
+                g_state_capture_save_file_prefix_req = in_filePrefix;
             }
         }
         public static void request_state_capture_restore_latest()
@@ -47,6 +54,16 @@ namespace MDTracer
             g_frame_advance_req = true;
             g_md_vdp?.g_waitHandle?.Set();
             return true;
+        }
+        public static bool toggle_clock_wait_skip()
+        {
+            g_clock_wait_skip = !g_clock_wait_skip;
+            g_state_capture_status = g_clock_wait_skip == true ? "clock wait skip: on" : "clock wait skip: off";
+            return g_clock_wait_skip;
+        }
+        public static bool is_clock_wait_skip()
+        {
+            return g_clock_wait_skip;
         }
         public static void request_hard_reset()
         {
@@ -84,15 +101,18 @@ namespace MDTracer
         private static void process_state_capture_request()
         {
             bool w_save_req;
+            string w_save_file_prefix_req;
             bool w_restore_latest_req;
             string w_restore_file_req;
             lock (g_state_capture_request_lock)
             {
                 w_save_req = g_state_capture_save_req;
+                w_save_file_prefix_req = g_state_capture_save_file_prefix_req;
                 w_restore_latest_req = g_state_capture_restore_latest_req;
                 w_restore_file_req = g_state_capture_restore_file_req;
 
                 g_state_capture_save_req = false;
+                g_state_capture_save_file_prefix_req = "";
                 g_state_capture_restore_latest_req = false;
                 g_state_capture_restore_file_req = "";
             }
@@ -101,7 +121,9 @@ namespace MDTracer
             {
                 try
                 {
-                    StateListEntry w_entry = StateStore.Save();
+                    StateListEntry w_entry = string.IsNullOrEmpty(w_save_file_prefix_req) == true
+                        ? StateStore.Save()
+                        : StateStore.Save(w_save_file_prefix_req);
                     g_state_capture_status = "state saved: " + Path.GetFileName(w_entry.FilePath);
                 }
                 catch (Exception ex)

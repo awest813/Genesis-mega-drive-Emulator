@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
@@ -133,41 +134,22 @@ namespace MDTracer
                         StateSave();
                         return true;
                     case Keys.F2:
-                        StateRestoreLatest();
+                        InputCaptureRecordToggle();
                         return true;
                     case Keys.F3:
-                        state_capture_list();
+                        StateSaveWithInputCaptureRecordToggle();
+                        return true;
+                    case Keys.F4:
+                        StateRestoreLatestWithMatchingInputReplay();
+                        return true;
+                    case Keys.Control | Keys.F4:
+                        capture_list();
                         return true;
                     case Keys.F5:
-                        if (md_main.g_md_io.g_input_replaying == true)
-                        {
-                            input_capture_Stop();
-                        }
-                        else if (md_main.g_md_io.g_input_recording == true)
-                        {
-                            input_capture_Stop();
-                        }
-                        else
-                        {
-                            input_capture_Start();
-                        }
-                        return true;
-                    case Keys.F6:
-                        if (md_main.g_md_io.g_input_replaying == true)
-                        {
-                            input_capture_Stop();
-                        }
-                        else
-                        {
-                            input_capture_ReplayLatest();
-                        }
-                        return true;
-                    case Keys.F7:
-                        input_capture_list();
-                        return true;
-
-                    case Keys.F9:
                         frameAdvance();
+                        return true;
+                    case Keys.F9:
+                        md_main.g_form_setting.Show();
                         return true;
                     case Keys.F10:
                         screenshot();
@@ -246,12 +228,12 @@ namespace MDTracer
 
         private void input_capture_RecodeMenuItem_Click(object sender, EventArgs e)
         {
-            input_capture_Start();
+            InputCaptureRecordToggle();
         }
 
         private void input_capture_ListMenuItem_Click(object sender, EventArgs e)
         {
-            input_capture_list();
+            capture_list();
         }
         private void state_capture_saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -259,11 +241,11 @@ namespace MDTracer
         }
         private void state_capture_loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            StateRestoreLatest();
+            StateRestoreLatestWithMatchingInputReplay();
         }
         private void state_capture_state_capture_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            state_capture_list();
+            capture_list();
         }
         private void pauseResumeToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -320,7 +302,11 @@ namespace MDTracer
             if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
 
             g_filelist_view = false;
-            string w_statusText = "task usage:" + in_cpu + "%" + (md_main.g_md_io.g_input_recording ? " REC" : "") + (md_main.g_md_io.g_input_replaying ? " PLAY" : "") + (g_videoRecorder != null ? " VIDEO" : "") + (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
+            string w_statusText1 = "task usage:" + in_cpu + "%";
+            string w_statusText2 = (md_main.g_md_io.g_input_recording ? "INPUT REC" : "")
+                                + (md_main.g_md_io.g_input_replaying ? "INPUT PLAY" : "")
+                                + (g_videoRecorder != null ? "  VIDEO REC" : "");
+            string w_statusText3 = (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
             Bitmap w_displayBitmap;
             int w_bitmap_x = w_clientSize.Width;
             int w_bitmap_y = w_clientSize.Height;
@@ -372,7 +358,7 @@ namespace MDTracer
                 videoRecordingAddFrame(g_work_bitmap);
                 w_displayBitmap = new Bitmap(g_work_bitmap);
             }
-            UpdateGamePicture(w_displayBitmap, w_bitmap_x, w_bitmap_y, w_statusText);
+            UpdateGamePicture(w_displayBitmap, w_bitmap_x, w_bitmap_y, w_statusText1, w_statusText2, w_statusText3);
         }
 
         private Size GetGamePanelClientSize()
@@ -394,7 +380,7 @@ namespace MDTracer
             return panel_game.ClientSize;
         }
 
-        private void UpdateGamePicture(Bitmap in_bitmap, int in_width, int in_height, string in_statusText)
+        private void UpdateGamePicture(Bitmap in_bitmap, int in_width, int in_height, string in_statusText1, string in_statusText2, string in_statusText3)
         {
             if (IsDisposed == true || IsHandleCreated == false)
             {
@@ -405,7 +391,7 @@ namespace MDTracer
             {
                 try
                 {
-                    BeginInvoke(new Action<Bitmap, int, int, string>(UpdateGamePicture), in_bitmap, in_width, in_height, in_statusText);
+                    BeginInvoke(new Action<Bitmap, int, int, string, string, string>(UpdateGamePicture), in_bitmap, in_width, in_height, in_statusText1, in_statusText2, in_statusText3);
                 }
                 catch
                 {
@@ -420,7 +406,9 @@ namespace MDTracer
                 return;
             }
 
-            toolStripStatusLabel1.Text = in_statusText;
+            toolStripStatusLabel1.Text = in_statusText1;
+            toolStripStatusLabel2.Text = in_statusText2;
+            toolStripStatusLabel3.Text = in_statusText3;
             pictureBox_game.Image?.Dispose();
             pictureBox_game.Image = in_bitmap;
             pictureBox_game.Width = in_width;
@@ -434,6 +422,11 @@ namespace MDTracer
             bool w_stopped = md_main.request_stop();
             toolStripStatusLabel1.Text = w_stopped ? "Pause" : "";
         }
+
+
+
+
+
         private void frameAdvance()
         {
             bool w_requested = md_main.request_frame_advance();
@@ -650,41 +643,129 @@ namespace MDTracer
             md_main.g_form_screenW.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
             md_main.g_form_screenS.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
         }
-        private void state_capture_list()
-        {
-            try
-            {
-                using Form_Main_StateCapture_list w_form = new Form_Main_StateCapture_list();
-                if (w_form.ShowDialog(this) != DialogResult.OK || w_form.SelectedEntry == null) return;
-
-                md_main.request_state_capture_restore_file(w_form.SelectedEntry.FilePath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "State Capture History");
-            }
-        }
         private void StateSave()
         {
             if (md_main.StateStore.IsAvailable() == false) return;
             md_main.request_state_capture_save();
         }
+        private void InputCaptureRecordToggle()
+        {
+            if (md_main.g_md_io.g_input_recording == true)
+            {
+                input_capture_Stop();
+                return;
+            }
+            if (md_main.g_md_io.g_input_replaying == true)
+            {
+                input_capture_ReplayStop();
+                return;
+            }
+            input_capture_Start();
+        }
+        private void StateSaveWithInputCaptureRecordToggle()
+        {
+            if (md_main.g_md_io.g_input_recording == true)
+            {
+                input_capture_Stop();
+                return;
+            }
+            if (md_main.g_md_io.g_input_replaying == true)
+            {
+                input_capture_ReplayStop();
+                return;
+            }
+
+            string w_filePrefix = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
+            if (md_main.StateStore.IsAvailable() == true)
+            {
+                md_main.request_state_capture_save(w_filePrefix);
+            }
+            md_main.input_capture_record_start(w_filePrefix);
+        }
+        private void StateRestoreLatestWithMatchingInputReplay()
+        {
+            CaptureListEntry? w_entry = GetLatestCaptureEntry();
+            if (w_entry == null)
+            {
+                StateRestoreLatest();
+                return;
+            }
+
+            ExecuteCaptureEntry(w_entry.StateEntry, w_entry.InputEntry);
+        }
         private void StateRestoreLatest()
         {
             md_main.request_state_capture_restore_latest();
         }
-        private void input_capture_list()
+        private CaptureListEntry? GetLatestCaptureEntry()
+        {
+            Dictionary<string, CaptureListEntry> w_entries = new Dictionary<string, CaptureListEntry>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (md_main.StateListEntry w_stateEntry in md_main.StateStore.GetEntries())
+            {
+                string w_timestamp = Path.GetFileNameWithoutExtension(w_stateEntry.FilePath);
+                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
+                {
+                    w_entry = new CaptureListEntry(w_timestamp);
+                    w_entries.Add(w_timestamp, w_entry);
+                }
+                w_entry.StateEntry = w_stateEntry;
+            }
+
+            foreach (md_main.InputRecordEntry w_inputEntry in md_main.InputRecordStore.GetEntries())
+            {
+                string w_timestamp = Path.GetFileNameWithoutExtension(w_inputEntry.FilePath);
+                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
+                {
+                    w_entry = new CaptureListEntry(w_timestamp);
+                    w_entries.Add(w_timestamp, w_entry);
+                }
+                w_entry.InputEntry = w_inputEntry;
+            }
+
+            return w_entries.Values
+                .OrderByDescending(in_entry => in_entry.Timestamp, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+        }
+        private void capture_list()
         {
             try
             {
-                using Form_Main_InputCapture_list w_form = new Form_Main_InputCapture_list();
-                if (w_form.ShowDialog(this) != DialogResult.OK || w_form.SelectedEntry == null) return;
-
-                md_main.input_capture_replay_file(w_form.SelectedEntry.FilePath);
+                using Form_Main_Capture_list w_form = new Form_Main_Capture_list();
+                w_form.EntrySelected += in_entry =>
+                {
+                    try
+                    {
+                        ExecuteCaptureEntry(in_entry.StateEntry, in_entry.InputEntry);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Capture History");
+                    }
+                };
+                w_form.ShowDialog(this);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Input Capture History");
+                MessageBox.Show(ex.Message, "Capture History");
+            }
+        }
+        private void ExecuteCaptureEntry(md_main.StateListEntry? in_stateEntry, md_main.InputRecordEntry? in_inputEntry)
+        {
+            md_main.InputRecordEntry? w_inputEntry = in_inputEntry;
+            if (in_stateEntry != null)
+            {
+                md_main.request_state_capture_restore_file(in_stateEntry.FilePath);
+                if (w_inputEntry == null)
+                {
+                    string w_filePrefix = Path.GetFileNameWithoutExtension(in_stateEntry.FilePath);
+                    w_inputEntry = md_main.InputRecordStore.GetEntryByFileNameWithoutExtension(w_filePrefix);
+                }
+            }
+
+            if (w_inputEntry != null)
+            {
+                md_main.input_capture_replay_file(w_inputEntry.FilePath);
             }
         }
         private void input_capture_Start()

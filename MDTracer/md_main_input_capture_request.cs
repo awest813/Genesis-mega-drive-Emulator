@@ -12,6 +12,14 @@ namespace MDTracer
             g_md_io.input_record_start(w_filePath);
             g_state_capture_status = "input recording: " + Path.GetFileName(w_filePath);
         }
+        public static void input_capture_record_start(string in_filePrefix)
+        {
+            if (InputRecordStore.IsAvailable() == false) return;
+
+            string w_filePath = InputRecordStore.CreateNewFilePath(in_filePrefix);
+            g_md_io.input_record_start(w_filePath);
+            g_state_capture_status = "input recording: " + Path.GetFileName(w_filePath);
+        }
 
         public static void input_capture_record_stop()
         {

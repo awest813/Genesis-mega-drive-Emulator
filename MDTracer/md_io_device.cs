@@ -107,6 +107,8 @@ namespace MDTracer
         }
         private void rescan_joystick_if_needed()
         {
+            if (md_main.is_clock_wait_skip() == true) return;
+
             long w_now = Environment.TickCount64;
             if (w_now - g_joy_last_rescan_time < JOY_RESCAN_INTERVAL_MS) return;
             g_joy_last_rescan_time = w_now;
@@ -281,6 +283,8 @@ namespace MDTracer
 
                         foreach (Key w_key in state.PressedKeys)
                         {
+                            if (in_status != null && IsMainShortcutKey(w_key) == true) continue;
+
                             int w_keyNo = (int)w_key;
                             if (0 <= w_keyNo && w_keyNo < KEY_STATUS_NUM)
                             {
@@ -302,6 +306,11 @@ namespace MDTracer
                 }
             }
             return w_out;
+        }
+
+        private static bool IsMainShortcutKey(Key in_key)
+        {
+            return in_key == Key.F5 || in_key == Key.F6;
         }
 
     }

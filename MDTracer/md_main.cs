@@ -203,11 +203,14 @@ namespace MDTracer
                     w_log_pef_cnt = 0;
                     w_log_pef_sum = 0;
                 }
-                do
+                if (is_clock_wait_skip() == false)
                 {
-                    timeSpan = w_stopwatch.Elapsed;
-                    wtime = (int)(timeSpan.TotalMilliseconds * 1000);
-                } while ((w_wait > wtime) && (timeSpan.Seconds < 1));    //1,000,000 / 60
+                    do
+                    {
+                        timeSpan = w_stopwatch.Elapsed;
+                        wtime = (int)(timeSpan.TotalMilliseconds * 1000);
+                    } while ((w_wait > wtime) && (timeSpan.Seconds < 1));    //1,000,000 / 60
+                }
                 w_stopwatch.Restart();
             }
         }

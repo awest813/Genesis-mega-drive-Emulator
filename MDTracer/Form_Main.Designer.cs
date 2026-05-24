@@ -1,4 +1,4 @@
-﻿namespace MDTracer
+namespace MDTracer
 {
     partial class Form_Main
     {
@@ -53,6 +53,8 @@
             toolStripMenuItem2 = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
+            toolStripStatusLabel2 = new ToolStripStatusLabel();
+            toolStripStatusLabel3 = new ToolStripStatusLabel();
             panel_game = new Panel();
             pictureBox_game = new PictureBox();
             openFileDialog1 = new OpenFileDialog();
@@ -81,7 +83,7 @@
             // SettingMenuItem1
             // 
             SettingMenuItem1.Name = "SettingMenuItem1";
-            SettingMenuItem1.ShortcutKeys = Keys.F4;
+            SettingMenuItem1.ShortcutKeys = Keys.F9;
             SettingMenuItem1.Size = new Size(135, 22);
             SettingMenuItem1.Text = "Setting";
             SettingMenuItem1.Click += SettingMenuItem1_Click;
@@ -157,7 +159,7 @@
             // frameAdvanceToolStripMenuItem
             // 
             frameAdvanceToolStripMenuItem.Name = "frameAdvanceToolStripMenuItem";
-            frameAdvanceToolStripMenuItem.ShortcutKeyDisplayString = "F9";
+            frameAdvanceToolStripMenuItem.ShortcutKeyDisplayString = "F5";
             frameAdvanceToolStripMenuItem.Size = new Size(181, 22);
             frameAdvanceToolStripMenuItem.Text = "Frame Advance";
             frameAdvanceToolStripMenuItem.Click += frameAdvanceToolStripMenuItem_Click;
@@ -173,23 +175,23 @@
             // 
             state_capture_saveToolStripMenuItem.Name = "state_capture_saveToolStripMenuItem";
             state_capture_saveToolStripMenuItem.ShortcutKeys = Keys.F1;
-            state_capture_saveToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_saveToolStripMenuItem.Size = new Size(180, 22);
             state_capture_saveToolStripMenuItem.Text = "Save";
             state_capture_saveToolStripMenuItem.Click += state_capture_saveToolStripMenuItem_Click;
             // 
             // state_capture_loadToolStripMenuItem
             // 
             state_capture_loadToolStripMenuItem.Name = "state_capture_loadToolStripMenuItem";
-            state_capture_loadToolStripMenuItem.ShortcutKeys = Keys.F2;
-            state_capture_loadToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_loadToolStripMenuItem.ShortcutKeys = Keys.F4;
+            state_capture_loadToolStripMenuItem.Size = new Size(180, 22);
             state_capture_loadToolStripMenuItem.Text = "Load(Latest)";
             state_capture_loadToolStripMenuItem.Click += state_capture_loadToolStripMenuItem_Click;
             // 
             // state_capture_listToolStripMenuItem
             // 
             state_capture_listToolStripMenuItem.Name = "state_capture_listToolStripMenuItem";
-            state_capture_listToolStripMenuItem.ShortcutKeys = Keys.F3;
-            state_capture_listToolStripMenuItem.Size = new Size(158, 22);
+            state_capture_listToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.F4;
+            state_capture_listToolStripMenuItem.Size = new Size(180, 22);
             state_capture_listToolStripMenuItem.Text = "List";
             state_capture_listToolStripMenuItem.Click += state_capture_state_capture_ToolStripMenuItem_Click;
             // 
@@ -203,7 +205,7 @@
             // input_capture_recode_MenuItem
             // 
             input_capture_recode_MenuItem.Name = "input_capture_recode_MenuItem";
-            input_capture_recode_MenuItem.ShortcutKeys = Keys.F5;
+            input_capture_recode_MenuItem.ShortcutKeys = Keys.F2;
             input_capture_recode_MenuItem.Size = new Size(191, 22);
             input_capture_recode_MenuItem.Text = "Record(Start/Stop)";
             input_capture_recode_MenuItem.Click += input_capture_RecodeMenuItem_Click;
@@ -211,7 +213,7 @@
             // input_capture_ReplayMenuItem
             // 
             input_capture_ReplayMenuItem.Name = "input_capture_ReplayMenuItem";
-            input_capture_ReplayMenuItem.ShortcutKeys = Keys.F6;
+            input_capture_ReplayMenuItem.ShortcutKeys = Keys.None;
             input_capture_ReplayMenuItem.Size = new Size(191, 22);
             input_capture_ReplayMenuItem.Text = "Replay(Latest)";
             input_capture_ReplayMenuItem.Click += input_capture_ReplayMenuItem_Click;
@@ -219,7 +221,7 @@
             // input_capture_ListMenuItem
             // 
             input_capture_ListMenuItem.Name = "input_capture_ListMenuItem";
-            input_capture_ListMenuItem.ShortcutKeys = Keys.F7;
+            input_capture_ListMenuItem.ShortcutKeys = Keys.None;
             input_capture_ListMenuItem.Size = new Size(191, 22);
             input_capture_ListMenuItem.Text = "List";
             input_capture_ListMenuItem.Click += input_capture_ListMenuItem_Click;
@@ -238,7 +240,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2, toolStripStatusLabel3 });
             statusStrip1.Location = new Point(0, 242);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(320, 22);
@@ -249,6 +251,20 @@
             // 
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(0, 17);
+            // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.Font = new Font("Yu Gothic UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 128);
+            toolStripStatusLabel2.ForeColor = Color.Red;
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(31, 17);
+            toolStripStatusLabel2.Text = "        ";
+            // 
+            // toolStripStatusLabel3
+            // 
+            toolStripStatusLabel3.Name = "toolStripStatusLabel3";
+            toolStripStatusLabel3.Size = new Size(25, 17);
+            toolStripStatusLabel3.Text = "      ";
             // 
             // panel_game
             // 
@@ -324,5 +340,7 @@
         private ToolStripMenuItem toolStripMenuItem2;
         private ToolStripMenuItem screenshotToolStripMenuItem;
         private ToolStripMenuItem videoRecordingToolStripMenuItem;
+        private ToolStripStatusLabel toolStripStatusLabel2;
+        private ToolStripStatusLabel toolStripStatusLabel3;
     }
 }

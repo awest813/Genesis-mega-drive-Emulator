@@ -17,7 +17,7 @@
     <Compile Update="Form_Flow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Form_Main_InputCapture_list.cs">
+    <Compile Update="Form_Main_Capture_list.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form_IO.cs">
@@ -27,9 +27,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form_Main.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Form_Main_StateCapture_list.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Form_MUSIC.cs">
@@ -51,9 +48,5 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Form_Main_StateCapture_list.cs">
-      <SubType>Form</SubType>
-    </Compile>
-  </ItemGroup>
+  <ItemGroup></ItemGroup>
 </Project>

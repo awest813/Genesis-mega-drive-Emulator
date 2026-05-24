@@ -81,6 +81,24 @@ namespace MDTracer
                 return;
             }
 
+            if (md_main.is_clock_wait_skip() == true)
+            {
+                Array.Clear(g_key_status, 0, g_key_status.Length);
+                Array.Clear(g_joy_status, 0, g_joy_status.Length);
+                return;
+            }
+
+            if (g_block_input_until_release == true)
+            {
+                Array.Clear(g_key_status, 0, g_key_status.Length);
+                Array.Clear(g_joy_status, 0, g_joy_status.Length);
+                if (read_device_keyboard_for_setting() == -1 && read_device_joystick_for_setting() == -1)
+                {
+                    g_block_input_until_release = false;
+                }
+                return;
+            }
+
             read_device_keyboard();
             read_device_joystick();
 
