@@ -72,6 +72,12 @@
                 md_main.g_md_sram.set_enabled((in_data & 0x01) != 0);
             }
             else
+            if ((in_address >= 0xa130f3) && (in_address <= 0xa130ff))
+            {
+                // Sega mapper bank registers (banks 1-7).
+                md_main.g_md_mapper.write_control(in_address, in_data);
+            }
+            else
             {
                 report_control_warning("md_control.write8");
             }
