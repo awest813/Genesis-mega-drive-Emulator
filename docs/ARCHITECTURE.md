@@ -60,6 +60,7 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 | `md_music_state.cs` | Audio state save/restore | — |
 | `md_bus.cs` | System bus arbiter (315-5308) | — |
 | `md_cartridge.cs` | ROM loading + header parsing | — |
+| `md_sram.cs` | Battery-backed cartridge SRAM (`.srm`) | — |
 | `md_io.cs` | Controller I/O ports | — |
 | `md_io_device.cs` | I/O device abstraction | — |
 | `md_io_replay.cs` | Input recording/replay | — |
@@ -112,6 +113,8 @@ The Genesis memory map as implemented in `md_bus.cs`:
 
 ```
 0x000000 - 0x3FFFFF  ROM (cartridge, up to 4MB)
+                     └─ battery-backed SRAM overlays its declared window
+                        (header 'RA' marker), gated by 0xA130F1 bit 0
 0xA00000 - 0xA0FFFF  Z80 address space (8KB RAM + bank register)
 0xA04000 - 0xA04003  YM2612 FM sound chip
 0xA10000 - 0xA10FFF  I/O ports (controllers)
@@ -151,7 +154,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 - Add initial test coverage for CPU instructions and bus routing
 
 ### Phase 2 — Feature Completeness
-- SRAM / battery-backed save support
+- SRAM / battery-backed save support — **done** (`md_sram.cs`); not yet in save states
 - Memory mapper controller (0xA13000+)
 - Timing accuracy improvements
 - Expanded compatibility testing and regression tracking
