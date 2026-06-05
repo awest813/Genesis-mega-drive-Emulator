@@ -145,17 +145,17 @@ namespace MDTracer
                 case 11:
                     switch (in_size)
                     {
-                        case 0: w_out = (uint)(md_main.g_md_bus.read16(g_analyze_address) & 0x00ff); break;
-                        case 1: w_out = md_main.g_md_bus.read16(g_analyze_address); break;
-                        default: w_out = md_main.g_md_bus.read32(g_analyze_address); break;
+                        case 0: w_out = (uint)(g_bus.read16(g_analyze_address) & 0x00ff); break;
+                        case 1: w_out = g_bus.read16(g_analyze_address); break;
+                        default: w_out = g_bus.read32(g_analyze_address); break;
                     }
                     break;
                 default:
                     switch (in_size)
                     {
-                        case 0: w_out = md_main.g_md_bus.read8(g_analyze_address); break;
-                        case 1: w_out = md_main.g_md_bus.read16(g_analyze_address); break;
-                        default: w_out = md_main.g_md_bus.read32(g_analyze_address); break;
+                        case 0: w_out = g_bus.read8(g_analyze_address); break;
+                        case 1: w_out = g_bus.read16(g_analyze_address); break;
+                        default: w_out = g_bus.read32(g_analyze_address); break;
                     }
                     break;
             }
@@ -186,17 +186,17 @@ namespace MDTracer
                 case 11:
                     switch (in_size)
                     {
-                        case 0: md_main.g_md_bus.write16(g_analyze_address, (byte)in_val); break;
-                        case 1: md_main.g_md_bus.write16(g_analyze_address, (ushort)in_val); break;
-                        default: md_main.g_md_bus.write32(g_analyze_address, in_val); break;
+                        case 0: g_bus.write16(g_analyze_address, (byte)in_val); break;
+                        case 1: g_bus.write16(g_analyze_address, (ushort)in_val); break;
+                        default: g_bus.write32(g_analyze_address, in_val); break;
                     }
                     break;
                 default:
                     switch (in_size)
                     {
-                        case 0: md_main.g_md_bus.write8(g_analyze_address, (byte)in_val); break;
-                        case 1: md_main.g_md_bus.write16(g_analyze_address, (ushort)in_val); break;
-                        default: md_main.g_md_bus.write32(g_analyze_address, in_val); break;
+                        case 0: g_bus.write8(g_analyze_address, (byte)in_val); break;
+                        case 1: g_bus.write16(g_analyze_address, (ushort)in_val); break;
+                        default: g_bus.write32(g_analyze_address, in_val); break;
                     }
                     break;
             }

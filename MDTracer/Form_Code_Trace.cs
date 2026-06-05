@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace MDTracer
 {
-    public partial class Form_Code_Trace
+    public partial class Form_Code_Trace : IM68kTracer
     {
         public bool g_cpu_pause;
         private bool g_chk_enable; 

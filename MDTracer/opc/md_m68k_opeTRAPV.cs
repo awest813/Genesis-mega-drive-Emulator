@@ -7,7 +7,7 @@ namespace MDTracer
         private void analyse_TRAPV()
         {
             g_reg_PC += 2;
-            if(g_status_V == true) g_reg_PC = md_main.g_md_bus.read32(28);
+            if(g_status_V == true) g_reg_PC = g_bus.read32(28);
             g_clock += 37;
         }
    }

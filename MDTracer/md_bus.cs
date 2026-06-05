@@ -7,7 +7,7 @@ namespace MDTracer
     //----------------------------------------------------------------
     //Bus arbiter : chips:315-5308
     //----------------------------------------------------------------
-    internal class md_bus
+    internal class md_bus : IM68kBus
     {
         private static void report_bus_warning(string in_message)
         {

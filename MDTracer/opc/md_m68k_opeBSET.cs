@@ -31,7 +31,7 @@ namespace MDTracer
         {
             g_clock += 12;
             g_reg_PC += 2;
-            int w_bit = md_main.g_md_bus.read16(g_reg_PC);
+            int w_bit = g_bus.read16(g_reg_PC);
             g_reg_PC += 2;
             w_bit = w_bit & 0x1f;
             g_work_data.l = adressing_func_read(0, g_op4, 2);
@@ -43,7 +43,7 @@ namespace MDTracer
         {
             g_clock += 13;
             g_reg_PC += 2;
-            int w_bit = md_main.g_md_bus.read16(g_reg_PC);
+            int w_bit = g_bus.read16(g_reg_PC);
             g_reg_PC += 2;
             w_bit = w_bit & 0x07;
             adressing_func_address(g_op3, g_op4, 0);

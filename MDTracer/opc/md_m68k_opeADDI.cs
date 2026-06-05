@@ -11,9 +11,9 @@ namespace MDTracer
             g_reg_PC += 2;
             switch (g_op2)
             {
-                case 0: g_work_val2.l = (uint)(md_main.g_md_bus.read16(g_reg_PC) & 0x00ff); g_reg_PC += 2; break;
-                case 1: g_work_val2.l = md_main.g_md_bus.read16(g_reg_PC); g_reg_PC += 2; break;
-                default: g_work_val2.l = md_main.g_md_bus.read32(g_reg_PC); g_reg_PC += 4; break;
+                case 0: g_work_val2.l = (uint)(g_bus.read16(g_reg_PC) & 0x00ff); g_reg_PC += 2; break;
+                case 1: g_work_val2.l = g_bus.read16(g_reg_PC); g_reg_PC += 2; break;
+                default: g_work_val2.l = g_bus.read32(g_reg_PC); g_reg_PC += 4; break;
             }
             adressing_func_address(g_op3, g_op4, g_op2);
             g_work_val1.l = adressing_func_read(g_op3, g_op4, g_op2);

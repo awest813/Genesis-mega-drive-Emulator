@@ -33,6 +33,12 @@ namespace MDTracer
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
 
+            // Wire the 68000 core's injected collaborators now that the bus and
+            // tracer exist. The core no longer reaches into md_main statics for
+            // operand access or tracing.
+            g_md_m68k.g_bus = g_md_bus;
+            g_md_m68k.g_tracer = g_form_code_trace;
+
             g_setting_name = new List<string>();
             g_setting_val = new List<string>();
             g_task_usage = 0;

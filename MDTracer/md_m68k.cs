@@ -48,12 +48,19 @@ namespace MDTracer
         public bool g_interrupt_EXT_act;
         private bool g_68k_stop;
 
-        private ushort g_opcode;
-        private byte g_op;
-        private byte g_op1;
-        private byte g_op2;
-        private byte g_op3;
-        private byte g_op4;
+        // Injected collaborators. Production wires these in md_main.initialize();
+        // tests supply their own bus and leave the tracer as the no-op default.
+        internal IM68kBus g_bus;
+        internal IM68kTracer g_tracer = new NullM68kTracer();
+
+        // Current-instruction dispatch fields. Internal (not private) so tests in
+        // the core test assembly can drive a single instruction via step().
+        internal ushort g_opcode;
+        internal byte g_op;
+        internal byte g_op1;
+        internal byte g_op2;
+        internal byte g_op3;
+        internal byte g_op4;
 
         public struct OPINFO
         {
@@ -81,7 +88,7 @@ namespace MDTracer
         public void run(int in_clock)
         {
             g_clock_total += in_clock;
-            Form_Code_Trace w_trace = md_main.g_form_code_trace;
+            IM68kTracer w_trace = g_tracer;
             md_vdp w_vdp = md_main.g_md_vdp;
             OPINFO[] w_opcode_info = g_opcode_info;
             while (g_clock_now < g_clock_total)
@@ -109,6 +116,25 @@ namespace MDTracer
                 g_clock_now += g_clock;
             }
         }
+        //----------------------------------------------------------------
+        // Test/debug seam: fetch, decode and execute exactly one instruction at
+        // the current PC, mirroring the dispatch in run() but without the
+        // tracer/VDP/DMA and interrupt machinery. Returns the clock cycles the
+        // instruction reported. Intended for unit tests that drive the core
+        // directly; the normal emulation path uses run().
+        //----------------------------------------------------------------
+        internal int step()
+        {
+            g_clock = 0;
+            g_opcode = read16(g_reg_PC);
+            g_op = (byte)(g_opcode >> 12);
+            g_op1 = (byte)((g_opcode >> 9) & 0x07);
+            g_op2 = (byte)((g_opcode >> 6) & 0x07);
+            g_op3 = (byte)((g_opcode >> 3) & 0x07);
+            g_op4 = (byte)(g_opcode & 0x07);
+            g_opcode_info[g_opcode].opcode();
+            return g_clock;
+        }
         private void interrupt_chk()
         {
             if ((g_interrupt_V_req == true)
@@ -117,7 +143,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0078);
                 stack_push32(g_reg_PC);
-                md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;
@@ -132,7 +158,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0070);
                 stack_push32(g_reg_PC);
-                md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.HINT, 0x0070, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.HINT, 0x0070, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;
@@ -146,7 +172,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0068);
                 stack_push32(g_reg_PC);
-                md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.EXT, 0x0068, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.EXT, 0x0068, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;
