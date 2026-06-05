@@ -1,203 +1,165 @@
-# Summary
- 
-MD Tracer allows you to enjoy SEGA MegaDrive (Genesis) games just like a typical emulator, but its main purpose is as a tracer that tracks the internal processing of the MegaDrive hardware and software.
- 
-All processing (MC68000, Z80, VDP, YM2612, PSG) is coded in VisualStadio's c# language and .net, making it easy to understand the internal processing of the hardware.
- 
-The software also displays MC68000 programs in disassembled form, allowing you to stop them at any point and check the values ​​of memory, registers, etc. while stepping through the program.
- 
-Enjoy the amazing technology and wisdom of the engineers of the time from both the hardware and software perspectives.
- 
-Note: This program is not intended for playing games illegally. Its purpose is to help users understand and appreciate the ingenuity of the engineers who created this remarkable technology.
- 
-![demo1](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo1.png)
+# Genesis / Mega Drive Emulator
 
- 
-## Features
- 
-* This program provides the following features
- * Draws a virtual screen and allows you to check the contents
- * Displays the program in assembler and allows you to stop it at any point
- * Displays the values ​​of the MC68000 and VDP registers
- * Displays a function relationship diagram and allows you to know where it stopped
- * Searches for the places where the MC68000 accesses the VDP or Z80
- * Can stop at the point where specified memory is referenced/updated
+A lightweight, focused Sega Genesis (Mega Drive) emulator written entirely in C# and .NET. Originally based on [MDTracer](https://github.com/sasayaki-japan/MDTracer) by sasayaki-japan, this project is being developed into a robust, standalone open-source emulator.
 
-* This program is entirely written in C# and .NET.
-* It can be compiled using Visual Studio 2022.
-![demo2](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo2.png)
-![demo3](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo3.png)
-![demo4](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo4.png)
-![demo5](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo5.png)
-![demo6](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo6.png)
-![demo7](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo7.png)
-![demo8](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo8.png)
-![demo9](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo9.png)
-![demo10](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo10.png)
-![demo11](https://www.jppass.com/mdtracer/wp-content/uploads/2025/01/demo11.png)
+> **Note:** This program is not intended for playing games illegally. Its purpose is to help users understand and appreciate the ingenuity of the engineers who created this remarkable technology.
 
-## page
-  https://www.jppass.com/mdtracer
-  
-## binary
-  https://www.jppass.com/mdtracer/download/
-  
-## source
-  GitHub: https://github.com/sasayaki-japan/MDTracer/tree/main
-  
+## Current Status
+
+The emulator can boot and run a number of commercial Genesis/Mega Drive titles. It currently runs as a Windows desktop application using WinForms + SharpDX (Direct3D 12).
+
+**Emulated Hardware:**
+- Motorola MC68000 main CPU
+- Zilog Z80 secondary CPU
+- VDP (Video Display Processor) — scrolling planes, sprites, palette, DMA
+- YM2612 FM synthesis sound chip
+- SN76489 PSG (Programmable Sound Generator)
+- Controller I/O (keyboard and gamepad input)
+
+## Getting Started
+
+### Prerequisites
+
+- Windows 10 or later
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) (or Visual Studio 2022 17.8+)
+
+### Building
+
+```bash
+dotnet build MDTracer.sln
+```
+
+Or open `MDTracer.sln` in Visual Studio 2022 and build from the IDE.
+
+### Running
+
+```bash
+dotnet run --project MDTracer
+```
+
+Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .zip).
+
+### Default Controls
+
+| Button | Key |
+|--------|-----|
+| Start  | Space |
+| A      | N |
+| B      | M |
+| C      | , |
+| Up     | W |
+| Down   | S |
+| Left   | A |
+| Right  | D |
+| X      | H |
+| Y      | J |
+| Z      | K |
+| Mode   | Return |
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| Esc | Pause / Resume |
+| F1  | Save State |
+| F2  | Input Recording Start/Stop |
+| F3  | Save State + Input Recording Start/Stop |
+| F4  | Restore Latest State + Input |
+| Ctrl+F4 | Capture History |
+| F5  | Frame Advance |
+| F9  | Settings |
+| F10 | Screenshot |
+| F11 | Video Recording Start/Stop |
+| F12 | Reset |
+
 ## Compatibility
-This tracer has been confirmed to work only with the following games that I legally own.
-  
-Verified Titles:
-  * JAPAN Version
-     * Space Harrier II
-     * Super Thunder Blade
-     * Altered Beast
-     * Phantasy Star
-     * Thunder Force II
-     * Ghouls'n Ghosts
-     * Super Hang-On
-     * Super Shinobi
-     * Tatsujin
-     * Vermilion
-     * Golden Axe III
-     * Sorcerian
-     * After Burner II
-     * Phantasy Star III
-     * Thunder Force III
-     * Phelios
-     * Super Monaco GP
-     * Hellfire
-     * Strider Hiryuu
-     * FZ Senki Axis
-     * Burning Force
-     * Granada
-     * DARIUS(Sagaia)
-     * Musha Aleste
-     * Sonic The Hedgehog
-     * Bare Knuckle
-     * Kuuga
-     * Thunder Force IV
-     * Castlevania - Bloodlines
-     * Super Fantasy Zone
-     * Galaxy Force II
-     * Panorama Cotton
-     * Ex-Ranza
-     * Dynamite Headdy
-     * Battle Mania Daiginjou
-     * OutRun
-     * Gunstar Heroes
 
-  * USA version
-     * Vectorman
-  
-## unimplemented features
-  
-   * mmc(address 0xa13000-)
-   * interlace
-   * 32x
-   * cd
-   * pal
-   * sram
-  
+The following commercially released titles have been verified to run:
+
+<details>
+<summary>Verified Titles (click to expand)</summary>
+
+**Japan**
+- Space Harrier II, Super Thunder Blade, Altered Beast, Phantasy Star
+- Thunder Force II / III / IV, Ghouls'n Ghosts, Super Hang-On
+- Super Shinobi, Tatsujin, Vermilion, Golden Axe III, Sorcerian
+- After Burner II, Phantasy Star III, Phelios, Super Monaco GP
+- Hellfire, Strider Hiryuu, FZ Senki Axis, Burning Force, Granada
+- DARIUS (Sagaia), Musha Aleste, Sonic The Hedgehog, Bare Knuckle
+- Kuuga, Castlevania - Bloodlines, Super Fantasy Zone
+- Galaxy Force II, Panorama Cotton, Ex-Ranza, Dynamite Headdy
+- Battle Mania Daiginjou, OutRun, Gunstar Heroes
+
+**USA**
+- Vectorman
+
+</details>
+
+## Unimplemented Features
+
+- Memory mapper controller (address 0xA13000+)
+- Interlace mode
+- Sega 32X
+- Sega CD
+- PAL timing
+- SRAM / battery-backed save
+
+## Roadmap
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture and development roadmap.
+
+**Phase 1 — Core Stability:** Boot and run commercial ROMs reliably with correct audio, video, and input.
+
+**Phase 2 — Feature Completeness:** Save states, SRAM, mapper support, timing accuracy, expanded compatibility.
+
+**Phase 3 — Developer Tools:** Optional tracer, debugger, disassembler, and VDP inspection as separate modules.
+
+**Phase 4 — Platform Expansion:** Cross-platform rendering/audio backends, broader hardware support.
+
+## Project Structure
+
+```
+MDTracer.sln              # Solution file
+MDTracer/                 # Main application (WinForms frontend + emulation core)
+  md_m68k.cs              # MC68000 CPU emulation
+  md_z80.cs               # Z80 CPU emulation
+  md_vdp.cs               # Video Display Processor
+  md_music.cs             # Audio (YM2612 + SN76489)
+  md_bus.cs               # System bus arbiter
+  md_cartridge.cs         # ROM loading and header parsing
+  md_io.cs                # Controller I/O
+  md_control.cs           # System control registers
+  md_main.cs              # Emulation coordinator / main loop
+  opc/                    # MC68000 opcode implementations
+  Form_*.cs               # WinForms UI
+opcode_make/              # Development tool: M68K opcode table generator
+tests/                    # Unit and integration tests
+docs/                     # Architecture and contributor documentation
+```
+
 ## References
-  
-  * Sega Genesis Manual: Genesis Technical Overview v1.00 (1991)(Sega)(US)
-  * YM2608 OPNA application manual
-  * sn76489 user manual, Texas Instruments
-  * MC68000 16-Bit Microprocessor User's Manual, MOTOROLA, 1981
-  * Z80 CPU User Manual - Zilog
-  
-## Thanks
-  
-I created it with reference to the regular manual, but I referred to the following materials for the parts that are not written in the manual
-  
-  * Gens
-  * BlastEm
-  * MDSound
-  * Sega Genesis VDP documentation(by Charles MacDonald)
-  
+
+- Sega Genesis Manual: Genesis Technical Overview v1.00 (1991, Sega, US)
+- YM2608 OPNA Application Manual
+- SN76489 User Manual (Texas Instruments)
+- MC68000 16-Bit Microprocessor User's Manual (Motorola, 1981)
+- Z80 CPU User Manual (Zilog)
+
+### Acknowledgments
+
+The following open-source projects and documentation were referenced during development:
+
+- [Gens](http://www.gens.me/) — Genesis emulator
+- [BlastEm](https://www.retrodev.com/blastem/) — Genesis emulator
+- MDSound — Sound emulation reference
+- Sega Genesis VDP Documentation by Charles MacDonald
+
 ## License
-  
-This project is licensed under the MIT License.
- 
-Copyright (c) 2019 Stephane Dallongeville
 
-■■■■■■■■■■■■■■■■■
-How to Use MDTracer
-1．Extract the Executable File Extract the downloaded executable file.
-2．Run MDTracer.exe Run MDTracer.exe from the extracted folder.
-3．Select a Game File
-　　Press the “F Ekey during execution to open the file explorer.
-　　Select the game file you want to run, and the game will start.
-　　For previously executed game files, press keys  E Eto  E Eto re-execute them.
-menu1
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 
-4．Default Keyboard Configuration The default keyboard mapping is as follows:
-　　Start: Space
-　　A Button: N
-　　B Button: M
-　　C Button: ,
-　　Up: W
-　　Down: S
-　　Left: A
-　　Right: D
-　　X Button: H
-　　Y Button: J
-　　Z Button: K
-　　Mode: Return
+The file [license.txt](license.txt) contains the license for referenced code from the Gens emulator (MIT, Copyright © 2019 Stephane Dallongeville).
 
-5．Input Configuration To configure the input settings, follow these steps:
-　1. Select “Control” ->“Setting” ->“Setting” from the menu to open the Setting View.
-　2.Check “I/O Ein the “Window Etab to open the I/O View.
-　3.Press the key you want to change to open Button Select.
-　　　To configure a joypad, press “Rescan Eand select the device from the “Joystick Elist.
-　4.Press the button on the desired device to complete the key mapping.
+## Contributing
 
-6．Menu
-■Control
-　■Setting　　　　 Display the settings screen
-　■Exit　　　　　　Exit
-■Capture
-　■Screenshot　　　Save a screen capture
-　■Video Recording Start video recording. Press again while recording to stop
-　■Open Screenshot Folder Open the folder where screen captures are stored
-　■Open Video Folder　　　Open the folder where videos are stored
-■Emulation
-　■Pause / Resume　Pause the game. Press again while paused to resume
-　■Reset　　　　　 Reset the game
-　■Frame Advance　 Advance the game one frame at a time. Resume with ESC
-　■State Capture
-　　■Save　　　　　Save the current game state
-　　■Load　　　　　Restore the most recently saved game state
-　　■List　　　　　Display a list of saved game states
-　■Input Capture
-　　■Record　　　　Start recording input operations. Press again while recording to stop
-　　■Replay　　　　Replay the most recently saved input operations
-　　■List　　　　　Display a list of saved input operations
-
-7．Shortcut Key List
-  Esc	Pause / Resume
-  F1	State Capture Save
-  F2	Input Capture Record Start/stop
-  F3	State Capture Save & Input Capture Record Start/stop
-  F4	Restore latest State Capture & Input Capture
-  F4+CTRL Capture History
-  F5	Frame Advance
-  F9	Setting
-  F10	Screenshot
-  F11	Video Recording  Start/stop
-  F12	Reset
-
-8．Setting View
-■Window
-　Turn the check ON to open the specified window
-■View
-　■View　　　　　　Turn the specified display of the game screen ON / OFF
-　■Priority High 　Color the dots whose Priority is High in the specified display
-　■Priority Low　　Color the dots whose Priority is Low in the specified display
-
-9．VDP Memory View
-■Grid 　　　　　　Display an 8ÁE-dot grid
-■Screenshot 　　　When ON, this works together with Screenshot (F10) and saves a capture of this window
-■Video Recording　When ON, this works together with Video Recording (F11) and starts recording video of this window
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
