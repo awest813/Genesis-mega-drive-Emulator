@@ -11,6 +11,7 @@ namespace MDTracer
             currentProcess.PriorityClass = ProcessPriorityClass.High;
 
             g_md_cartridge = new md_cartridge();
+            g_md_sram = new md_sram();
             g_md_bus = new md_bus();
             g_md_control = new md_control();
             g_md_io = new md_io();

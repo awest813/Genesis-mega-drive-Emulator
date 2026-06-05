@@ -67,6 +67,9 @@
             else
             if (in_address == 0xa130f1)
             {
+                // Bit 0 selects whether the cartridge SRAM window maps SRAM
+                // (1) or ROM (0).
+                md_main.g_md_sram.set_enabled((in_data & 0x01) != 0);
             }
             else
             {

@@ -23,6 +23,7 @@ namespace MDTracer
         public static Form_Flow g_form_flow;
         
         public static md_cartridge g_md_cartridge;
+        public static md_sram g_md_sram;
         public static md_bus g_md_bus;
         public static md_control g_md_control;
         public static md_io g_md_io;
@@ -55,8 +56,11 @@ namespace MDTracer
             g_form_code.SaveCurrentGameCodeSettings();
             g_stop_req = false;
             g_state_capture_rom_file_name = "";
+            g_md_sram.save();   // flush the previously loaded game's battery RAM
             if (false == g_md_cartridge.load(in_romname)) return false;
             g_state_capture_rom_file_name = Path.GetFileName(in_romname);
+            g_md_sram.configure(g_md_cartridge, in_romname);
+            g_md_sram.load();
             g_state_capture_status = "";
             g_md_m68k.reset();
             g_form_code_trace.update();
