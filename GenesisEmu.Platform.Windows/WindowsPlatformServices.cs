@@ -6,6 +6,7 @@ namespace MDTracer.Platform.Windows
         {
             md_main.g_audioBackend = new NaudioAudioOutputBackend();
             md_io.g_inputBackend = new DirectInputDeviceBackend();
+            md_vdp.g_gpuRenderer = new DirectX12VdpGpuRenderer();
         }
     }
 }

@@ -62,8 +62,7 @@ production implementations live in `MDTracer/`.
 | `md_vdp_renderer_line.cs` | Scanline rendering | — |
 | `md_vdp_renderer_data.cs` | Renderer data structures | — |
 | `md_vdp_renderer_snap.cs` | Renderer snapshot | — |
-| `md_vdp_renderer_frame_directx.cs` | DirectX 12 frame output | — |
-| `md_vdp_renderer_frame_directx_sub.cs` | DirectX helpers | — |
+| `md_vdp_gpu_interfaces.cs` | VDP GPU snapshot types and `IVdpGpuRenderer` seam | — |
 | `md_vdp_initialize.cs` | VDP initialization | — |
 | `md_vdp_state.cs` | VDP state save/restore | — |
 | `md_music.cs` | Audio coordinator | — |

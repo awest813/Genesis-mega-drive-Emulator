@@ -5,6 +5,8 @@
     //----------------------------------------------------------------
     internal partial class md_vdp : System.IDisposable
     {
+        internal static IVdpGpuRenderer g_gpuRenderer = new NullVdpGpuRenderer();
+
         public int g_scanline;
         private int g_hinterrupt_counter;
         private bool g_external_interrupt_req;
@@ -17,7 +19,7 @@
         }
         public void Dispose()
         {
-            dx_rendering_dispose();
+            g_gpuRenderer.Dispose();
             g_waitHandle?.Dispose();
             g_scrollA_bitmap?.Dispose();
             g_scrollB_bitmap?.Dispose();
