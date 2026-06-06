@@ -1,4 +1,5 @@
 using MDTracer;
+using System.IO;
 using Xunit;
 
 namespace GenesisEmu.Core.Tests
@@ -80,6 +81,45 @@ namespace GenesisEmu.Core.Tests
 
             Assert.Equal(0, mem[0x180000]);
             Assert.Equal(0, mem[0x180000 + BANK - 1]);
+        }
+
+        [Fact]
+        public void IsControlRegister_OnlyOddA130F3ToA130FF()
+        {
+            Assert.False(md_mapper.is_control_register(0xA130F2));
+            Assert.True(md_mapper.is_control_register(0xA130F3));
+            Assert.False(md_mapper.is_control_register(0xA130F4));
+            Assert.True(md_mapper.is_control_register(0xA130FF));
+            Assert.False(md_mapper.is_control_register(0xA13101));
+        }
+
+        [Fact]
+        public void MapperState_RoundTripsBankRegisters()
+        {
+            var mapper = new md_mapper();
+            mapper.g_active = true;
+            mapper.g_bank_pages[1] = 9;
+            mapper.g_bank_pages[7] = 21;
+
+            byte[] blob;
+            using (var ms = new MemoryStream())
+            {
+                using (var bw = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+                {
+                    mapper.write_state(bw);
+                }
+                blob = ms.ToArray();
+            }
+
+            var restored = new md_mapper();
+            using (var br = new BinaryReader(new MemoryStream(blob)))
+            {
+                restored.restore_state(br);
+            }
+
+            Assert.Equal((byte)0, restored.g_bank_pages[0]);
+            Assert.Equal((byte)9, restored.g_bank_pages[1]);
+            Assert.Equal((byte)21, restored.g_bank_pages[7]);
         }
     }
 }

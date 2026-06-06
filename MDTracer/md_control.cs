@@ -94,6 +94,12 @@
                 write8(in_address, (byte)(in_data >> 8));
             }
             else
+            if ((in_address >= 0xa130f0) && (in_address <= 0xa130fe))
+            {
+                write8(in_address, (byte)(in_data >> 8));
+                write8(in_address + 1, (byte)in_data);
+            }
+            else
             {
                 report_control_warning("md_control.write16");
             }

@@ -144,7 +144,43 @@ Each frame follows this sequence (in `md_main.md_run()`):
 - **Tight UI coupling:** The emulation core (`md_main`, `md_bus`, CPU classes) directly references WinForms UI classes for tracing and debug display
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
-- **No test suite:** No automated tests for CPU instructions, bus routing, or VDP behavior
+- **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
+
+## Phase 2 Milestone Checkpoint (Current Work)
+
+### Locked Scope
+
+1. Memory mapper controller support (`0xA13000+`, including 8/16/32-bit control-path writes)
+2. Timing-accuracy baselines for key CPU/frame constants and instruction-cycle checks
+3. Compatibility regression tracking via a maintained matrix of known-good titles and known issues
+
+### Acceptance Criteria
+
+- **Mapper behavior complete**
+  - Mapper register writes correctly update 512 KB bank mappings for banks 1-7
+  - SRAM gate (`0xA130F1`) and mapper bank controls coexist correctly
+  - Save states preserve and restore mapper bank register state on new captures
+- **Timing baselines stable**
+  - Core timing baseline tests pass (per-line CPU/Z80 constants and key instruction timing checks)
+  - No accidental drift in established baseline constants without intentional updates
+- **No regressions on currently working titles**
+  - Compatibility matrix is updated and reviewed after core changes
+  - Known-good entries remain bootable/runnable within existing expectations
+
+### Compatibility Tracking Artifact
+
+- Lightweight matrix: [docs/COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md)
+- Use it as the regression checklist after mapper/timing/core bus changes.
+
+### Phase 3 Preparation (UI Coupling Hotspots)
+
+High-priority coupling points to untangle before extracting a standalone core:
+
+1. `md_main.cs` directly owns and drives `Form_*` instances during emulation and frame updates
+2. `md_bus.cs` directly calls `md_main.g_form_code` memory monitor hooks on every read/write path
+3. `md_m68k.cs` interrupt tracing currently references `Form_Code_Trace.STACK_LIST_TYPE` via tracer calls
+
+These are the first seams to replace with platform-neutral interfaces during Phase 3 extraction.
 
 ## Development Roadmap
 
