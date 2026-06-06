@@ -1,27 +1,5 @@
 namespace MDTracer
 {
-    //----------------------------------------------------------------
-    // Frontend settings persistence hooks.
-    //
-    // md_main_setting previously reached directly into Form_* instances
-    // to restore and capture window layout. These hooks let the core load
-    // and save settings without owning WinForms windows.
-    //----------------------------------------------------------------
-
-    internal interface IFrontendSettingsHooks
-    {
-        bool TryApplySetting(string in_name, string in_value);
-        void CaptureSettings(Action<string, string> settingAdd);
-        void EnsureCodeToolLayoutVisible();
-    }
-
-    internal sealed class NullFrontendSettingsHooks : IFrontendSettingsHooks
-    {
-        public bool TryApplySetting(string in_name, string in_value) => false;
-        public void CaptureSettings(Action<string, string> settingAdd) { }
-        public void EnsureCodeToolLayoutVisible() { }
-    }
-
     internal sealed class WinFormsFrontendSettingsHooks : IFrontendSettingsHooks
     {
         public bool TryApplySetting(string in_name, string in_value)

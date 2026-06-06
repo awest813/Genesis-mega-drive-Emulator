@@ -47,6 +47,11 @@ namespace MDTracer
             md_main.initialize();
             WinFormsDebugTools.Initialize();
             md_main.read_setting();
+            if (g_screen_size_x == 0 && g_screen_size_y == 0)
+            {
+                g_screen_size_x = 640;
+                g_screen_size_y = 448;
+            }
             WinFormsDebugTools.g_form_setting.update();
             WinFormsDebugTools.g_form_setting.show_window();
             WinFormsDebugTools.g_form_screenA.initialize("A", 256, 256, "screen A");

@@ -140,7 +140,6 @@ namespace MDTracer
             md_ym2612 w_ym2612 = g_md_ym2612;
             md_sn76489 w_sn76489 = g_md_sn76489;
             BufferedWaveProvider w_bufferedwaveprovider = g_bufferedwaveprovider;
-            Form_Main w_form_main = Form_Main.Instance;
             while (CLOCK_PER_SAMPLE <= g_clock_total)
             {
                 g_clock_total -= CLOCK_PER_SAMPLE;
@@ -160,7 +159,7 @@ namespace MDTracer
                 {
                     WaitForBufferSpace(w_bufferedwaveprovider);
                     w_bufferedwaveprovider.AddSamples(w_buffer, 0, BUFSIZE);
-                    w_form_main.videoRecordingAddAudioSamples(w_buffer, 0, BUFSIZE);
+                    md_main.g_audioFrontendHooks.OnAudioSamplesProduced(w_buffer, 0, BUFSIZE);
                     w_buffer_cur = 0;
                 }
             }

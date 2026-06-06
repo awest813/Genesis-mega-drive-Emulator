@@ -120,7 +120,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture 
 
 ```
 MDTracer.sln              # Solution file
-MDTracer/                 # Main application (WinForms frontend + emulation core)
+GenesisEmu.Core/          # Emulation core class library
   md_m68k.cs              # MC68000 CPU emulation
   md_z80.cs               # Z80 CPU emulation
   md_vdp.cs               # Video Display Processor
@@ -131,7 +131,8 @@ MDTracer/                 # Main application (WinForms frontend + emulation core
   md_control.cs           # System control registers
   md_main.cs              # Emulation coordinator / main loop
   opc/                    # MC68000 opcode implementations
-  Form_*.cs               # WinForms UI
+MDTracer/                 # WinForms frontend (references GenesisEmu.Core)
+  Form_*.cs               # UI and debug tools
 opcode_make/              # Development tool: M68K opcode table generator
 tests/                    # Unit and integration tests
 docs/                     # Architecture and contributor documentation

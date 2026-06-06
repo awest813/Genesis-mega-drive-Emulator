@@ -46,6 +46,7 @@ namespace MDTracer
 
             md_main.g_mainLoopUI = new WinFormsMainLoopUiHooks();
             md_main.g_frontendSettings = new WinFormsFrontendSettingsHooks();
+            md_main.g_audioFrontendHooks = new WinFormsAudioFrontendHooks();
             md_io.g_frontendHooks = new WinFormsIoFrontendHooks();
 
             g_md_m68k.g_tracer = g_form_code_trace;

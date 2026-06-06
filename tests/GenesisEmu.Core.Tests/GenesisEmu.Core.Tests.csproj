@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\MDTracer\MDTracer.csproj" />
+    <ProjectReference Include="..\..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,9 +17,24 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 └─────────┴──────────┴───────┴────────┴──────┴────────────┘
 ```
 
+## Solution Layout
+
+```
+GenesisEmu.Core/          # Emulation core class library (net9.0-windows)
+MDTracer/                 # WinForms frontend (references GenesisEmu.Core)
+opcode_make/              # MC68000 opcode table generator (build-time tool)
+tests/GenesisEmu.Core.Tests/
+```
+
+The core and frontend share the `MDTracer` root namespace for now so existing
+call sites and tests did not need a sweeping rename. Frontend hook interfaces
+(`IMainLoopUiHooks`, `IFrontendSettingsHooks`, `IIoFrontendHooks`,
+`IAudioFrontendHooks`) and their null implementations live in the core; WinForms
+production implementations live in `MDTracer/`.
+
 ## Source File Map
 
-### Emulation Core
+### Emulation Core (`GenesisEmu.Core/`)
 
 | File | Component | Hardware Reference |
 |------|-----------|-------------------|
@@ -78,14 +93,15 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 | `md_main_input_capture.cs` | Input recording storage |
 | `md_main_input_capture_request.cs` | Input recording request handling |
 
-### Frontend (WinForms)
+### Frontend (`MDTracer/`)
 
 | File | Purpose |
 |------|---------|
 | `WinFormsDebugTools.cs` | Debug-tool window registry and frontend collaborator wiring |
-| `md_main_ui_hooks.cs` | Main-loop UI hook interface (`IMainLoopUiHooks`) |
-| `md_frontend_settings_hooks.cs` | Window-layout settings persistence hooks |
-| `md_io_frontend_hooks.cs` | I/O device-change notification hooks |
+| `WinFormsMainLoopUiHooks.cs` | Production `IMainLoopUiHooks` implementation |
+| `WinFormsFrontendSettingsHooks.cs` | Production `IFrontendSettingsHooks` implementation |
+| `WinFormsIoFrontendHooks.cs` | Production `IIoFrontendHooks` implementation |
+| `WinFormsAudioFrontendHooks.cs` | Production `IAudioFrontendHooks` implementation |
 | `Form_Main.cs` | Main window, game screen, menu |
 | `Form_Code.cs` | Disassembly/code view |
 | `Form_Code_Trace.cs` | Execution tracing |
@@ -145,7 +161,8 @@ Each frame follows this sequence (in `md_main.md_run()`):
 
 ## Current Limitations
 
-- **Residual UI coupling:** Core subsystems use injected hooks (`IMainLoopUiHooks`, `IFrontendSettingsHooks`, `IIoFrontendHooks`) with null defaults, but debug tools still live in the same assembly as the core
+- **Residual platform coupling:** `GenesisEmu.Core` still targets Windows (DirectX, DirectInput, NAudio, System.Drawing) even though it no longer references WinForms
+- **Residual frontend coupling:** Debug-tool windows cross-reference each other through `WinFormsDebugTools`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -249,7 +266,8 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** debug-tool `Form_*` ownership moved to `WinFormsDebugTools`
 - **Done:** window settings persistence moved behind `IFrontendSettingsHooks`
 - **Done:** VDP overlay compositing flags moved off `Form_Setting` onto `md_vdp`
-- **Remaining:** extract core into a separate library project; decouple debug-tool cross-talk
+- **Done:** emulation core extracted into `GenesisEmu.Core` class library
+- **Remaining:** decouple debug-tool cross-talk; peel Windows-only rendering/audio/input behind platform interfaces
 
 ### Phase 4 — Platform Expansion
 - Platform-independent rendering backend (replacing SharpDX)

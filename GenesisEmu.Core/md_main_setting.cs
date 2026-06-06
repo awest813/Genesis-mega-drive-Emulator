@@ -178,8 +178,6 @@ namespace MDTracer
             {
                 md_main.g_md_music.g_master_vol[j] = 100;
             }
-            Form_Main.g_screen_size_x = 640;
-            Form_Main.g_screen_size_y = 448;
         }
         public static void write_setting()
         {

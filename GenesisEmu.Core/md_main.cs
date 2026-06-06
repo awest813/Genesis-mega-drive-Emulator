@@ -36,6 +36,7 @@ namespace MDTracer
         public static bool g_trace_nextframe;
         internal static IMainLoopUiHooks g_mainLoopUI = new NullMainLoopUiHooks();
         internal static IFrontendSettingsHooks g_frontendSettings = new NullFrontendSettingsHooks();
+        internal static IAudioFrontendHooks g_audioFrontendHooks = new NullAudioFrontendHooks();
 
         private static int g_task_usage;
         //----------------------------------------------------------------
