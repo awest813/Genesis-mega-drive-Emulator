@@ -15,20 +15,19 @@ namespace MDTracer
             uint[] w_game_primap = g_game_primap;
             uint[] w_game_plain = g_game_plain;
             uint[] w_game_shadowmap = g_game_shadowmap;
-            Form_Setting w_setting = md_main.g_form_setting;
-            bool w_view_screenB = w_setting.g_view_screenB;
-            bool w_view_screenA = w_setting.g_view_screenA;
-            bool w_view_screenS = w_setting.g_view_screenS;
-            bool w_view_screenW = w_setting.g_view_screenW;
+            bool w_view_screenB = g_overlay_view_screenB;
+            bool w_view_screenA = g_overlay_view_screenA;
+            bool w_view_screenS = g_overlay_view_screenS;
+            bool w_view_screenW = g_overlay_view_screenW;
             bool w_shadow_enabled = g_vdp_reg_12_3_shadow != 0;
-            bool w_screenA_low = w_setting.g_screenA_Low;
-            bool w_screenA_high = w_setting.g_screenA_High;
-            bool w_screenB_low = w_setting.g_screenB_Low;
-            bool w_screenB_high = w_setting.g_screenB_High;
-            bool w_screenW_low = w_setting.g_screenW_Low;
-            bool w_screenW_high = w_setting.g_screenW_High;
-            bool w_screenS_low = w_setting.g_screenS_Low;
-            bool w_screenS_high = w_setting.g_screenS_High;
+            bool w_screenA_low = g_overlay_screenA_Low;
+            bool w_screenA_high = g_overlay_screenA_High;
+            bool w_screenB_low = g_overlay_screenB_Low;
+            bool w_screenB_high = g_overlay_screenB_High;
+            bool w_screenW_low = g_overlay_screenW_Low;
+            bool w_screenW_high = g_overlay_screenW_High;
+            bool w_screenS_low = g_overlay_screenS_Low;
+            bool w_screenS_high = g_overlay_screenS_High;
             bool w_overlay_enabled = w_screenA_low == true
                 || w_screenA_high == true
                 || w_screenB_low == true

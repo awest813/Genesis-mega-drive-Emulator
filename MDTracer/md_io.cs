@@ -7,6 +7,8 @@ namespace MDTracer
     //----------------------------------------------------------------
     internal partial class md_io
     {
+        internal static IIoFrontendHooks g_frontendHooks = new NullIoFrontendHooks();
+
         public byte g_io_a10001_7_mode;
         public byte g_io_a10001_6_vmod;
         public byte g_io_a10001_5_disk;

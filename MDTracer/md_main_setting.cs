@@ -73,13 +73,17 @@ namespace MDTracer
             if(g_setting_name.Count == 0)
             {
                 read_init();
-                g_form_code.EnsureCodeToolLayoutVisible();
+                g_frontendSettings.EnsureCodeToolLayoutVisible();
                 return;
             }
             for (int i = 0; i < g_setting_name.Count; i++)
             {
                 string w_name = g_setting_name[i];
                 string[] w_val = g_setting_val[i].Split(':');
+                if (g_frontendSettings.TryApplySetting(w_name, g_setting_val[i]) == true)
+                {
+                    continue;
+                }
                 switch(w_name)
                 {
                     case "key":
@@ -109,93 +113,11 @@ namespace MDTracer
                             g_md_io.g_key_allocation2[j] = byte.Parse(w_val[j]);
                         }
                         break;
-                    case "screen_main":
-                        Form_Main.g_screen_xpos = int.Parse(w_val[0]);
-                        Form_Main.g_screen_ypos = int.Parse(w_val[1]);
-                        Form_Main.g_screen_size_x = int.Parse(w_val[2]);
-                        Form_Main.g_screen_size_y = int.Parse(w_val[3]);
-                        break;
-                    case "screenA":
-                        g_screenA_enable = (w_val[0] == "1") ? true : false;
-                        g_form_screenA.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_screenA.g_screen_ypos = int.Parse(w_val[2]);
-                        read_vdp_screen_menu_setting(g_form_screenA, w_val);
-                        break;
-                    case "screenB":
-                        g_screenB_enable = (w_val[0] == "1") ? true : false;
-                        g_form_screenB.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_screenB.g_screen_ypos = int.Parse(w_val[2]);
-                        read_vdp_screen_menu_setting(g_form_screenB, w_val);
-                        break;
-                    case "screenW":
-                        g_screenW_enable = (w_val[0] == "1") ? true : false;
-                        g_form_screenW.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_screenW.g_screen_ypos = int.Parse(w_val[2]);
-                        read_vdp_screen_menu_setting(g_form_screenW, w_val);
-                        break;
-                    case "screenS":
-                        g_screenS_enable = (w_val[0] == "1") ? true : false;
-                        g_form_screenS.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_screenS.g_screen_ypos = int.Parse(w_val[2]);
-                        read_vdp_screen_menu_setting(g_form_screenS, w_val);
-                        break;
-                    case "pattern":
-                        g_pattern_enable = (w_val[0] == "1") ? true : false;
-                        g_form_pattern.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_pattern.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "pallete":
-                        g_pallete_enable = (w_val[0] == "1") ? true : false;
-                        g_form_pallete.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_pallete.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "code":
-                        g_code_enable = (w_val[0] == "1") ? true : false;
-                        g_form_code.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_code.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "code_tools":
-                        g_form_code.SetCodeToolLayoutText(g_setting_val[i]);
-                        break;
-                    case "io":
-                        g_io_enable = (w_val[0] == "1") ? true : false;
-                        g_form_io.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_io.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "music":
-                        g_music_enable = (w_val[0] == "1") ? true : false;
-                        g_form_music.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_music.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "registry":
-                        g_registry_enable = (w_val[0] == "1") ? true : false;
-                        g_form_registry.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_registry.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
-                    case "flow":
-                        g_flow_enable = (w_val[0] == "1") ? true : false;
-                        g_form_flow.g_screen_xpos = int.Parse(w_val[1]);
-                        g_form_flow.g_screen_ypos = int.Parse(w_val[2]);
-                        break;
                     case "trace_fsb":
                         g_trace_fsb = (w_val[0] == "1") ? true : false;
                         break;
                     case "trace_sip":
                         g_trace_sip = (w_val[0] == "1") ? true : false;
-                        break;
-                    case "setting_view":
-                        if (w_val.Length > 0) g_form_setting.g_view_screenA = w_val[0] == "1";
-                        if (w_val.Length > 1) g_form_setting.g_view_screenB = w_val[1] == "1";
-                        if (w_val.Length > 2) g_form_setting.g_view_screenW = w_val[2] == "1";
-                        if (w_val.Length > 3) g_form_setting.g_view_screenS = w_val[3] == "1";
-                        if (w_val.Length > 4) g_form_setting.g_screenA_High = w_val[4] == "1";
-                        if (w_val.Length > 5) g_form_setting.g_screenA_Low = w_val[5] == "1";
-                        if (w_val.Length > 6) g_form_setting.g_screenB_High = w_val[6] == "1";
-                        if (w_val.Length > 7) g_form_setting.g_screenB_Low = w_val[7] == "1";
-                        if (w_val.Length > 8) g_form_setting.g_screenW_High = w_val[8] == "1";
-                        if (w_val.Length > 9) g_form_setting.g_screenW_Low = w_val[9] == "1";
-                        if (w_val.Length > 10) g_form_setting.g_screenS_High = w_val[10] == "1";
-                        if (w_val.Length > 11) g_form_setting.g_screenS_Low = w_val[11] == "1";
                         break;
                     case "music_chk":
                         for (int j = 0; j <= 10; j++)
@@ -217,27 +139,9 @@ namespace MDTracer
                         g_gpu_req = int.Parse(w_val[0]);
                         g_md_vdp.rendering_gpu = (w_val[0] == "1") ? true : false;
                         break;
-                    case "file0": Form_Main.g_file_name[0] = g_setting_val[i]; break;
-                    case "file1": Form_Main.g_file_name[1] = g_setting_val[i]; break;
-                    case "file2": Form_Main.g_file_name[2] = g_setting_val[i]; break;
-                    case "file3": Form_Main.g_file_name[3] = g_setting_val[i]; break;
-                    case "file4": Form_Main.g_file_name[4] = g_setting_val[i]; break;
-                    case "file5": Form_Main.g_file_name[5] = g_setting_val[i]; break;
-                    case "file6": Form_Main.g_file_name[6] = g_setting_val[i]; break;
-                    case "file7": Form_Main.g_file_name[7] = g_setting_val[i]; break;
-                    case "file8": Form_Main.g_file_name[8] = g_setting_val[i]; break;
                 }
             }
-            g_form_code.EnsureCodeToolLayoutVisible();
-        }
-        private static void read_vdp_screen_menu_setting(Form_VDP_Screen in_form, string[] in_val)
-        {
-            if (in_val.Length < 6) return;
-
-            in_form.SetMenuSetting(
-                in_val[3] == "1",
-                in_val[4] == "1",
-                in_val[5] == "1");
+            g_frontendSettings.EnsureCodeToolLayoutVisible();
         }
         public static void read_init()
         {
@@ -323,80 +227,13 @@ namespace MDTracer
             }
             setting_add("joy2", w_val);
 
-            w_val = Form_Main.g_screen_xpos
-                + ":" + Form_Main.g_screen_ypos
-                + ":" + Form_Main.g_screen_size_x
-                + ":" + Form_Main.g_screen_size_y;
-            setting_add("screen_main", w_val);
-            w_val = ((md_main.g_screenA_enable == true) ? "1" : "0")
-                + ":" + g_form_screenA.g_screen_xpos
-                + ":" + g_form_screenA.g_screen_ypos
-                + ":" + g_form_screenA.GetMenuSettingText();
-            setting_add("screenA", w_val);
-            w_val = ((md_main.g_screenB_enable == true) ? "1" : "0")
-                + ":" + g_form_screenB.g_screen_xpos
-                + ":" + g_form_screenB.g_screen_ypos
-                + ":" + g_form_screenB.GetMenuSettingText();
-            setting_add("screenB", w_val);
-            w_val = ((md_main.g_screenW_enable == true) ? "1" : "0")
-                + ":" + g_form_screenW.g_screen_xpos
-                + ":" + g_form_screenW.g_screen_ypos
-                + ":" + g_form_screenW.GetMenuSettingText();
-            setting_add("screenW", w_val);
-            w_val = ((md_main.g_screenS_enable == true) ? "1" : "0")
-                + ":" + g_form_screenS.g_screen_xpos
-                + ":" + g_form_screenS.g_screen_ypos
-                + ":" + g_form_screenS.GetMenuSettingText();
-            setting_add("screenS", w_val);
-            w_val = ((md_main.g_pattern_enable == true) ? "1" : "0")
-                + ":" + g_form_pattern.g_screen_xpos
-                + ":" + g_form_pattern.g_screen_ypos;
-            setting_add("pattern", w_val);
-            w_val = ((md_main.g_pallete_enable == true) ? "1" : "0")
-                + ":" + g_form_pallete.g_screen_xpos
-                + ":" + g_form_pallete.g_screen_ypos;
-            setting_add("pallete", w_val);
-            w_val = ((md_main.g_code_enable == true) ? "1" : "0")
-                + ":" + g_form_code.g_screen_xpos
-                + ":" + g_form_code.g_screen_ypos;
-            setting_add("code", w_val);
-            setting_add("code_tools", g_form_code.GetCodeToolLayoutText());
-            w_val = ((md_main.g_io_enable == true) ? "1" : "0")
-                + ":" + g_form_io.g_screen_xpos
-                + ":" + g_form_io.g_screen_ypos;
-            setting_add("io", w_val);
-            w_val = ((md_main.g_music_enable == true) ? "1" : "0")
-                + ":" + g_form_music.g_screen_xpos
-                + ":" + g_form_music.g_screen_ypos;
-            setting_add("music", w_val);
-            w_val = ((md_main.g_registry_enable == true) ? "1" : "0")
-                + ":" + g_form_registry.g_screen_xpos
-                + ":" + g_form_registry.g_screen_ypos;
-            setting_add("registry", w_val);
-            w_val = ((md_main.g_flow_enable == true) ? "1" : "0")
-                + ":" + g_form_flow.g_screen_xpos
-                + ":" + g_form_flow.g_screen_ypos;
-            setting_add("flow", w_val);
+            g_frontendSettings.CaptureSettings(setting_add);
 
             w_val = ((md_main.g_trace_fsb == true) ? "1" : "0");
             setting_add("trace_fsb", w_val);
 
             w_val = ((md_main.g_trace_sip == true) ? "1" : "0");
             setting_add("trace_sip", w_val);
-
-            w_val = ((g_form_setting.g_view_screenA == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_view_screenB == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_view_screenW == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_view_screenS == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenA_High == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenA_Low == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenB_High == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenB_Low == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenW_High == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenW_Low == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenS_High == true) ? "1" : "0")
-                + ":" + ((g_form_setting.g_screenS_Low == true) ? "1" : "0");
-            setting_add("setting_view", w_val);
 
             w_val = "";
             for (int j = 0; j < 11; j++)
@@ -420,11 +257,6 @@ namespace MDTracer
             setting_add("music_vol", w_val);
             setting_add("vdp_tvmode", g_tvmode_req.ToString());
             setting_add("vdp_gpu", g_gpu_req.ToString());
-            w_val = "";
-            for (int i = 0; i < 9; i++)
-            {
-                setting_add("file" + i, Form_Main.g_file_name[i]);
-            }
             g_config.Save();
             ConfigurationManager.RefreshSection("appSettings");
         }

@@ -8,7 +8,7 @@ namespace MDTracer
         private void Code_Paint_Code(PaintEventArgs e, int in_width, int in_height
             , int in_line_num, int in_top_line, int in_stop_line, int in_cursole_line, int in_hScrollBar)
         {
-            Form_Code_Trace w_trace = md_main.g_form_code_trace;
+            Form_Code_Trace w_trace = WinFormsDebugTools.g_form_code_trace;
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.FillRectangle(Brushes.White, 0, 0, in_width, in_height);
             e.Graphics.FillRectangle(Brushes.DarkBlue, 0, 0, in_width, CODE_HEADER_HEIGHT);

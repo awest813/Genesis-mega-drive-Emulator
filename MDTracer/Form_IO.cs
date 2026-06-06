@@ -248,7 +248,7 @@
         private void Form_IO_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_io_enable = false;
-            md_main.g_form_setting.update();
+            WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;
         }

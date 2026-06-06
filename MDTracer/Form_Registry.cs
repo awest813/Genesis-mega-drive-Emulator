@@ -139,7 +139,7 @@ namespace MDTracer
         private void Form_Registry_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_registry_enable = false;
-            md_main.g_form_setting.update();
+            WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;
         }
@@ -185,7 +185,7 @@ namespace MDTracer
 
         private void RefreshRegistryView()
         {
-            if (md_main.g_form_code_trace.g_cpu_pause == true)
+            if (WinFormsDebugTools.g_form_code_trace.g_cpu_pause == true)
             {
                 g_paramview_cpu[0].value = md_main.g_md_m68k.g_reg_PC.ToString("x6");
                 g_paramview_cpu[1].value = md_main.g_md_m68k.g_reg_data[0].l.ToString("x6");
@@ -266,10 +266,10 @@ namespace MDTracer
                     g_paramview_call[i].caller = "";
                     g_paramview_call[i].call = "";
                 }
-                for (int i = 0; i < md_main.g_form_code_trace.g_stack_cur; i++)
+                for (int i = 0; i < WinFormsDebugTools.g_form_code_trace.g_stack_cur; i++)
                 {
-                    Form_Code_Trace.STACK_LIST w_stack = md_main.g_form_code_trace.g_stack_list[i];
-                    g_paramview_call[i].type = md_main.g_form_code_trace.STACK_LIST_TYPE_STR[(int)w_stack.type];
+                    Form_Code_Trace.STACK_LIST w_stack = WinFormsDebugTools.g_form_code_trace.g_stack_list[i];
+                    g_paramview_call[i].type = WinFormsDebugTools.g_form_code_trace.STACK_LIST_TYPE_STR[(int)w_stack.type];
                     g_paramview_call[i].caller = w_stack.caller_address.ToString("X8");
                     g_paramview_call[i].call = w_stack.start_address.ToString("X8");
                 }
