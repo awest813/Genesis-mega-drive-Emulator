@@ -20,9 +20,10 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 ## Solution Layout
 
 ```
-GenesisEmu.Core/          # Emulation core class library (net9.0-windows)
-MDTracer/                 # WinForms frontend (references GenesisEmu.Core)
-opcode_make/              # MC68000 opcode table generator (build-time tool)
+GenesisEmu.Core/              # Emulation core class library (net9.0-windows)
+GenesisEmu.Platform.Windows/  # Windows audio/input backends (NAudio, DirectInput)
+MDTracer/                     # WinForms frontend
+opcode_make/                  # MC68000 opcode table generator (build-time tool)
 tests/GenesisEmu.Core.Tests/
 ```
 
@@ -161,8 +162,8 @@ Each frame follows this sequence (in `md_main.md_run()`):
 
 ## Current Limitations
 
-- **Residual platform coupling:** `GenesisEmu.Core` still targets Windows (DirectX, DirectInput, NAudio, System.Drawing) even though it no longer references WinForms
-- **Residual frontend coupling:** Debug-tool windows cross-reference each other through `WinFormsDebugTools`
+- **Residual platform coupling:** `GenesisEmu.Core` still targets Windows for VDP DirectX rendering and System.Drawing bitmaps; audio output and input polling are behind `IAudioOutputBackend` / `IInputDeviceBackend` with Windows implementations in `GenesisEmu.Platform.Windows`
+- **Residual frontend coupling:** Debug-tool windows still share analysis state directly; trace-break UI refresh is coordinated through `IDebugToolsCoordinator`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -233,15 +234,15 @@ The following coupling points are being untangled before extracting a standalone
 
 ### Remaining coupling hotspots
 
-1. Debug-tool windows still cross-reference each other through `WinFormsDebugTools`
-   (e.g. `Form_Code` ↔ `Form_Code_Trace`). A future step is to route those through
-   narrow event/callback interfaces.
+1. Debug-tool windows still cross-reference each other for data access (e.g.
+   `Form_Code` ↔ `Form_Code_Trace` analysis buffers). Trace-break notifications now
+   route through `IDebugToolsCoordinator`.
 
-2. `md_main` still owns debug-window visibility flags (`g_screenA_enable`, etc.) and
-   trace preferences (`g_trace_fsb`, `g_trace_sip`) used by both core and frontend.
+2. VDP GPU rendering (DirectX 12) still lives inside `GenesisEmu.Core`; a future
+   `IVdpGpuRenderer` backend would complete the platform split.
 
-3. `opcode_make/` code generator still emits references to the old `md_main.g_form_*`
-   tracer wiring; regenerate opcode tables after the generator is updated.
+3. `Form_*` windows still call `WinFormsDebugTools.g_form_setting.update()` directly
+   when closed; a narrow settings-notification hook could replace that pattern.
 
 ## Development Roadmap
 
@@ -267,12 +268,16 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** window settings persistence moved behind `IFrontendSettingsHooks`
 - **Done:** VDP overlay compositing flags moved off `Form_Setting` onto `md_vdp`
 - **Done:** emulation core extracted into `GenesisEmu.Core` class library
-- **Remaining:** decouple debug-tool cross-talk; peel Windows-only rendering/audio/input behind platform interfaces
+- **Done:** debug view flags consolidated into `DebugViewState`
+- **Done:** trace-break UI notifications routed through `IDebugToolsCoordinator`
+- **Done:** `opcode_make/` generator emits `g_tracer` wiring
+- **Remaining:** decouple debug-tool shared analysis state; extract VDP GPU renderer
 
-### Phase 4 — Platform Expansion
-- Platform-independent rendering backend (replacing SharpDX)
-- Cross-platform audio output (replacing NAudio/Windows-specific APIs)
-- Cross-platform input handling
+### Phase 4 — Platform Expansion (In Progress)
+- **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends
+- **Done:** `IAudioOutputBackend` / `IInputDeviceBackend` injected into core
+- Platform-independent VDP rendering backend (replacing in-core DirectX)
+- Cross-platform audio/input backends beyond Windows
 - Linux and macOS support
 
 ### Deferred (Out of Scope for Now)

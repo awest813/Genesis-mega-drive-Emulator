@@ -198,7 +198,7 @@ namespace MDTracer
             g_analyse_code[w_line].func_address = g_func_address;
 
             if (((g_cpu_pause == true)&&
-                 ((md_main.g_trace_sip == false)||
+                 ((md_main.g_debugView.trace_sip == false)||
                  ((md_main.g_md_m68k.g_interrupt_H_act == false)
                  &&(md_main.g_md_m68k.g_interrupt_V_act == false)
                  &&(md_main.g_md_m68k.g_interrupt_EXT_act == false))))
@@ -212,9 +212,7 @@ namespace MDTracer
                     g_chk_enable = false;
                 }
                 g_analyse_code[w_line].break_flash = false;
-                WinFormsDebugTools.g_form_code.RequestTraceBreakView(w_line);
-                WinFormsDebugTools.g_form_registry.RequestRegistryRefresh();
-                WinFormsDebugTools.g_form_flow.RequestFlowUpdate(g_func_address, g_caller_address);
+                WinFormsDebugTools.g_coordinator.OnTraceBreak(w_line, g_func_address, g_caller_address);
 
                 g_waitHandle.WaitOne(Timeout.Infinite);
                 g_waitHandle.Reset();

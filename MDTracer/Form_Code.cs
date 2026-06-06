@@ -117,7 +117,7 @@ namespace MDTracer
         }
         private void Form_Code_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_code_enable = false;
+            md_main.g_debugView.code_enable = false;
             WinFormsDebugTools.g_form_setting.update();
             SaveCurrentGameCodeSettings();
             FlushCodeToolLayoutSave();

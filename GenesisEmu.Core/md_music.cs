@@ -1,4 +1,3 @@
-using NAudio.Wave;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -24,9 +23,6 @@ namespace MDTracer
         public int[] g_freq_out;
         private int[] g_display_hold = Array.Empty<int>();
 
-        private BufferedWaveProvider g_bufferedwaveprovider;
-        private WaveOutEvent g_waveOut;
-
         private byte[] g_buffer;
         private int g_buffer_cur = 0;
         private float g_clock_total;
@@ -45,22 +41,18 @@ namespace MDTracer
             g_freq_out = new int[11];
             g_display_hold = new int[DISPLAY_CHANNELS];
 
-            g_bufferedwaveprovider = new BufferedWaveProvider(new WaveFormat(SAMPLING, BIT, CHANNELS));
-            g_bufferedwaveprovider.BufferDuration = TimeSpan.FromMilliseconds(200);
-            g_waveOut = new WaveOutEvent();
-            g_waveOut.DesiredLatency = 100;
-            g_waveOut.Init(g_bufferedwaveprovider);
+            md_main.g_audioBackend.Initialize(SAMPLING, BIT, CHANNELS, BUFSIZE);
             g_buffer = new byte[BUFSIZE];
 
             g_md_sn76489 = new md_sn76489();
             g_md_ym2612 = new md_ym2612();
             g_md_sn76489.SN76489_Start();
             g_md_ym2612.YM2612_Start();
-            g_waveOut.Play();
+            md_main.g_audioBackend.Play();
         }
         public void reset()
         {
-            g_bufferedwaveprovider.ClearBuffer();
+            md_main.g_audioBackend.ClearBuffer();
             Array.Clear(g_buffer, 0, g_buffer.Length);
             Array.Clear(g_freq_out, 0, g_freq_out.Length);
             Array.Clear(g_display_hold, 0, g_display_hold.Length);
@@ -139,7 +131,7 @@ namespace MDTracer
             int w_buffer_cur = g_buffer_cur;
             md_ym2612 w_ym2612 = g_md_ym2612;
             md_sn76489 w_sn76489 = g_md_sn76489;
-            BufferedWaveProvider w_bufferedwaveprovider = g_bufferedwaveprovider;
+            IAudioOutputBackend w_audio = md_main.g_audioBackend;
             while (CLOCK_PER_SAMPLE <= g_clock_total)
             {
                 g_clock_total -= CLOCK_PER_SAMPLE;
@@ -157,21 +149,12 @@ namespace MDTracer
                 w_buffer_cur += 4;
                 if (BUFSIZE <= w_buffer_cur)
                 {
-                    WaitForBufferSpace(w_bufferedwaveprovider);
-                    w_bufferedwaveprovider.AddSamples(w_buffer, 0, BUFSIZE);
+                    w_audio.TryEnqueueSamples(w_buffer, 0, BUFSIZE);
                     md_main.g_audioFrontendHooks.OnAudioSamplesProduced(w_buffer, 0, BUFSIZE);
                     w_buffer_cur = 0;
                 }
             }
             g_buffer_cur = w_buffer_cur;
-        }
-
-        private void WaitForBufferSpace(BufferedWaveProvider in_bufferedwaveprovider)
-        {
-            while (in_bufferedwaveprovider.BufferedBytes + BUFSIZE > in_bufferedwaveprovider.BufferLength)
-            {
-                System.Threading.Thread.Sleep(1);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

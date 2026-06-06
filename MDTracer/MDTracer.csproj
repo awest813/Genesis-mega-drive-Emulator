@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
+    <ProjectReference Include="..\GenesisEmu.Platform.Windows\GenesisEmu.Platform.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

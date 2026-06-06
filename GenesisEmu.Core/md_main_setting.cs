@@ -114,10 +114,10 @@ namespace MDTracer
                         }
                         break;
                     case "trace_fsb":
-                        g_trace_fsb = (w_val[0] == "1") ? true : false;
+                        g_debugView.trace_fsb = (w_val[0] == "1") ? true : false;
                         break;
                     case "trace_sip":
-                        g_trace_sip = (w_val[0] == "1") ? true : false;
+                        g_debugView.trace_sip = (w_val[0] == "1") ? true : false;
                         break;
                     case "music_chk":
                         for (int j = 0; j <= 10; j++)
@@ -227,10 +227,10 @@ namespace MDTracer
 
             g_frontendSettings.CaptureSettings(setting_add);
 
-            w_val = ((md_main.g_trace_fsb == true) ? "1" : "0");
+            w_val = ((md_main.g_debugView.trace_fsb == true) ? "1" : "0");
             setting_add("trace_fsb", w_val);
 
-            w_val = ((md_main.g_trace_sip == true) ? "1" : "0");
+            w_val = ((md_main.g_debugView.trace_sip == true) ? "1" : "0");
             setting_add("trace_sip", w_val);
 
             w_val = "";

@@ -18,11 +18,12 @@ namespace MDTracer
         private void rendering_data()
         {
             const int bytesPerPixel = 4;
-            bool w_pattern_enable = md_main.g_pattern_enable;
-            bool w_screenA_enable = md_main.g_screenA_enable;
-            bool w_screenB_enable = md_main.g_screenB_enable;
-            bool w_screenW_enable = md_main.g_screenW_enable;
-            bool w_screenS_enable = md_main.g_screenS_enable;
+            DebugViewState w_debugView = md_main.g_debugView;
+            bool w_pattern_enable = w_debugView.pattern_enable;
+            bool w_screenA_enable = w_debugView.screenA_enable;
+            bool w_screenB_enable = w_debugView.screenB_enable;
+            bool w_screenW_enable = w_debugView.screenW_enable;
+            bool w_screenS_enable = w_debugView.screenS_enable;
             if ((w_pattern_enable == false)
                 && (w_screenA_enable == false)
                 && (w_screenB_enable == false)

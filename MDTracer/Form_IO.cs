@@ -247,7 +247,7 @@
         }
         private void Form_IO_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_io_enable = false;
+            md_main.g_debugView.io_enable = false;
             WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;
@@ -289,7 +289,7 @@
             comboBox1.Items.Clear();
             if (md_main.g_md_io.g_joy_name_list.Count == 0)
             {
-                md_main.g_md_io.g_joy_device_cur = -1;
+                md_main.g_md_io.select_joy_device(-1);
                 comboBox1.SelectedIndex = -1;
                 if (in_write_setting) md_main.write_setting();
                 return;
@@ -311,7 +311,7 @@
                 w_index = 0;
             }
 
-            md_main.g_md_io.g_joy_device_cur = w_index;
+            md_main.g_md_io.select_joy_device(w_index);
             comboBox1.SelectedIndex = w_index;
             if (in_write_setting) md_main.write_setting();
         }

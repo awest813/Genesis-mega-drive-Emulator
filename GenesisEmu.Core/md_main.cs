@@ -18,25 +18,13 @@ namespace MDTracer
         public static md_vdp g_md_vdp;
         public static md_music g_md_music;
 
-        public static bool g_screenA_enable;
-        public static bool g_screenB_enable;
-        public static bool g_screenW_enable;
-        public static bool g_screenS_enable;
-        public static bool g_pattern_enable;
-        public static bool g_pallete_enable;
-        public static bool g_code_enable;
-        public static bool g_io_enable;
-        public static bool g_music_enable;
-        public static bool g_registry_enable;
-        public static bool g_flow_enable;
-
-        public static bool g_trace_fsb;
-        public static bool g_trace_sip;
+        public static DebugViewState g_debugView = new DebugViewState();
         public static bool g_hard_reset_req;
         public static bool g_trace_nextframe;
         internal static IMainLoopUiHooks g_mainLoopUI = new NullMainLoopUiHooks();
         internal static IFrontendSettingsHooks g_frontendSettings = new NullFrontendSettingsHooks();
         internal static IAudioFrontendHooks g_audioFrontendHooks = new NullAudioFrontendHooks();
+        internal static IAudioOutputBackend g_audioBackend = new NullAudioOutputBackend();
 
         private static int g_task_usage;
         //----------------------------------------------------------------
@@ -56,10 +44,10 @@ namespace MDTracer
             g_mainLoopUI.UpdateCodeTrace();
             g_mainLoopUI.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
             g_mainLoopUI.LoadCurrentGameCodeSettings();
-            if (g_trace_fsb == true)
+            if (g_debugView.trace_fsb == true)
             {
                 g_mainLoopUI.TraceFirstStepBreak();
-                g_code_enable = true;
+                g_debugView.code_enable = true;
                 g_mainLoopUI.ShowSettingsWindow();
                 g_mainLoopUI.UpdateSettingsWindow();
                 write_setting();
@@ -176,7 +164,7 @@ namespace MDTracer
             g_md_music.setting();
             g_mainLoopUI.ResetCodeTraceAnalysis();
             g_mainLoopUI.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
-            if (g_trace_fsb == true)
+            if (g_debugView.trace_fsb == true)
             {
                 g_mainLoopUI.TraceFirstStepBreak();
             }

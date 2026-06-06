@@ -120,7 +120,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture 
 
 ```
 MDTracer.sln              # Solution file
-GenesisEmu.Core/          # Emulation core class library
+GenesisEmu.Core/              # Emulation core class library
+GenesisEmu.Platform.Windows/  # Windows audio/input backends
   md_m68k.cs              # MC68000 CPU emulation
   md_z80.cs               # Z80 CPU emulation
   md_vdp.cs               # Video Display Processor

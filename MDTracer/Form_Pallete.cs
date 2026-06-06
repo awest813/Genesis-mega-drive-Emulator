@@ -24,7 +24,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         private void Form_Pallete_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_pallete_enable = false;
+            md_main.g_debugView.pallete_enable = false;
             WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;

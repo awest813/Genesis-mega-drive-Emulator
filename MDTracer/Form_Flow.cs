@@ -44,7 +44,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         private void Form_Flow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_flow_enable = false;
+            md_main.g_debugView.flow_enable = false;
             WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;

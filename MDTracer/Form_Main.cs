@@ -44,6 +44,7 @@ namespace MDTracer
             g_file_name = new string[9];
             pictureBox_game.Image = new Bitmap(320, 240);
             pictureBox_game.BackColor = Color.Black;
+            MDTracer.Platform.Windows.WindowsPlatformServices.Register();
             md_main.initialize();
             WinFormsDebugTools.Initialize();
             md_main.read_setting();

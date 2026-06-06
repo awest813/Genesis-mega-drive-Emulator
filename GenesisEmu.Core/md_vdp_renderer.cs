@@ -101,11 +101,7 @@ namespace MDTracer
         }
         private static bool is_rendering_data_required()
         {
-            return md_main.g_screenA_enable == true
-                || md_main.g_screenB_enable == true
-                || md_main.g_screenW_enable == true
-                || md_main.g_screenS_enable == true
-                || md_main.g_pattern_enable == true;
+            return md_main.g_debugView.IsAnyLayerViewerEnabled;
         }
         public void run_event()
         {

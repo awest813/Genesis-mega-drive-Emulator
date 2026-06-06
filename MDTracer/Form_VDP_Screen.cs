@@ -53,10 +53,10 @@ namespace MDTracer
             SyncVideoRecordingStop();
             switch (g_screen_type)
             {
-                case "A": md_main.g_screenA_enable = false; break;
-                case "B": md_main.g_screenB_enable = false; break;
-                case "W": md_main.g_screenW_enable = false; break;
-                case "S": md_main.g_screenS_enable = false; break;
+                case "A": md_main.g_debugView.screenA_enable = false; break;
+                case "B": md_main.g_debugView.screenB_enable = false; break;
+                case "W": md_main.g_debugView.screenW_enable = false; break;
+                case "S": md_main.g_debugView.screenS_enable = false; break;
             }
             WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();

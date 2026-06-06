@@ -13,6 +13,7 @@ namespace MDTracer
     //----------------------------------------------------------------
     internal static class WinFormsDebugTools
     {
+        public static IDebugToolsCoordinator g_coordinator = new NullDebugToolsCoordinator();
         public static Form_Setting g_form_setting;
         public static Form_VDP_Screen g_form_screenA;
         public static Form_VDP_Screen g_form_screenB;
@@ -44,6 +45,7 @@ namespace MDTracer
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
 
+            g_coordinator = new WinFormsDebugToolsCoordinator();
             md_main.g_mainLoopUI = new WinFormsMainLoopUiHooks();
             md_main.g_frontendSettings = new WinFormsFrontendSettingsHooks();
             md_main.g_audioFrontendHooks = new WinFormsAudioFrontendHooks();

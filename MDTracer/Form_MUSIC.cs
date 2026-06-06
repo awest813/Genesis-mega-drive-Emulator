@@ -869,7 +869,7 @@
         }
         private void Form_MUSIC_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_music_enable = false;
+            md_main.g_debugView.music_enable = false;
             WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;
