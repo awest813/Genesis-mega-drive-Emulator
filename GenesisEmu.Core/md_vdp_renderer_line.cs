@@ -5,12 +5,14 @@ namespace MDTracer
         private void rendering_line_cpu()
         {
             int w_scanline = g_scanline;
-            int w_display_xsize = g_display_xsize;
-            int w_scroll_xcell = g_scroll_xcell;
+            int w_display_xsize = snapshot_cpu_render_active ? g_snap_register.display_xsize : g_display_xsize;
+            int w_scroll_xcell = snapshot_cpu_render_active ? g_snap_register.scroll_xcell : g_scroll_xcell;
             int w_scroll_xsize_mask = g_scroll_xsize_mask;
-            int w_vscroll_mask = g_vdp_reg_11_2_vscroll == 1 ? 0x000f : 0xffff;
-            VDP_LINE_SNAP w_line_snap = g_line_snap[w_scanline];
-            uint[] w_renderer_vram = g_renderer_vram;
+            int w_vscroll_mask = active_vscroll_mask;
+            VDP_LINE_SNAP w_line_snap = g_snapshot_render_line_snap != null
+                ? g_snapshot_render_line_snap[w_scanline]
+                : g_line_snap[w_scanline];
+            uint[] w_renderer_vram = g_snapshot_render_vram ?? g_renderer_vram;
             uint[] w_game_cmap = g_game_cmap;
             uint[] w_game_primap = g_game_primap;
             uint[] w_game_plain = g_game_plain;
@@ -19,7 +21,7 @@ namespace MDTracer
             bool w_view_screenA = g_overlay_view_screenA;
             bool w_view_screenS = g_overlay_view_screenS;
             bool w_view_screenW = g_overlay_view_screenW;
-            bool w_shadow_enabled = g_vdp_reg_12_3_shadow != 0;
+            bool w_shadow_enabled = active_shadow_enabled;
             bool w_screenA_low = g_overlay_screenA_Low;
             bool w_screenA_high = g_overlay_screenA_High;
             bool w_screenB_low = g_overlay_screenB_Low;
@@ -53,7 +55,7 @@ namespace MDTracer
                 int w_view_addr = 0;
                 int w_view_dx = 8;
                 int w_view_dy = 0;
-                int w_screen_adrdr = g_vdp_reg_4_scrollb >> 1;
+                int w_screen_adrdr = active_scroll_b_addr;
                 int w_pic_addr = 0;
                 uint w_pic_w = 0;
                 for (int wx = 0; wx < w_display_xsize; wx++)
@@ -109,7 +111,7 @@ namespace MDTracer
                 int w_view_addr = 0;
                 int w_view_dx = 8;
                 int w_view_dy = 0;
-                int w_screen_adrdr = g_vdp_reg_2_scrolla >> 1;
+                int w_screen_adrdr = active_scroll_a_addr;
                 int w_pic_addr = 0;
                 int w_left = g_screenA_left_x;
                 int w_right = g_screenA_right_x;
@@ -257,7 +259,7 @@ namespace MDTracer
                 if (w_xcell_st != w_xcell_ed)
                 {
                     int w_view_dy = w_scanline & 7;
-                    int w_addr = (g_vdp_reg_3_windows >> 1) + ((w_scanline >> 3) * w_scroll_xcell) + w_xcell_st;
+                    int w_addr = active_windows_addr + ((w_scanline >> 3) * w_scroll_xcell) + w_xcell_st;
                     int w_posx = w_xcell_st << 3;
                     for (int w_cx = w_xcell_st; w_cx <= w_xcell_ed; w_cx++)
                     {
@@ -297,10 +299,10 @@ namespace MDTracer
                 uint color = 0;
                 int w_base = w_scanline * w_display_xsize;
                 uint[] w_game_screen = g_game_screen;
-                uint[] w_color = g_color;
-                uint[] w_color_shadow = g_color_shadow;
-                uint[] w_color_highlight = g_color_highlight;
-                uint w_backcolor = g_vdp_reg_7_backcolor;
+                uint[] w_color = g_snapshot_render_color ?? g_color;
+                uint[] w_color_shadow = g_snapshot_render_color_shadow ?? g_color_shadow;
+                uint[] w_color_highlight = g_snapshot_render_color_highlight ?? g_color_highlight;
+                uint w_backcolor = active_backcolor;
                 if (w_overlay_enabled == false)
                 {
                     if (w_shadow_enabled == false)

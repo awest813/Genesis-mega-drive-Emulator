@@ -19,7 +19,7 @@ namespace MDTracer
 
         public void PushTopTraceEntry(uint in_pc, uint in_stackAddress)
         {
-            WinFormsDebugTools.g_form_code_trace.CPU_Trace_push(M68kStackEntryType.TOP, 0x0004, in_pc, 0, in_stackAddress);
+            WinFormsDebugTools.g_cpuTracer.CPU_Trace_push(M68kStackEntryType.TOP, 0x0004, in_pc, 0, in_stackAddress);
         }
 
         public void TraceFirstStepBreak()

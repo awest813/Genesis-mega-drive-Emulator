@@ -245,12 +245,13 @@ The following coupling points are being untangled before extracting a standalone
     `IVdpGpuRenderer` / `DirectX12VdpGpuRenderer` handle D3D12 frame compositing;
     the core stages per-frame snapshots and downloads the finished screen buffer.
 
+11. **CPU execution tracing no longer references `Form_Code_Trace` directly** —
+    `WinFormsDebugTools.g_cpuTracer` (`IM68kTracer`) is wired into `md_m68k.g_tracer`;
+    analysis viewing remains on `ICodeAnalysisSession`.
+
 ### Remaining coupling hotspots
 
-1. `Form_Code_Trace` is still wired directly as `IM68kTracer` for CPU execution
-   tracing; only shared analysis state is routed through `ICodeAnalysisSession`.
-
-2. Debug viewer bitmap compositing still uses System.Drawing inside the core.
+1. Debug viewer bitmap compositing still uses System.Drawing inside the core.
 
 ## Development Roadmap
 

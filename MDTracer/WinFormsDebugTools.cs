@@ -15,6 +15,7 @@ namespace MDTracer
     {
         public static IDebugToolsCoordinator g_coordinator = new NullDebugToolsCoordinator();
         public static ICodeAnalysisSession g_codeAnalysis = new NullCodeAnalysisSession();
+        public static IM68kTracer g_cpuTracer = new NullM68kTracer();
         public static Form_Setting g_form_setting;
         public static Form_VDP_Screen g_form_screenA;
         public static Form_VDP_Screen g_form_screenB;
@@ -41,6 +42,7 @@ namespace MDTracer
             g_form_pallete = new Form_Pallete();
             g_form_code_trace = new Form_Code_Trace();
             g_codeAnalysis = g_form_code_trace;
+            g_cpuTracer = g_form_code_trace;
             g_form_code = new Form_Code();
             g_form_io = new Form_IO();
             g_form_music = new Form_MUSIC();
@@ -53,7 +55,7 @@ namespace MDTracer
             md_main.g_audioFrontendHooks = new WinFormsAudioFrontendHooks();
             md_io.g_frontendHooks = new WinFormsIoFrontendHooks();
 
-            g_md_m68k.g_tracer = g_form_code_trace;
+            g_md_m68k.g_tracer = g_cpuTracer;
             g_md_bus.g_monitor = g_form_code;
         }
 

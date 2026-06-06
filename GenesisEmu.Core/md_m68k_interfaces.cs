@@ -47,7 +47,8 @@ namespace MDTracer
 
     /// <summary>
     /// Execution/call-stack tracing hooks invoked by the 68000 core.
-    /// Implemented by <see cref="Form_Code_Trace"/> in the WinForms frontend.
+    /// Production wiring goes through <c>WinFormsDebugTools.g_cpuTracer</c>
+    /// (implemented by <see cref="Form_Code_Trace"/> in the WinForms frontend).
     /// </summary>
     internal interface IM68kTracer
     {
