@@ -14,6 +14,7 @@ namespace MDTracer
     internal static class WinFormsDebugTools
     {
         public static IDebugToolsCoordinator g_coordinator = new NullDebugToolsCoordinator();
+        public static ICodeAnalysisSession g_codeAnalysis = new NullCodeAnalysisSession();
         public static Form_Setting g_form_setting;
         public static Form_VDP_Screen g_form_screenA;
         public static Form_VDP_Screen g_form_screenB;
@@ -39,6 +40,7 @@ namespace MDTracer
             g_form_pattern = new Form_Pattern();
             g_form_pallete = new Form_Pallete();
             g_form_code_trace = new Form_Code_Trace();
+            g_codeAnalysis = g_form_code_trace;
             g_form_code = new Form_Code();
             g_form_io = new Form_IO();
             g_form_music = new Form_MUSIC();

@@ -5,7 +5,7 @@ namespace MDTracer
     //
     // Historically the CPU reached directly into static md_main fields for
     // memory-mapped operand access (md_main.g_md_bus) and execution tracing
-    // (md_main.g_form_code_trace). That hard-wired the core to the concrete
+    // (Form_Code_Trace). That hard-wired the core to the concrete
     // bus and the WinForms tracer, so individual instructions could not be
     // exercised without standing up the whole machine and UI.
     //

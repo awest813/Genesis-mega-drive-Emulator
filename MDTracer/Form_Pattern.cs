@@ -49,7 +49,7 @@ namespace MDTracer
         private void Form_Pattern_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_debugView.pattern_enable = false;
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
             md_main.write_setting();
             e.Cancel = true;
         }

@@ -14,7 +14,7 @@ namespace MDTracer
 
         public void UpdateCodeTrace()
         {
-            WinFormsDebugTools.g_form_code_trace.update();
+            WinFormsDebugTools.g_codeAnalysis.Update();
         }
 
         public void PushTopTraceEntry(uint in_pc, uint in_stackAddress)
@@ -24,7 +24,7 @@ namespace MDTracer
 
         public void TraceFirstStepBreak()
         {
-            WinFormsDebugTools.g_form_code_trace.Trace_FirstStepBreak();
+            WinFormsDebugTools.g_codeAnalysis.TraceFirstStepBreak();
         }
 
         public void ShowSettingsWindow()
@@ -34,7 +34,7 @@ namespace MDTracer
 
         public void UpdateSettingsWindow()
         {
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
         }
 
         public void UpdateGameScreen(int in_taskUsage)
@@ -92,16 +92,16 @@ namespace MDTracer
 
         public void FlashTraceBreakAtAddress(uint in_pc)
         {
-            int w_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr(in_pc);
+            int w_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(in_pc);
             if (w_line >= 0)
             {
-                WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line].break_flash = true;
+                WinFormsDebugTools.g_codeAnalysis.SetBreakFlash(w_line, true);
             }
         }
 
         public void ResetCodeTraceAnalysis()
         {
-            WinFormsDebugTools.g_form_code_trace.analyses_reset();
+            WinFormsDebugTools.g_codeAnalysis.AnalysesReset();
         }
     }
 }

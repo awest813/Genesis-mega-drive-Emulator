@@ -8,7 +8,7 @@ namespace MDTracer
         private void Code_Paint_Code(PaintEventArgs e, int in_width, int in_height
             , int in_line_num, int in_top_line, int in_stop_line, int in_cursole_line, int in_hScrollBar)
         {
-            Form_Code_Trace w_trace = WinFormsDebugTools.g_form_code_trace;
+            ICodeAnalysisSession w_session = WinFormsDebugTools.g_codeAnalysis;
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.FillRectangle(Brushes.White, 0, 0, in_width, in_height);
             e.Graphics.FillRectangle(Brushes.DarkBlue, 0, 0, in_width, CODE_HEADER_HEIGHT);
@@ -29,10 +29,10 @@ namespace MDTracer
             for (int w_cur = 0; w_cur < in_line_num; w_cur++)
             {
                 if (Form_Code_Trace.MEMSIZE <= w_cur_line) break;
-                if (w_trace.g_arrow_start_line == w_cur_line) w_arrow_start_line = w_cur;
-                if (w_trace.g_arrow_end_line == w_cur_line) w_arrow_end_line = w_cur;
+                if (w_session.ArrowStartLine == w_cur_line) w_arrow_start_line = w_cur;
+                if (w_session.ArrowEndLine == w_cur_line) w_arrow_end_line = w_cur;
 
-                Form_Code_Trace.TRACECODE w_code = w_trace.g_analyse_code[w_cur_line];
+                Form_Code_Trace.TRACECODE w_code = w_session.AnalyseCode[w_cur_line];
                 int w_y = CODE_HEADER_HEIGHT + w_cur * CODE_LINE_HEIGHT;
                 if (w_cur_line == in_stop_line)
                 {
@@ -67,7 +67,7 @@ namespace MDTracer
                 int w_dump_len = GetTraceCodeDumpLength(w_cur_line);
                 for (int i = 0; i < w_dump_len; i++)
                 {
-                    w_text = w_trace.g_analyse_code[w_cur_line + i].val.ToString("X4");
+                    w_text = w_session.AnalyseCode[w_cur_line + i].val.ToString("X4");
                     e.Graphics.DrawString(w_text, wfont_data, Brushes.Blue, new PointF(CODE_DUMP_X + i * 30 - in_hScrollBar, w_y + 2));
                 }
 
@@ -85,12 +85,12 @@ namespace MDTracer
             }
 
             //arrow
-            if ((w_trace.g_arrow_start_line != -1) && (w_trace.g_arrow_end_line != -1))
+            if ((w_session.ArrowStartLine != -1) && (w_session.ArrowEndLine != -1))
             {
                 int w_first_visible_line = in_top_line;
                 int w_after_visible_line = w_cur_line;
-                int w_arrow_min_line = Math.Min(w_trace.g_arrow_start_line, w_trace.g_arrow_end_line);
-                int w_arrow_max_line = Math.Max(w_trace.g_arrow_start_line, w_trace.g_arrow_end_line);
+                int w_arrow_min_line = Math.Min(w_session.ArrowStartLine, w_session.ArrowEndLine);
+                int w_arrow_max_line = Math.Max(w_session.ArrowStartLine, w_session.ArrowEndLine);
 
                 if ((w_arrow_max_line < w_first_visible_line) || (w_after_visible_line <= w_arrow_min_line))
                 {
@@ -108,8 +108,8 @@ namespace MDTracer
                         : CODE_HEADER_HEIGHT + in_line_num * CODE_LINE_HEIGHT;
                 }
 
-                int w_start_y = GetArrowY(w_trace.g_arrow_start_line, w_arrow_start_line);
-                int w_end_y = GetArrowY(w_trace.g_arrow_end_line, w_arrow_end_line);
+                int w_start_y = GetArrowY(w_session.ArrowStartLine, w_arrow_start_line);
+                int w_end_y = GetArrowY(w_session.ArrowEndLine, w_arrow_end_line);
                 int w_x = CODE_JUMP_X - in_hScrollBar;
                 int w_top = Math.Min(w_start_y, w_end_y);
                 int w_bottom = Math.Max(w_start_y, w_end_y);
@@ -124,7 +124,7 @@ namespace MDTracer
                 }
                 if (w_arrow_end_line != -1)
                 {
-                    int w_direction = (w_trace.g_arrow_start_line <= w_trace.g_arrow_end_line) ? 1 : -1;
+                    int w_direction = (w_session.ArrowStartLine <= w_session.ArrowEndLine) ? 1 : -1;
                     int w_wing_y = w_end_y - (4 * w_direction);
                     e.Graphics.DrawLine(Pens.Red, w_x, w_end_y, w_x - 4, w_wing_y);
                     e.Graphics.DrawLine(Pens.Red, w_x, w_end_y, w_x + 4, w_wing_y);

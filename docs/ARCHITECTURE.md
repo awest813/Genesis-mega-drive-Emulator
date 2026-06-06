@@ -99,6 +99,8 @@ production implementations live in `MDTracer/`.
 | File | Purpose |
 |------|---------|
 | `WinFormsDebugTools.cs` | Debug-tool window registry and frontend collaborator wiring |
+| `ICodeAnalysisSession.cs` | Shared disassembly/trace analysis session seam |
+| `IDebugToolsCoordinator.cs` | Trace-break UI coordination hook |
 | `WinFormsMainLoopUiHooks.cs` | Production `IMainLoopUiHooks` implementation |
 | `WinFormsFrontendSettingsHooks.cs` | Production `IFrontendSettingsHooks` implementation |
 | `WinFormsIoFrontendHooks.cs` | Production `IIoFrontendHooks` implementation |
@@ -163,7 +165,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 ## Current Limitations
 
 - **Residual platform coupling:** `GenesisEmu.Core` still targets Windows for VDP DirectX rendering and System.Drawing bitmaps; audio output and input polling are behind `IAudioOutputBackend` / `IInputDeviceBackend` with Windows implementations in `GenesisEmu.Platform.Windows`
-- **Residual frontend coupling:** Debug-tool windows still share analysis state directly; trace-break UI refresh is coordinated through `IDebugToolsCoordinator`
+- **Residual frontend coupling:** VDP GPU rendering still lives in core; trace execution still wires `Form_Code_Trace` as `IM68kTracer`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -232,17 +234,21 @@ The following coupling points are being untangled before extracting a standalone
    `IIoFrontendHooks` / `WinFormsIoFrontendHooks` notify the frontend when device lists
    change.
 
+8. **Debug-tool analysis state no longer cross-references `Form_Code_Trace` directly** —
+   `ICodeAnalysisSession` / `NullCodeAnalysisSession` expose disassembly buffers, trace
+   controls, and call-stack display through `WinFormsDebugTools.g_codeAnalysis`.
+
+9. **Debug-window close no longer calls `Form_Setting` directly** —
+   `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged()` refreshes the settings
+   dialog menu checkmarks when any debug window hides or moves.
+
 ### Remaining coupling hotspots
 
-1. Debug-tool windows still cross-reference each other for data access (e.g.
-   `Form_Code` ↔ `Form_Code_Trace` analysis buffers). Trace-break notifications now
-   route through `IDebugToolsCoordinator`.
-
-2. VDP GPU rendering (DirectX 12) still lives inside `GenesisEmu.Core`; a future
+1. VDP GPU rendering (DirectX 12) still lives inside `GenesisEmu.Core`; a future
    `IVdpGpuRenderer` backend would complete the platform split.
 
-3. `Form_*` windows still call `WinFormsDebugTools.g_form_setting.update()` directly
-   when closed; a narrow settings-notification hook could replace that pattern.
+2. `Form_Code_Trace` is still wired directly as `IM68kTracer` for CPU execution
+   tracing; only shared analysis state is routed through `ICodeAnalysisSession`.
 
 ## Development Roadmap
 
@@ -271,7 +277,9 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** debug view flags consolidated into `DebugViewState`
 - **Done:** trace-break UI notifications routed through `IDebugToolsCoordinator`
 - **Done:** `opcode_make/` generator emits `g_tracer` wiring
-- **Remaining:** decouple debug-tool shared analysis state; extract VDP GPU renderer
+- **Done:** shared code-analysis state routed through `ICodeAnalysisSession`
+- **Done:** debug-window layout changes notify settings via `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged`
+- **Remaining:** extract VDP GPU renderer behind `IVdpGpuRenderer`
 
 ### Phase 4 — Platform Expansion (In Progress)
 - **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends

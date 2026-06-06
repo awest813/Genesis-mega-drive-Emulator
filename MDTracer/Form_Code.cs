@@ -76,8 +76,8 @@ namespace MDTracer
             pictureBox_code.MouseWheel += PictureBox_code_MouseWheel;
 
             scrollbar_set();
-            WinFormsDebugTools.g_form_code_trace.g_arrow_start_line = -1;
-            WinFormsDebugTools.g_form_code_trace.g_arrow_end_line = -1;
+            WinFormsDebugTools.g_codeAnalysis.ArrowStartLine = -1;
+            WinFormsDebugTools.g_codeAnalysis.ArrowEndLine = -1;
 
             g_memory_monitor_timer.Interval = 100;
             g_memory_monitor_timer.Tick += memory_monitor_timer_Tick;
@@ -118,7 +118,7 @@ namespace MDTracer
         private void Form_Code_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_debugView.code_enable = false;
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
             SaveCurrentGameCodeSettings();
             FlushCodeToolLayoutSave();
             md_main.write_setting();
@@ -183,17 +183,17 @@ namespace MDTracer
                 {
                     g_cursole_line = w_cur;
                 }
-                int w_jmp = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_cur].jmp_address;
-                int w_jmp_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr((uint)w_jmp);
+                int w_jmp = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_cur].jmp_address;
+                int w_jmp_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr((uint)w_jmp);
                 if ((w_jmp != 0) && (w_jmp_line >= 0))
                 {
-                    WinFormsDebugTools.g_form_code_trace.g_arrow_start_line = w_cur;
-                    WinFormsDebugTools.g_form_code_trace.g_arrow_end_line = w_jmp_line;
+                    WinFormsDebugTools.g_codeAnalysis.ArrowStartLine = w_cur;
+                    WinFormsDebugTools.g_codeAnalysis.ArrowEndLine = w_jmp_line;
                 }
                 else
                 {
-                    WinFormsDebugTools.g_form_code_trace.g_arrow_start_line = -1;
-                    WinFormsDebugTools.g_form_code_trace.g_arrow_end_line = -1;
+                    WinFormsDebugTools.g_codeAnalysis.ArrowStartLine = -1;
+                    WinFormsDebugTools.g_codeAnalysis.ArrowEndLine = -1;
                 }
                 pictureBox_code.Invalidate();
             }
@@ -207,8 +207,8 @@ namespace MDTracer
                 {
                     int w_cur = GetCodeLineFromMouseY(e.Y);
                     if (w_cur < 0) return;
-                    int w_jmp = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_cur].jmp_address;
-                    int w_jmp_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr((uint)w_jmp);
+                    int w_jmp = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_cur].jmp_address;
+                    int w_jmp_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr((uint)w_jmp);
                     if ((w_jmp != 0) && (w_jmp_line >= 0))
                     {
                         g_cursole_line = w_jmp_line;
@@ -250,20 +250,20 @@ namespace MDTracer
         //----------------------------------------------------------------
         private void runMenuItem_Click(object sender, EventArgs e)
         {
-            WinFormsDebugTools.g_form_code_trace.Trace_Start();
+            WinFormsDebugTools.g_codeAnalysis.TraceStart();
         }
 
         private void stopMenuItem_Click(object sender, EventArgs e)
         {
-            WinFormsDebugTools.g_form_code_trace.Trace_Stop();
+            WinFormsDebugTools.g_codeAnalysis.TraceStop();
         }
         private void stepOverMenuItem_Click(object sender, EventArgs e)
         {
-            WinFormsDebugTools.g_form_code_trace.Trace_StepOver();
+            WinFormsDebugTools.g_codeAnalysis.TraceStepOver();
         }
         private void stepInMenuItem_Click(object sender, EventArgs e)
         {
-            WinFormsDebugTools.g_form_code_trace.Trace_StepIn();
+            WinFormsDebugTools.g_codeAnalysis.TraceStepIn();
         }
         private void breakPointMenuItem_Click(object sender, EventArgs e)
         {
@@ -279,7 +279,7 @@ namespace MDTracer
         private void skipnextframeMenuItem_Click(object sender, EventArgs e)
         {
             md_main.g_trace_nextframe = true;
-            WinFormsDebugTools.g_form_code_trace.Trace_Start();
+            WinFormsDebugTools.g_codeAnalysis.TraceStart();
         }
         private void traceOutputToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -290,7 +290,7 @@ namespace MDTracer
                 w_dialog.RestoreDirectory = true;
                 if (w_dialog.ShowDialog(this) != DialogResult.OK) return;
 
-                WinFormsDebugTools.g_form_code_trace.analyses();
+                WinFormsDebugTools.g_codeAnalysis.Analyses();
                 WriteTraceCodeCsv(w_dialog.FileName);
                 MessageBox.Show(this, "Trace output completed.", "trace output", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -319,7 +319,7 @@ namespace MDTracer
         {
             if (IsCodeLineInRange(in_line) == false) return 0;
 
-            int w_line = in_line + Math.Max(1, WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line].leng2);
+            int w_line = in_line + Math.Max(1, WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line].leng2);
             return Math.Min(w_line, Form_Code_Trace.MEMSIZE - 1);
         }
 
@@ -327,7 +327,7 @@ namespace MDTracer
         {
             if (in_line <= 0) return 0;
             int w_line = Math.Min(in_line, Form_Code_Trace.MEMSIZE - 1) - 1;
-            int w_front = Math.Max(0, WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line].front);
+            int w_front = Math.Max(0, WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line].front);
             return Math.Max(0, w_line - w_front);
         }
 
@@ -345,7 +345,7 @@ namespace MDTracer
         {
             if (IsCodeLineInRange(in_line) == false) return 0;
 
-            int w_front = Math.Max(0, WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line].front);
+            int w_front = Math.Max(0, WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line].front);
             return Math.Max(0, in_line - w_front);
         }
 
@@ -402,9 +402,9 @@ namespace MDTracer
         {
             if (IsCodeLineInRange(in_line) == false) return;
 
-            TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line];
+            TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
             w_code.break_static = w_code.break_static == false;
-            WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line] = w_code;
+            WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line] = w_code;
             SaveCurrentGameBreakpointSettings();
         }
 
@@ -470,7 +470,7 @@ namespace MDTracer
             List<string> w_breakpoints = new List<string>();
             for (int i = 0; i < Form_Code_Trace.MEMSIZE; i++)
             {
-                TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[i];
+                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
                 if (w_code.break_static == false) continue;
 
                 w_breakpoints.Add((w_code.address & 0x00ffffff).ToString("X6", CultureInfo.InvariantCulture));
@@ -482,23 +482,23 @@ namespace MDTracer
         {
             for (int i = 0; i < Form_Code_Trace.MEMSIZE; i++)
             {
-                TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[i];
+                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
                 if (w_code.break_static == false) continue;
 
                 w_code.break_static = false;
-                WinFormsDebugTools.g_form_code_trace.g_analyse_code[i] = w_code;
+                WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i] = w_code;
             }
 
             foreach (string w_address_text in SplitGameSettingEntries(in_text))
             {
                 if (TryParseHexAddress(w_address_text, out uint w_addr) == false) continue;
 
-                int w_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr(w_addr);
+                int w_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(w_addr);
                 if (IsCodeLineInRange(w_line) == false) continue;
 
-                TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line];
+                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
                 w_code.break_static = true;
-                WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line] = w_code;
+                WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line] = w_code;
             }
         }
 
@@ -652,7 +652,7 @@ namespace MDTracer
                 int w_cur_line = 0;
                 while (w_cur_line < Form_Code_Trace.MEMSIZE)
                 {
-                    TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_cur_line];
+                    TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_cur_line];
                     int w_dump_len = GetTraceCodeDumpLength(w_cur_line);
                     if (w_dump_len <= 0) break;
 
@@ -673,7 +673,7 @@ namespace MDTracer
         }
         private int GetTraceCodeDumpLength(int in_line)
         {
-            TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line];
+            TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
             if (w_code.type != TRACECODE.TYPE.NON)
             {
                 return Math.Max(1, w_code.leng2);
@@ -683,7 +683,7 @@ namespace MDTracer
             for (int i = 0; i < 8; i++)
             {
                 if (Form_Code_Trace.MEMSIZE <= in_line + i) break;
-                if (WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line + i].type != TRACECODE.TYPE.NON) break;
+                if (WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line + i].type != TRACECODE.TYPE.NON) break;
                 w_dump_len += 1;
             }
             return w_dump_len;
@@ -694,7 +694,7 @@ namespace MDTracer
             for (int i = 0; i < in_dump_len; i++)
             {
                 if (i != 0) w_builder.Append(' ');
-                w_builder.Append(WinFormsDebugTools.g_form_code_trace.g_analyse_code[in_line + i].val.ToString("X4"));
+                w_builder.Append(WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line + i].val.ToString("X4"));
             }
             return w_builder.ToString();
         }
@@ -720,7 +720,7 @@ namespace MDTracer
 
             if (TryParseHexAddress(textBoxAddr.Text, out uint waddr))
             {
-                int w_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr(waddr);
+                int w_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(waddr);
                 if (w_line >= 0)
                 {
                     picturebox_scroll(w_line, 0);
@@ -754,7 +754,7 @@ namespace MDTracer
         {
             if (in_run_analysis == true)
             {
-                WinFormsDebugTools.g_form_code_trace.analyses();
+                WinFormsDebugTools.g_codeAnalysis.Analyses();
             }
 
             dataGridView_comment1.SuspendLayout();
@@ -763,7 +763,7 @@ namespace MDTracer
                 dataGridView_comment1.Rows.Clear();
                 for (int w_line = 0; w_line < Form_Code_Trace.MEMSIZE; w_line++)
                 {
-                    Form_Code_Trace.TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line];
+                    Form_Code_Trace.TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
                     if (w_code.type != Form_Code_Trace.TRACECODE.TYPE.OPC) continue;
 
                     string w_comment = (w_code.comment1 ?? "").Trim();
@@ -806,7 +806,7 @@ namespace MDTracer
             object? w_address_value = w_row.Cells[commentAddressColumn.Name].Value;
             if (TryParseHexAddress(w_address_value?.ToString(), out uint w_addr) == true)
             {
-                out_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr(w_addr);
+                out_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(w_addr);
                 return out_line >= 0;
             }
 
@@ -848,7 +848,7 @@ namespace MDTracer
             if (TryParseHexAddress(w_pc_text, out uint w_pc) == false) return;
 
             RefreshComment1List(true);
-            int w_line = WinFormsDebugTools.g_form_code_trace.get_code_from_addr(w_pc);
+            int w_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(w_pc);
             if (w_line < 0) return;
 
             CenterCodeViewOnLine(w_line);

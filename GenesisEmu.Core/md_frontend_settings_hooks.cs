@@ -12,6 +12,7 @@ namespace MDTracer
         bool TryApplySetting(string in_name, string in_value);
         void CaptureSettings(Action<string, string> settingAdd);
         void EnsureCodeToolLayoutVisible();
+        void NotifyDebugWindowLayoutChanged();
     }
 
     internal sealed class NullFrontendSettingsHooks : IFrontendSettingsHooks
@@ -19,5 +20,6 @@ namespace MDTracer
         public bool TryApplySetting(string in_name, string in_value) => false;
         public void CaptureSettings(Action<string, string> settingAdd) { }
         public void EnsureCodeToolLayoutVisible() { }
+        public void NotifyDebugWindowLayoutChanged() { }
     }
 }

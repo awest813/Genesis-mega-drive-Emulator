@@ -45,7 +45,7 @@ namespace MDTracer
         private void Form_Flow_FormClosing(object sender, FormClosingEventArgs e)
         {
             md_main.g_debugView.flow_enable = false;
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
             md_main.write_setting();
             e.Cancel = true;
         }
@@ -323,7 +323,7 @@ namespace MDTracer
             int w_line = 0;
             do
             {
-                TRACECODE w_code = WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_line];
+                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
                 for (int i = 0; i < w_code.stack.Count; i++)
                 {
                     g_list_chk.Add(new STACK_LIST
@@ -335,7 +335,7 @@ namespace MDTracer
                         start_address = w_code.stack[i].start_address,
                         end_address = w_code.stack[i].end_address
                     });
-                    if ((w_code.stack[i].caller_address <= 256) && (WinFormsDebugTools.g_form_code_trace.g_analyse_code[w_code.stack[i].caller_address / 4].stack.Count == 0))
+                    if ((w_code.stack[i].caller_address <= 256) && (WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_code.stack[i].caller_address / 4].stack.Count == 0))
                     {
                         if (false == g_list_chk.Exists(x => x.start_address == w_code.stack[i].caller_address))
                         {

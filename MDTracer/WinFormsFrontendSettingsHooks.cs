@@ -173,6 +173,11 @@ namespace MDTracer
             WinFormsDebugTools.g_form_code.EnsureCodeToolLayoutVisible();
         }
 
+        public void NotifyDebugWindowLayoutChanged()
+        {
+            WinFormsDebugTools.g_form_setting?.update();
+        }
+
         private static void read_vdp_screen_menu_setting(Form_VDP_Screen in_form, string[] in_val)
         {
             if (in_val.Length < 6) return;
