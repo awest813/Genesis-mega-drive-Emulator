@@ -4,7 +4,8 @@ namespace MDTracer
     // Platform service interfaces (Phase 4).
     //
     // Genesis hardware emulation stays in the core; OS-specific audio
-    // output and input polling live behind injectable backends.
+    // output, input polling, and VDP GPU rendering live behind injectable
+    // backends (see also IVdpGpuRenderer in md_vdp_gpu_interfaces.cs).
     //----------------------------------------------------------------
 
     internal interface IAudioOutputBackend

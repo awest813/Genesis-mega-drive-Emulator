@@ -21,7 +21,7 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 
 ```
 GenesisEmu.Core/              # Emulation core class library (net9.0-windows)
-GenesisEmu.Platform.Windows/  # Windows audio/input backends (NAudio, DirectInput)
+GenesisEmu.Platform.Windows/  # Windows audio/input/GPU backends (NAudio, DirectInput, D3D12)
 MDTracer/                     # WinForms frontend
 opcode_make/                  # MC68000 opcode table generator (build-time tool)
 tests/GenesisEmu.Core.Tests/
@@ -163,7 +163,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 
 ## Current Limitations
 
-- **Residual platform coupling:** `GenesisEmu.Core` still targets Windows for VDP DirectX rendering and System.Drawing bitmaps; audio output and input polling are behind `IAudioOutputBackend` / `IInputDeviceBackend` with Windows implementations in `GenesisEmu.Platform.Windows`
+- **Residual platform coupling:** `GenesisEmu.Core` still targets Windows for System.Drawing bitmaps used by debug viewers; audio, input, and VDP GPU rendering are behind injectable backends with Windows implementations in `GenesisEmu.Platform.Windows`
 - **Residual frontend coupling:** VDP GPU rendering still lives in core; trace execution still wires `Form_Code_Trace` as `IM68kTracer`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
@@ -241,13 +241,16 @@ The following coupling points are being untangled before extracting a standalone
    `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged()` refreshes the settings
    dialog menu checkmarks when any debug window hides or moves.
 
+10. **VDP GPU compute rendering no longer lives in core** —
+    `IVdpGpuRenderer` / `DirectX12VdpGpuRenderer` handle D3D12 frame compositing;
+    the core stages per-frame snapshots and downloads the finished screen buffer.
+
 ### Remaining coupling hotspots
 
-1. VDP GPU rendering (DirectX 12) still lives inside `GenesisEmu.Core`; a future
-   `IVdpGpuRenderer` backend would complete the platform split.
-
-2. `Form_Code_Trace` is still wired directly as `IM68kTracer` for CPU execution
+1. `Form_Code_Trace` is still wired directly as `IM68kTracer` for CPU execution
    tracing; only shared analysis state is routed through `ICodeAnalysisSession`.
+
+2. Debug viewer bitmap compositing still uses System.Drawing inside the core.
 
 ## Development Roadmap
 
@@ -278,12 +281,12 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** `opcode_make/` generator emits `g_tracer` wiring
 - **Done:** shared code-analysis state routed through `ICodeAnalysisSession`
 - **Done:** debug-window layout changes notify settings via `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged`
-- **Remaining:** extract VDP GPU renderer behind `IVdpGpuRenderer`
 
 ### Phase 4 — Platform Expansion (In Progress)
 - **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends
 - **Done:** `IAudioOutputBackend` / `IInputDeviceBackend` injected into core
-- Platform-independent VDP rendering backend (replacing in-core DirectX)
+- **Done:** VDP GPU compute renderer extracted to `DirectX12VdpGpuRenderer` behind `IVdpGpuRenderer`; SharpDX removed from core
+- Non-Windows VDP GPU backends (Vulkan/Metal/software)
 - Cross-platform audio/input backends beyond Windows
 - Linux and macOS support
 
