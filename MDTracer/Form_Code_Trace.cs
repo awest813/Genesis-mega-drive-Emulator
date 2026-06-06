@@ -10,17 +10,7 @@ namespace MDTracer
         private bool g_chk_enable; 
         private ManualResetEvent g_waitHandle;
 
-        // STACK_LIST_TYPE enum was moved to md_m68k_interfaces.cs (M68kStackEntryType)
-        // so the IM68kTracer interface has no UI dependency.
-        // This alias keeps existing internal usages compiling without a sweeping rename.
-        internal const M68kStackEntryType STACK_LIST_TYPE_NON  = M68kStackEntryType.NON;
-        internal const M68kStackEntryType STACK_LIST_TYPE_TOP  = M68kStackEntryType.TOP;
-        internal const M68kStackEntryType STACK_LIST_TYPE_JSR  = M68kStackEntryType.JSR;
-        internal const M68kStackEntryType STACK_LIST_TYPE_BSR  = M68kStackEntryType.BSR;
-        internal const M68kStackEntryType STACK_LIST_TYPE_TRAP = M68kStackEntryType.TRAP;
-        internal const M68kStackEntryType STACK_LIST_TYPE_HINT = M68kStackEntryType.HINT;
-        internal const M68kStackEntryType STACK_LIST_TYPE_VINT = M68kStackEntryType.VINT;
-        internal const M68kStackEntryType STACK_LIST_TYPE_EXT  = M68kStackEntryType.EXT;
+        // STACK_LIST_TYPE was removed; callers now reference M68kStackEntryType directly.
         public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "TRAP", "HINT", "VINT", "EXT" };
         public const int STACK_LIST_NUM = 1024;
         public struct STACK_LIST
