@@ -44,61 +44,7 @@ namespace MDTracer
 
         public void UpdateDebugWindows()
         {
-            if (md_main.g_debugView.screenA_enable == true)
-            {
-                WinFormsDebugTools.g_form_screenA.picture_update(md_main.g_md_vdp.g_scrollA_pixels
-                                                        , VdpDebugLayerConstants.ScrollLayerWidth
-                                                        , VdpDebugLayerConstants.ScrollLayerHeight
-                                                        , md_main.g_md_vdp.g_scroll_xsize
-                                                        , md_main.g_md_vdp.g_scroll_ysize);
-            }
-            if (md_main.g_debugView.screenB_enable == true)
-            {
-                WinFormsDebugTools.g_form_screenB.picture_update(md_main.g_md_vdp.g_scrollB_pixels
-                                                        , VdpDebugLayerConstants.ScrollLayerWidth
-                                                        , VdpDebugLayerConstants.ScrollLayerHeight
-                                                        , md_main.g_md_vdp.g_scroll_xsize
-                                                        , md_main.g_md_vdp.g_scroll_ysize);
-            }
-            if (md_main.g_debugView.screenW_enable == true)
-            {
-                WinFormsDebugTools.g_form_screenW.picture_update(md_main.g_md_vdp.g_scrollW_pixels
-                                                        , VdpDebugLayerConstants.ScrollLayerWidth
-                                                        , VdpDebugLayerConstants.ScrollLayerHeight
-                                                        , md_main.g_md_vdp.g_scroll_xsize
-                                                        , md_main.g_md_vdp.g_scroll_ysize);
-            }
-            if (md_main.g_debugView.screenS_enable == true)
-            {
-                WinFormsDebugTools.g_form_screenS.picture_update(md_main.g_md_vdp.g_scrollS_pixels
-                                                        , VdpDebugLayerConstants.SpriteLayerWidth
-                                                        , VdpDebugLayerConstants.SpriteLayerHeight
-                                                        , md_main.g_md_vdp.SPRITE_XSIZE
-                                                        , md_main.g_md_vdp.SPRITE_YSIZE);
-            }
-            if (md_main.g_debugView.pattern_enable == true)
-            {
-                WinFormsDebugTools.g_form_pattern.picture_update(
-                    md_main.g_md_vdp.g_pattern_pixels
-                    , VdpDebugLayerConstants.PatternWidth
-                    , VdpDebugLayerConstants.PatternHeight);
-            }
-            if (md_main.g_debugView.pallete_enable == true)
-            {
-                WinFormsDebugTools.g_form_pallete.Invalidate();
-            }
-            if (md_main.g_debugView.music_enable == true)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    WinFormsDebugTools.g_form_music.g_freq_out[i] = md_main.g_md_music.g_freq_out[i];
-                }
-                WinFormsDebugTools.g_form_music.Invalidate();
-            }
-            if (md_main.g_debugView.code_enable == true)
-            {
-                WinFormsDebugTools.g_form_code.Invalidate();
-            }
+            WinFormsDebugTools.UpdateDebugWindowDisplays();
         }
 
         public void FlashTraceBreakAtAddress(uint in_pc)

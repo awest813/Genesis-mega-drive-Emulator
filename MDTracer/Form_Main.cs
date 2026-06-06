@@ -322,8 +322,6 @@ namespace MDTracer
             {
                 int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
                 int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
-                int w_cx = (w_sourceWidth << 16) / w_bitmap_x;
-                int w_cy = (w_sourceHeight << 16) / w_bitmap_y;
                 uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
 
                 if (g_work_bitmap == null || g_work_bitmapW != w_bitmap_x || g_work_bitmapH != w_bitmap_y)
@@ -333,36 +331,8 @@ namespace MDTracer
                     g_work_bitmapW = w_bitmap_x;
                     g_work_bitmapH = w_bitmap_y;
                 }
-                BitmapData game_bmpData = g_work_bitmap.LockBits(new Rectangle(0, 0, g_work_bitmap.Width, g_work_bitmap.Height),
-                                            ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-                try
-                {
-                    IntPtr dest_ptr = game_bmpData.Scan0;
-                    int dest_stride = game_bmpData.Stride;
-                    const int bytesPerPixel = 4;
-                    unsafe
-                    {
-                        int w_dy = 0;
-                        for (int wy = 0; wy < w_bitmap_y; wy++)
-                        {
-                            uint* pixel = (uint*)dest_ptr;
-                            int w_dx = 0;
-                            int w_base = (w_dy >> 16) * w_sourceWidth;
-                            for (int wx = 0; wx < w_bitmap_x; wx++)
-                            {
-                                *pixel = w_gameScreen[w_base + (w_dx >> 16)];
-                                w_dx += w_cx;
-                                pixel = (uint*)((IntPtr)pixel + bytesPerPixel);
-                            }
-                            dest_ptr += dest_stride;
-                            w_dy += w_cy;
-                        }
-                    }
-                }
-                finally
-                {
-                    g_work_bitmap.UnlockBits(game_bmpData);
-                }
+                WinFormsGameScreenBitmap.WriteScaledPixels(
+                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_work_bitmap);
                 videoRecordingAddFrame(g_work_bitmap);
                 w_displayBitmap = new Bitmap(g_work_bitmap);
             }

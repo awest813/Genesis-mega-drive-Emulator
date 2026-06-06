@@ -59,6 +59,69 @@ namespace MDTracer
             g_md_bus.g_monitor = g_form_code;
         }
 
+        public static void UpdateDebugWindowDisplays()
+        {
+            md_vdp w_vdp = md_main.g_md_vdp;
+            DebugViewState w_debugView = md_main.g_debugView;
+            if (w_vdp == null) return;
+
+            if (w_debugView.screenA_enable == true)
+            {
+                g_form_screenA.picture_update(w_vdp.g_scrollA_pixels
+                    , VdpDebugLayerConstants.ScrollLayerWidth
+                    , VdpDebugLayerConstants.ScrollLayerHeight
+                    , w_vdp.g_scroll_xsize
+                    , w_vdp.g_scroll_ysize);
+            }
+            if (w_debugView.screenB_enable == true)
+            {
+                g_form_screenB.picture_update(w_vdp.g_scrollB_pixels
+                    , VdpDebugLayerConstants.ScrollLayerWidth
+                    , VdpDebugLayerConstants.ScrollLayerHeight
+                    , w_vdp.g_scroll_xsize
+                    , w_vdp.g_scroll_ysize);
+            }
+            if (w_debugView.screenW_enable == true)
+            {
+                g_form_screenW.picture_update(w_vdp.g_scrollW_pixels
+                    , VdpDebugLayerConstants.ScrollLayerWidth
+                    , VdpDebugLayerConstants.ScrollLayerHeight
+                    , w_vdp.g_scroll_xsize
+                    , w_vdp.g_scroll_ysize);
+            }
+            if (w_debugView.screenS_enable == true)
+            {
+                g_form_screenS.picture_update(w_vdp.g_scrollS_pixels
+                    , VdpDebugLayerConstants.SpriteLayerWidth
+                    , VdpDebugLayerConstants.SpriteLayerHeight
+                    , w_vdp.SPRITE_XSIZE
+                    , w_vdp.SPRITE_YSIZE);
+            }
+            if (w_debugView.pattern_enable == true)
+            {
+                g_form_pattern.picture_update(
+                    w_vdp.g_pattern_pixels
+                    , VdpDebugLayerConstants.PatternWidth
+                    , VdpDebugLayerConstants.PatternHeight);
+            }
+            if (w_debugView.pallete_enable == true)
+            {
+                g_form_pallete.Invalidate();
+            }
+            if (w_debugView.music_enable == true)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    g_form_music.g_freq_out[i] = md_main.g_md_music.g_freq_out[i];
+                }
+                g_form_music.Invalidate();
+            }
+            if (w_debugView.code_enable == true)
+            {
+                g_form_code.Invalidate();
+            }
+        }
+
         private static md_m68k g_md_m68k => md_main.g_md_m68k;
         private static md_bus g_md_bus => md_main.g_md_bus;
     }

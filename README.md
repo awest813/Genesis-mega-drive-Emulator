@@ -6,7 +6,7 @@ A lightweight, focused Sega Genesis (Mega Drive) emulator written entirely in C#
 
 ## Current Status
 
-The emulator can boot and run a number of commercial Genesis/Mega Drive titles. It currently runs as a Windows desktop application using WinForms + SharpDX (Direct3D 12).
+The emulator can boot and run a number of commercial Genesis/Mega Drive titles. The emulation core (`GenesisEmu.Core`) is a portable .NET 9 class library; the Windows desktop app (`MDTracer`) uses WinForms with optional Direct3D 12 GPU compositing via `GenesisEmu.Platform.Windows`.
 
 **Emulated Hardware:**
 - Motorola MC68000 main CPU
@@ -25,8 +25,17 @@ The emulator can boot and run a number of commercial Genesis/Mega Drive titles. 
 
 ### Building
 
+**Windows (full app + debug tools):**
+
 ```bash
-dotnet build MDTracer.sln
+dotnet build MDTracer/MDTracer.csproj
+```
+
+**Portable core + tests (Linux/macOS/Windows):**
+
+```bash
+dotnet build GenesisEmu.Core/GenesisEmu.Core.csproj
+dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
 ```
 
 Or open `MDTracer.sln` in Visual Studio 2022 and build from the IDE.
@@ -97,12 +106,10 @@ The following commercially released titles have been verified to run:
 
 ## Unimplemented Features
 
-- Memory mapper controller (address 0xA13000+)
 - Interlace mode
 - Sega 32X
 - Sega CD
 - PAL timing
-- SRAM / battery-backed save
 
 ## Roadmap
 
@@ -119,24 +126,19 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture 
 ## Project Structure
 
 ```
-MDTracer.sln              # Solution file
-GenesisEmu.Core/              # Emulation core class library
-GenesisEmu.Platform.Windows/  # Windows audio/input backends
-  md_m68k.cs              # MC68000 CPU emulation
-  md_z80.cs               # Z80 CPU emulation
-  md_vdp.cs               # Video Display Processor
-  md_music.cs             # Audio (YM2612 + SN76489)
-  md_bus.cs               # System bus arbiter
-  md_cartridge.cs         # ROM loading and header parsing
-  md_io.cs                # Controller I/O
-  md_control.cs           # System control registers
-  md_main.cs              # Emulation coordinator / main loop
-  opc/                    # MC68000 opcode implementations
-MDTracer/                 # WinForms frontend (references GenesisEmu.Core)
-  Form_*.cs               # UI and debug tools
-opcode_make/              # Development tool: M68K opcode table generator
-tests/                    # Unit and integration tests
-docs/                     # Architecture and contributor documentation
+MDTracer.sln                    # Solution file
+GenesisEmu.Core/                # Portable emulation core (net9.0)
+  md_m68k.cs, md_z80.cs, md_vdp.cs, md_music.cs, md_bus.cs, ...
+  opc/                          # MC68000 opcode implementations
+GenesisEmu.Platform.Windows/    # Windows D3D12 GPU, NAudio, DirectInput
+MDTracer/                       # WinForms frontend + debug tools
+  WinFormsDebugTools.cs         # Debug-tool registry and display wiring
+  WinFormsVdpDebugBitmap.cs     # ARGB buffer → Bitmap for layer viewers
+  WinFormsGameScreenBitmap.cs   # Game framebuffer scaling for display
+  Form_*.cs                     # UI windows
+opcode_make/                    # M68K opcode table generator (build-time)
+tests/GenesisEmu.Core.Tests/    # Core unit tests (net9.0)
+docs/                           # Architecture and compatibility docs
 ```
 
 ## References

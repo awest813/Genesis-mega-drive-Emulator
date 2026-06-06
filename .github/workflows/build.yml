@@ -2,12 +2,32 @@ name: Build
 
 on:
   push:
-    branches: [ main, "claude/**" ]
+    branches: [ main, "claude/**", "cursor/**" ]
   pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
+  core-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore GenesisEmu.Core/GenesisEmu.Core.csproj
+
+    - name: Build core
+      run: dotnet build GenesisEmu.Core/GenesisEmu.Core.csproj --no-restore --configuration Release
+
+    - name: Test core
+      run: dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj --configuration Release --verbosity normal
+
+  windows:
     runs-on: windows-latest
 
     steps:
@@ -25,4 +45,4 @@ jobs:
       run: dotnet build MDTracer.sln --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test MDTracer.sln --no-build --configuration Release --verbosity normal
+      run: dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj --no-build --configuration Release --verbosity normal

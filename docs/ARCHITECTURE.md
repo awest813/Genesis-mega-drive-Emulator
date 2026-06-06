@@ -254,6 +254,10 @@ The following coupling points are being untangled before extracting a standalone
     scroll/sprite/pattern viewers write flat `uint[]` ARGB buffers (`g_scrollA_pixels`, etc.);
     `WinFormsVdpDebugBitmap` converts them for display in `MDTracer`.
 
+13. **Frontend display wiring consolidated in `WinFormsDebugTools`** —
+    `UpdateDebugWindowDisplays()` owns debug-layer refresh; `WinFormsGameScreenBitmap`
+    scales `g_game_screen` for the main game panel.
+
 ## Development Roadmap
 
 ### Phase 1 — Core Stability
