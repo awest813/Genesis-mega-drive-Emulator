@@ -338,7 +338,8 @@ namespace MDTracer
             else
             if ((0xa11000 <= in_address) && (in_address <= 0xa1ffff))
             {
-                md_main.g_md_control.write16(in_address, (ushort)(in_data >> 16));
+                write16(in_address, (ushort)(in_data >> 16));
+                write16(in_address + 2, (ushort)(in_data & 0xffff));
             }
             else
             if ((0xa00000 <= in_address) && (in_address <= 0xa0ffff))

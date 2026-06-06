@@ -225,6 +225,7 @@ namespace MDTracer
             g_trace_nextframe = false;
             g_state_capture_status = "";
             g_md_m68k.reset();
+            g_md_mapper.reset();
             g_md_z80.reset();
             g_md_vdp.reset();
             g_md_music.reset();

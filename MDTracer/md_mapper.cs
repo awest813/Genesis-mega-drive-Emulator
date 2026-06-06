@@ -25,26 +25,44 @@ namespace MDTracer
     {
         public const int BANK_SIZE = 0x80000;   // 512 KB per bank
         public const int BANK_COUNT = 8;
+        public const uint CONTROL_START = 0xa130f3;
+        public const uint CONTROL_END = 0xa130ff;
 
         // True only when the ROM is larger than the 4 MB window and therefore
         // actually needs banking; otherwise bank-register writes are ignored.
         public bool g_active;
+        public byte[] g_bank_pages = new byte[BANK_COUNT];
 
         public void configure(md_cartridge in_cart)
         {
             g_active = (in_cart.g_file != null) && (in_cart.g_file_size > BANK_SIZE * BANK_COUNT);
+            reset();
+        }
+
+        public void reset()
+        {
+            for (int i = 0; i < BANK_COUNT; i++)
+            {
+                g_bank_pages[i] = (byte)i;
+            }
         }
 
         // Handles a write to a 0xA130F3..0xA130FF bank register.
         public void write_control(uint in_address, byte in_data)
         {
             if (!g_active) return;
-            if (in_address < 0xa130f3 || in_address > 0xa130ff) return;
+            if (!is_control_register(in_address)) return;
 
             int w_bank = (int)((in_address - 0xa130f1) >> 1);   // F3->1 .. FF->7
             if (w_bank < 1 || w_bank >= BANK_COUNT) return;
+            g_bank_pages[w_bank] = in_data;
 
             map_bank(md_main.g_md_cartridge.g_file, md_main.g_md_m68k.g_memory, w_bank, in_data);
+        }
+
+        public static bool is_control_register(uint in_address)
+        {
+            return (in_address >= CONTROL_START) && (in_address <= CONTROL_END) && ((in_address & 1) == 1);
         }
 
         // Copies physical 512 KB page <in_page> into bank <in_bank>'s window of
@@ -68,6 +86,31 @@ namespace MDTracer
             if (w_count < BANK_SIZE)
             {
                 System.Array.Clear(in_mem, w_dst + w_count, BANK_SIZE - w_count);
+            }
+        }
+
+        public void write_state(System.IO.BinaryWriter in_writer)
+        {
+            in_writer.Write(g_active);
+            for (int w_bank = 1; w_bank < BANK_COUNT; w_bank++)
+            {
+                in_writer.Write(g_bank_pages[w_bank]);
+            }
+        }
+
+        public void restore_state(System.IO.BinaryReader in_reader)
+        {
+            bool w_saved_active = in_reader.ReadBoolean();
+            for (int w_bank = 1; w_bank < BANK_COUNT; w_bank++)
+            {
+                g_bank_pages[w_bank] = in_reader.ReadByte();
+            }
+
+            g_bank_pages[0] = 0;
+            if (!g_active || !w_saved_active) return;
+            for (int w_bank = 1; w_bank < BANK_COUNT; w_bank++)
+            {
+                map_bank(md_main.g_md_cartridge.g_file, md_main.g_md_m68k.g_memory, w_bank, g_bank_pages[w_bank]);
             }
         }
     }

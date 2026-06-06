@@ -51,6 +51,19 @@ namespace GenesisEmu.Core.Tests
         // ---- MOVEQ (no operand fetch, no bus) ---------------------------------
 
         [Fact]
+        public void Nop_AdvancesPcAndReportsCycles()
+        {
+            var cpu = NewCpu();
+            cpu.g_reg_PC = CodeBase;
+            cpu.write16(CodeBase, 0x4E71); // NOP
+
+            int cycles = cpu.step();
+
+            Assert.Equal(4, cycles);
+            Assert.Equal(CodeBase + 2, cpu.g_reg_PC);
+        }
+
+        [Fact]
         public void Moveq_SignExtendsNegativeImmediate()
         {
             var cpu = NewCpu();
