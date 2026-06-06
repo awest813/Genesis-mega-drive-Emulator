@@ -143,7 +143,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0078);
                 stack_push32(g_reg_PC);
-                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(M68kStackEntryType.VINT, 0x0078, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;
@@ -158,7 +158,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0070);
                 stack_push32(g_reg_PC);
-                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.HINT, 0x0070, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(M68kStackEntryType.HINT, 0x0070, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;
@@ -172,7 +172,7 @@ namespace MDTracer
             {
                 uint w_start_address = read32(0x0068);
                 stack_push32(g_reg_PC);
-                g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.EXT, 0x0068, w_start_address, g_reg_PC, g_reg_addr[7].l);
+                g_tracer.CPU_Trace_push(M68kStackEntryType.EXT, 0x0068, w_start_address, g_reg_PC, g_reg_addr[7].l);
                 ushort w_data = g_reg_SR;
                 stack_push16(w_data);
                 g_reg_PC = w_start_address;

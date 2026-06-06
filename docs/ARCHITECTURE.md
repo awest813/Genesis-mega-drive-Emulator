@@ -172,15 +172,31 @@ Each frame follows this sequence (in `md_main.md_run()`):
 - Lightweight matrix: [docs/COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md)
 - Use it as the regression checklist after mapper/timing/core bus changes.
 
-### Phase 3 Preparation (UI Coupling Hotspots)
+## Phase 3 Preparation — UI Coupling (In Progress)
 
-High-priority coupling points to untangle before extracting a standalone core:
+The following coupling points are being untangled before extracting a standalone core.
 
-1. `md_main.cs` directly owns and drives `Form_*` instances during emulation and frame updates
-2. `md_bus.cs` directly calls `md_main.g_form_code` memory monitor hooks on every read/write path
-3. `md_m68k.cs` interrupt tracing currently references `Form_Code_Trace.STACK_LIST_TYPE` via tracer calls
+### Completed seams
 
-These are the first seams to replace with platform-neutral interfaces during Phase 3 extraction.
+1. **`IM68kTracer` no longer references `Form_Code_Trace`** — `STACK_LIST_TYPE` has been
+   moved to `M68kStackEntryType` in `md_m68k_interfaces.cs`. The interface and both null
+   and production implementations now have zero UI dependency. `Form_Code_Trace` keeps
+   internal constants for its own methods and `STACK_LIST` struct, which still lives there.
+
+2. **`md_bus` no longer calls `md_main.g_form_code` directly** — `IBusMonitor` /
+   `NullBusMonitor` introduced in `md_bus_interfaces.cs`. `md_bus.g_monitor` is injected
+   at startup (defaults to `NullBusMonitor`); production wires in `Form_Code`.
+   Every read/write hook now routes through the interface.
+
+3. **`md_main.cs` emulation loop no longer directly drives `Form_*` instances** —
+   `IMainLoopUiHooks` / `NullMainLoopUiHooks` introduced in `md_main_ui_hooks.cs`.
+   `md_main` now invokes UI actions through the injected hook, while production wires
+   in `WinFormsMainLoopUiHooks` during initialization.
+
+### Remaining coupling hotspots
+
+1. `md_main` still owns WinForms instances as global static state (`g_form_*`) used by
+   settings and tool windows outside the core execution loop.
 
 ## Development Roadmap
 
@@ -195,11 +211,14 @@ These are the first seams to replace with platform-neutral interfaces during Pha
 - Timing accuracy improvements
 - Expanded compatibility testing and regression tracking
 
-### Phase 3 — Architecture Clean-Up
+### Phase 3 — Architecture Clean-Up (In Progress)
 - Extract emulation core into a standalone library (no UI dependencies)
 - Define clean interfaces between subsystems (CPU, bus, VDP, audio, I/O)
 - Make tracer/debugger/disassembler optional modules that attach to the core
 - Create a minimal game-playing frontend separate from the debug tools
+- **Done:** `M68kStackEntryType` moved to core interfaces; `IBusMonitor` injected into `md_bus`
+- **Done:** `md_main` emulation-loop UI calls moved behind `IMainLoopUiHooks`
+- **Remaining:** remove `md_main` global `g_form_*` ownership used by settings/tool windows
 
 ### Phase 4 — Platform Expansion
 - Platform-independent rendering backend (replacing SharpDX)

@@ -34,12 +34,17 @@ namespace MDTracer
             g_form_music = new Form_MUSIC();
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
+            g_mainLoopUI = new WinFormsMainLoopUiHooks();
 
             // Wire the 68000 core's injected collaborators now that the bus and
             // tracer exist. The core no longer reaches into md_main statics for
             // operand access or tracing.
             g_md_m68k.g_bus = g_md_bus;
             g_md_m68k.g_tracer = g_form_code_trace;
+
+            // Wire the bus monitor so md_bus calls through the interface rather
+            // than reaching directly into the Form_Code singleton.
+            g_md_bus.g_monitor = g_form_code;
 
             g_setting_name = new List<string>();
             g_setting_val = new List<string>();

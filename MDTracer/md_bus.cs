@@ -9,6 +9,10 @@ namespace MDTracer
     //----------------------------------------------------------------
     internal class md_bus : IM68kBus
     {
+        // Injected memory monitor. Production wires in Form_Code; tests and
+        // headless frontends leave this as the no-op default.
+        internal IBusMonitor g_monitor = new NullBusMonitor();
+
         private static void report_bus_warning(string in_message)
         {
             Debug.WriteLine("[Bus] " + in_message);
@@ -81,8 +85,7 @@ namespace MDTracer
             {
                 report_bus_warning("md_bus.read8");
             }
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 1);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, w_out, false, 1);
             return w_out;
         }
         public ushort read16(uint in_address)
@@ -129,8 +132,7 @@ namespace MDTracer
             {
                 report_bus_warning("md_bus.read16");
             }
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 2);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, w_out, false, 2);
             return w_out;
         }
         public uint read32(uint in_address)
@@ -177,8 +179,7 @@ namespace MDTracer
             {
                 report_bus_warning("md_bus.read32");
             }
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, w_out, false, 4);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, w_out, false, 4);
             return w_out;
         }
         //----------------------------------------------------------------
@@ -187,8 +188,7 @@ namespace MDTracer
         public void write8(uint in_address, byte in_data)
         {
             in_address &= 0xffffff;
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 1);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 1);
             if (md_main.g_md_sram.contains(in_address))
             {
                 md_main.g_md_sram.write8(in_address, in_data);
@@ -241,8 +241,7 @@ namespace MDTracer
         public void write16(uint in_address, ushort in_data)
         {
             in_address &= 0xffffff;
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 2);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 2);
             if (md_main.g_md_sram.contains(in_address))
             {
                 md_main.g_md_sram.write16(in_address, in_data);
@@ -296,8 +295,7 @@ namespace MDTracer
         public void write32(uint in_address, uint in_data)
         {
             in_address &= 0xffffff;
-            var w_form_code = md_main.g_form_code;
-            if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 4);
+            if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 4);
             if (md_main.g_md_sram.contains(in_address))
             {
                 md_main.g_md_sram.write32(in_address, in_data);

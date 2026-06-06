@@ -10,22 +10,12 @@ namespace MDTracer
         private bool g_chk_enable; 
         private ManualResetEvent g_waitHandle;
 
-        public enum STACK_LIST_TYPE : int
-        {
-            NON,
-            TOP,
-            JSR,
-            BSR,
-            TRAP,
-            HINT,
-            VINT,
-            EXT
-        }
+        // STACK_LIST_TYPE was removed; callers now reference M68kStackEntryType directly.
         public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "TRAP", "HINT", "VINT", "EXT" };
         public const int STACK_LIST_NUM = 1024;
         public struct STACK_LIST
         {
-            public STACK_LIST_TYPE type;
+            public M68kStackEntryType type;
             public uint func_address;
             public uint caller_address;
             public int caller_num;
@@ -111,7 +101,7 @@ namespace MDTracer
                 g_analyse_code[w_line].break_flash = true;
             }
         }
-        public void CPU_Trace_push(STACK_LIST_TYPE in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
+        public void CPU_Trace_push(M68kStackEntryType in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
         {
             if (in_caller_address == 0) return;
             if (STACK_LIST_NUM <= g_stack_cur) return;
