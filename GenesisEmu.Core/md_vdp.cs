@@ -21,11 +21,6 @@
         {
             g_gpuRenderer.Dispose();
             g_waitHandle?.Dispose();
-            g_scrollA_bitmap?.Dispose();
-            g_scrollB_bitmap?.Dispose();
-            g_scrollW_bitmap?.Dispose();
-            g_scrollS_bitmap?.Dispose();
-            g_pattern_table?.Dispose();
         }
         public void request_external_interrupt(int in_x, int in_y)
         {

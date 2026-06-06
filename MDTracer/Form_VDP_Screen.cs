@@ -177,21 +177,22 @@ namespace MDTracer
             Invalidate();
         }
 
-        public void picture_update(Bitmap in_bitmap, int in_screen_xsize, int in_screen_ysize)
+        public void picture_update(uint[] in_pixels, int in_layerWidth, int in_layerHeight, int in_screen_xsize, int in_screen_ysize)
         {
             if (IsDisposed == true || g_viewActive == false) return;
 
+            using Bitmap w_layerBitmap = WinFormsVdpDebugBitmap.CreateFromArgbBuffer(in_pixels, in_layerWidth, in_layerHeight);
             bool w_screenSizeChanged;
             lock (g_bitmapLock)
             {
                 w_screenSizeChanged = g_source_xsize != in_screen_xsize || g_source_ysize != in_screen_ysize;
                 g_source_bitmap?.Dispose();
-                g_source_bitmap = new Bitmap(in_bitmap);
+                g_source_bitmap = new Bitmap(w_layerBitmap);
                 g_source_xsize = in_screen_xsize;
                 g_source_ysize = in_screen_ysize;
             }
 
-            Bitmap bmp_dst = CreateDisplayBitmap(in_bitmap, in_screen_xsize, in_screen_ysize);
+            Bitmap bmp_dst = CreateDisplayBitmap(w_layerBitmap, in_screen_xsize, in_screen_ysize);
             videoRecordingAddFrame(bmp_dst);
             QueueDisplayUpdate(bmp_dst, w_screenSizeChanged);
         }

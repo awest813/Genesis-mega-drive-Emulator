@@ -59,11 +59,11 @@ namespace MDTracer
             g_snap_color_shadow = new uint[64];
             g_snap_color_highlight = new uint[64];
 
-            g_scrollA_bitmap = new Bitmap(1024, 1024);
-            g_scrollB_bitmap = new Bitmap(1024, 1024);
-            g_scrollW_bitmap = new Bitmap(1024, 1024);
-            g_scrollS_bitmap = new Bitmap(512, 512);
-            g_pattern_table = new Bitmap(128, 1024);
+            g_scrollA_pixels = new uint[VdpDebugLayerConstants.ScrollLayerPixelCount];
+            g_scrollB_pixels = new uint[VdpDebugLayerConstants.ScrollLayerPixelCount];
+            g_scrollW_pixels = new uint[VdpDebugLayerConstants.ScrollLayerPixelCount];
+            g_scrollS_pixels = new uint[VdpDebugLayerConstants.SpriteLayerPixelCount];
+            g_pattern_pixels = new uint[VdpDebugLayerConstants.PatternPixelCount];
             g_sprite_enable = new bool[80];
             MONOCOLOR_TABLE = new uint[16];
             for (uint i = 0; i <= 15; i++)
