@@ -34,13 +34,13 @@ namespace MDTracer
         public static bool g_trace_sip;
         public static bool g_hard_reset_req;
         public static bool g_trace_nextframe;
-        internal static IMainLoopUiHooks g_mainLoopUi = new NullMainLoopUiHooks();
+        internal static IMainLoopUiHooks g_mainLoopUI = new NullMainLoopUiHooks();
 
         private static int g_task_usage;
         //----------------------------------------------------------------
         public static bool run(string in_romname)
         {
-            g_mainLoopUi.SaveCurrentGameCodeSettings();
+            g_mainLoopUI.SaveCurrentGameCodeSettings();
             g_stop_req = false;
             g_state_capture_rom_file_name = "";
             g_md_sram.save();   // flush the previously loaded game's battery RAM
@@ -51,15 +51,15 @@ namespace MDTracer
             g_md_mapper.configure(g_md_cartridge);
             g_state_capture_status = "";
             g_md_m68k.reset();
-            g_mainLoopUi.UpdateCodeTrace();
-            g_mainLoopUi.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
-            g_mainLoopUi.LoadCurrentGameCodeSettings();
+            g_mainLoopUI.UpdateCodeTrace();
+            g_mainLoopUI.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
+            g_mainLoopUI.LoadCurrentGameCodeSettings();
             if (g_trace_fsb == true)
             {
-                g_mainLoopUi.TraceFirstStepBreak();
+                g_mainLoopUI.TraceFirstStepBreak();
                 g_code_enable = true;
-                g_mainLoopUi.ShowSettingsWindow();
-                g_mainLoopUi.UpdateSettingsWindow();
+                g_mainLoopUI.ShowSettingsWindow();
+                g_mainLoopUI.UpdateSettingsWindow();
                 write_setting();
             }
 
@@ -78,11 +78,11 @@ namespace MDTracer
         }
         public static void Screen_Game_Update()
         {
-            g_mainLoopUi.UpdateGameScreen(g_task_usage);
+            g_mainLoopUI.UpdateGameScreen(g_task_usage);
         }
         public static void Screen_Update()
         {
-            g_mainLoopUi.UpdateDebugWindows();
+            g_mainLoopUI.UpdateDebugWindows();
         }
 
         private static void md_run()
@@ -116,7 +116,7 @@ namespace MDTracer
                 }
                 if(g_trace_nextframe == true)
                 {
-                    g_mainLoopUi.FlashTraceBreakAtAddress(g_md_m68k.g_reg_PC);
+                    g_mainLoopUI.FlashTraceBreakAtAddress(g_md_m68k.g_reg_PC);
                     g_trace_nextframe = false;
                 }
                 g_md_io.input_update_frame();
@@ -172,11 +172,11 @@ namespace MDTracer
             g_md_z80.g_active = false;
             read_setting();
             g_md_music.setting();
-            g_mainLoopUi.ResetCodeTraceAnalysis();
-            g_mainLoopUi.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
+            g_mainLoopUI.ResetCodeTraceAnalysis();
+            g_mainLoopUI.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
             if (g_trace_fsb == true)
             {
-                g_mainLoopUi.TraceFirstStepBreak();
+                g_mainLoopUI.TraceFirstStepBreak();
             }
         }
     }

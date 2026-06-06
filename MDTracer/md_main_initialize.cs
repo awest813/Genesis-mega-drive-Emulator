@@ -34,7 +34,7 @@ namespace MDTracer
             g_form_music = new Form_MUSIC();
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
-            g_mainLoopUi = new WinFormsMainLoopUiHooks();
+            g_mainLoopUI = new WinFormsMainLoopUiHooks();
 
             // Wire the 68000 core's injected collaborators now that the bus and
             // tracer exist. The core no longer reaches into md_main statics for

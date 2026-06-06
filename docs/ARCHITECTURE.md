@@ -188,10 +188,15 @@ The following coupling points are being untangled before extracting a standalone
    at startup (defaults to `NullBusMonitor`); production wires in `Form_Code`.
    Every read/write hook now routes through the interface.
 
+3. **`md_main.cs` emulation loop no longer directly drives `Form_*` instances** —
+   `IMainLoopUiHooks` / `NullMainLoopUiHooks` introduced in `md_main_ui_hooks.cs`.
+   `md_main` now invokes UI actions through the injected hook, while production wires
+   in `WinFormsMainLoopUiHooks` during initialization.
+
 ### Remaining coupling hotspots
 
-1. `md_main.cs` directly owns and drives `Form_*` instances during emulation and frame
-   updates — this is the main remaining seam before a standalone core is possible.
+1. `md_main` still owns WinForms instances as global static state (`g_form_*`) used by
+   settings and tool windows outside the core execution loop.
 
 ## Development Roadmap
 
@@ -212,7 +217,8 @@ The following coupling points are being untangled before extracting a standalone
 - Make tracer/debugger/disassembler optional modules that attach to the core
 - Create a minimal game-playing frontend separate from the debug tools
 - **Done:** `M68kStackEntryType` moved to core interfaces; `IBusMonitor` injected into `md_bus`
-- **Remaining:** untangle `md_main` ↔ `Form_*` instance ownership
+- **Done:** `md_main` emulation-loop UI calls moved behind `IMainLoopUiHooks`
+- **Remaining:** remove `md_main` global `g_form_*` ownership used by settings/tool windows
 
 ### Phase 4 — Platform Expansion
 - Platform-independent rendering backend (replacing SharpDX)
