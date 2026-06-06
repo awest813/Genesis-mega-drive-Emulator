@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using MDTracer;
 using Xunit;
@@ -182,6 +183,69 @@ namespace GenesisEmu.Core.Tests
                 Assert.False(File.Exists(Path.ChangeExtension(romPath, ".srm")));
             }
             finally { Cleanup(romPath); }
+        }
+
+        private static byte[] WriteState(md_sram sram)
+        {
+            using var ms = new MemoryStream();
+            using (var bw = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
+            {
+                sram.write_state(bw);
+            }
+            return ms.ToArray();
+        }
+
+        [Fact]
+        public void StateRoundTrip_RestoresBufferAndEnable()
+        {
+            var (src, p1) = Configure(BuildRom(true), "sram_state_src.bin");
+            try
+            {
+                src.write8(0x200000, 0x11);
+                src.write8(0x2003FF, 0x22);
+                src.set_enabled(false);
+                byte[] blob = WriteState(src);
+
+                var (dst, p2) = Configure(BuildRom(true), "sram_state_dst.bin");
+                try
+                {
+                    using (var br = new BinaryReader(new MemoryStream(blob)))
+                    {
+                        dst.restore_state(br);
+                    }
+                    Assert.Equal(0x11, dst.read8(0x200000));
+                    Assert.Equal(0x22, dst.read8(0x2003FF));
+                    Assert.False(dst.g_enabled);   // enable flag travelled with the state
+                }
+                finally { Cleanup(p2); }
+            }
+            finally { Cleanup(p1); }
+        }
+
+        [Fact]
+        public void StateRoundTrip_NoCurrentSram_ConsumesWithoutApplying()
+        {
+            var (src, p1) = Configure(BuildRom(true), "sram_state_has.bin");
+            try
+            {
+                src.write8(0x200000, 0x77);
+                byte[] blob = WriteState(src);
+
+                // Restoring into a cart that has no SRAM must not throw and must
+                // leave the (empty) target untouched.
+                var (dst, p2) = Configure(BuildRom(false), "sram_state_nosram.bin");
+                try
+                {
+                    Assert.False(dst.g_present);
+                    using (var br = new BinaryReader(new MemoryStream(blob)))
+                    {
+                        dst.restore_state(br);
+                    }
+                    Assert.False(dst.contains(0x200000));
+                }
+                finally { Cleanup(p2); }
+            }
+            finally { Cleanup(p1); }
         }
     }
 }

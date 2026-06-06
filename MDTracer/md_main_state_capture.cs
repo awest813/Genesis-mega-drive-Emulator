@@ -29,7 +29,7 @@ namespace MDTracer
         internal static class StateStore
         {
             private const string FileExtension = ".bin";
-            private const int StateVersion = 4;
+            private const int StateVersion = 5;
             private const int MaxEntryCountPerRom = 100;
             private static readonly byte[] MagicBytes = Encoding.ASCII.GetBytes("MDT68KST");
 
@@ -99,6 +99,7 @@ namespace MDTracer
                     g_md_vdp.write_state(w_writer);
                     g_md_music.write_state(w_writer);
                     g_md_z80.write_state(w_writer);
+                    g_md_sram.write_state(w_writer);
                 }
 
                 DeleteOldEntriesOverLimit();
@@ -136,6 +137,10 @@ namespace MDTracer
                 if (w_version >= 3)
                 {
                     g_md_z80.restore_state(w_reader);
+                }
+                if (w_version >= 5)
+                {
+                    g_md_sram.restore_state(w_reader);
                 }
 
                 if (w_version < 4)

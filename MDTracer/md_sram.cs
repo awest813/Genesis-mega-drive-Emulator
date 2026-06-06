@@ -180,5 +180,40 @@ namespace MDTracer
                 report("save failed: " + ex.Message);
             }
         }
+
+        //----------------------------------------------------------------
+        // Save-state serialization. The presence flag is always written so the
+        // reader stays aligned regardless of whether the current cart or the
+        // saved state actually had SRAM.
+        //----------------------------------------------------------------
+        public void write_state(System.IO.BinaryWriter in_writer)
+        {
+            in_writer.Write(g_present);
+            in_writer.Write(g_enabled);
+            if (g_present)
+            {
+                in_writer.Write(g_data.Length);
+                in_writer.Write(g_data);
+            }
+        }
+
+        public void restore_state(System.IO.BinaryReader in_reader)
+        {
+            bool w_present = in_reader.ReadBoolean();
+            bool w_enabled = in_reader.ReadBoolean();
+            if (!w_present) return;
+
+            int w_len = in_reader.ReadInt32();
+            byte[] w_saved = in_reader.ReadBytes(w_len);
+
+            // Only apply if the currently loaded cart also has SRAM; otherwise the
+            // bytes are consumed (keeping the stream aligned) and discarded.
+            if (g_present)
+            {
+                int w_copy = System.Math.Min(w_len, g_data.Length);
+                System.Array.Copy(w_saved, g_data, w_copy);
+                g_enabled = w_enabled;
+            }
+        }
     }
 }

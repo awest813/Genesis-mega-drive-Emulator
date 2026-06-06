@@ -154,7 +154,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 - Add initial test coverage for CPU instructions and bus routing
 
 ### Phase 2 — Feature Completeness
-- SRAM / battery-backed save support — **done** (`md_sram.cs`); not yet in save states
+- SRAM / battery-backed save support — **done** (`md_sram.cs`), included in save states (v5)
 - Memory mapper controller (0xA13000+)
 - Timing accuracy improvements
 - Expanded compatibility testing and regression tracking
