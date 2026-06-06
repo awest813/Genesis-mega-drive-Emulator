@@ -29,13 +29,30 @@ namespace MDTracer
     }
 
     /// <summary>
+    /// Call-stack entry type used by the 68000 tracer. Lives here (not in
+    /// Form_Code_Trace) so the interface and null implementation have no UI
+    /// dependency.
+    /// </summary>
+    public enum M68kStackEntryType
+    {
+        NON,
+        TOP,
+        JSR,
+        BSR,
+        TRAP,
+        HINT,
+        VINT,
+        EXT
+    }
+
+    /// <summary>
     /// Execution/call-stack tracing hooks invoked by the 68000 core.
     /// Implemented by <see cref="Form_Code_Trace"/> in the WinForms frontend.
     /// </summary>
     internal interface IM68kTracer
     {
         void CPU_Trace(uint in_addr);
-        void CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address);
+        void CPU_Trace_push(M68kStackEntryType in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address);
         void CPU_Trace_pop(uint in_pc, uint in_end_addres, uint in_stack_address);
     }
 
@@ -47,7 +64,7 @@ namespace MDTracer
     internal sealed class NullM68kTracer : IM68kTracer
     {
         public void CPU_Trace(uint in_addr) { }
-        public void CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address) { }
+        public void CPU_Trace_push(M68kStackEntryType in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address) { }
         public void CPU_Trace_pop(uint in_pc, uint in_end_addres, uint in_stack_address) { }
     }
 }

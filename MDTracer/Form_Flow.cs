@@ -152,7 +152,7 @@ namespace MDTracer
                 g_flow_cur = 0;
                 for (int i = 0; i < g_list_chk.Count; i++)
                 {
-                    if (g_list_chk[i].type == STACK_LIST_TYPE.TOP)
+                    if (g_list_chk[i].type == M68kStackEntryType.TOP)
                     {
                         flow_check(g
                             , g_list_chk[i].start_address
@@ -341,7 +341,7 @@ namespace MDTracer
                         {
                             g_list_chk.Add(new STACK_LIST
                             {
-                                type = STACK_LIST_TYPE.TOP,
+                                type = M68kStackEntryType.TOP,
                                 func_address = 0,
                                 ret_address = 0,
                                 start_address = w_code.stack[i].caller_address,

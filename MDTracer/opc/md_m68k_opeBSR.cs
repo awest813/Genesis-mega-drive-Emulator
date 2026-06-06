@@ -11,7 +11,7 @@ namespace MDTracer
             g_reg_PC += 2;
             uint w_start_address = (uint)(g_reg_PC + (short)g_bus.read16(g_reg_PC));
             stack_push32(g_reg_PC + 2);
-            g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.BSR, w_pc, w_start_address, g_reg_PC + 2, g_reg_addr[7].l);
+            g_tracer.CPU_Trace_push(M68kStackEntryType.BSR, w_pc, w_start_address, g_reg_PC + 2, g_reg_addr[7].l);
             g_reg_PC = w_start_address;
         }
         private void analyse_BSR_b()
@@ -22,7 +22,7 @@ namespace MDTracer
             g_work_data.b0 = (byte)(g_opcode & 0x00ff);
             uint w_start_address = (uint)(g_reg_PC + (sbyte)g_work_data.b0);
             stack_push32(g_reg_PC);
-            g_tracer.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.BSR, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);
+            g_tracer.CPU_Trace_push(M68kStackEntryType.BSR, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);
             g_reg_PC = w_start_address;
         }
    }

@@ -9,7 +9,7 @@ using static MDTracer.Form_Code_Trace;
 
 namespace MDTracer
 {
-    public partial class Form_Code : Form
+    public partial class Form_Code : Form, IBusMonitor
     {
         private const int CODE_HEADER_HEIGHT = 20;
         private const int CODE_LINE_HEIGHT = 16;

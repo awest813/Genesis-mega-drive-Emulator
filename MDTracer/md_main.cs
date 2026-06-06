@@ -66,7 +66,7 @@ namespace MDTracer
             g_state_capture_status = "";
             g_md_m68k.reset();
             g_form_code_trace.update();
-            g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
+            g_form_code_trace.CPU_Trace_push(M68kStackEntryType.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
             g_form_code.LoadCurrentGameCodeSettings();
             if (g_trace_fsb == true)
             {
@@ -234,7 +234,7 @@ namespace MDTracer
             read_setting();
             g_md_music.setting();
             g_form_code_trace.analyses_reset();
-            g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
+            g_form_code_trace.CPU_Trace_push(M68kStackEntryType.TOP, 0x0004, g_md_m68k.g_reg_PC, 0, g_md_m68k.g_reg_addr[7].l);
             if (g_trace_fsb == true)
             {
                 g_form_code_trace.Trace_FirstStepBreak();

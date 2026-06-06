@@ -10,22 +10,22 @@ namespace MDTracer
         private bool g_chk_enable; 
         private ManualResetEvent g_waitHandle;
 
-        public enum STACK_LIST_TYPE : int
-        {
-            NON,
-            TOP,
-            JSR,
-            BSR,
-            TRAP,
-            HINT,
-            VINT,
-            EXT
-        }
+        // STACK_LIST_TYPE enum was moved to md_m68k_interfaces.cs (M68kStackEntryType)
+        // so the IM68kTracer interface has no UI dependency.
+        // This alias keeps existing internal usages compiling without a sweeping rename.
+        internal const M68kStackEntryType STACK_LIST_TYPE_NON  = M68kStackEntryType.NON;
+        internal const M68kStackEntryType STACK_LIST_TYPE_TOP  = M68kStackEntryType.TOP;
+        internal const M68kStackEntryType STACK_LIST_TYPE_JSR  = M68kStackEntryType.JSR;
+        internal const M68kStackEntryType STACK_LIST_TYPE_BSR  = M68kStackEntryType.BSR;
+        internal const M68kStackEntryType STACK_LIST_TYPE_TRAP = M68kStackEntryType.TRAP;
+        internal const M68kStackEntryType STACK_LIST_TYPE_HINT = M68kStackEntryType.HINT;
+        internal const M68kStackEntryType STACK_LIST_TYPE_VINT = M68kStackEntryType.VINT;
+        internal const M68kStackEntryType STACK_LIST_TYPE_EXT  = M68kStackEntryType.EXT;
         public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "TRAP", "HINT", "VINT", "EXT" };
         public const int STACK_LIST_NUM = 1024;
         public struct STACK_LIST
         {
-            public STACK_LIST_TYPE type;
+            public M68kStackEntryType type;
             public uint func_address;
             public uint caller_address;
             public int caller_num;
@@ -111,7 +111,7 @@ namespace MDTracer
                 g_analyse_code[w_line].break_flash = true;
             }
         }
-        public void CPU_Trace_push(STACK_LIST_TYPE in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
+        public void CPU_Trace_push(M68kStackEntryType in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
         {
             if (in_caller_address == 0) return;
             if (STACK_LIST_NUM <= g_stack_cur) return;
