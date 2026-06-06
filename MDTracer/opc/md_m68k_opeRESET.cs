@@ -6,8 +6,8 @@ namespace MDTracer
     {
         private void analyse_RESET()
         {
-            g_reg_addr[7].l = md_main.g_md_bus.read32(0);
-            g_reg_PC = md_main.g_md_bus.read32(4);
+            g_reg_addr[7].l = g_bus.read32(0);
+            g_reg_PC = g_bus.read32(4);
         }
    }
 }

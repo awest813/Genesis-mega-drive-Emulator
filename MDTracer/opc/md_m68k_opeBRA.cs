@@ -8,7 +8,7 @@ namespace MDTracer
         {
            g_clock += 10;
            g_reg_PC += 2;
-           g_reg_PC = (uint)(g_reg_PC + (short)md_main.g_md_bus.read16(g_reg_PC));
+           g_reg_PC = (uint)(g_reg_PC + (short)g_bus.read16(g_reg_PC));
         }
         private void analyse_BRA_b()
         {

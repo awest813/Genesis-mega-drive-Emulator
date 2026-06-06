@@ -67,6 +67,7 @@ namespace MDTracer
             vdpScreensVideoRecordingStop();
             md_main.g_md_io.input_record_stop();
             md_main.g_md_io.input_replay_stop();
+            md_main.g_md_sram.save();
             md_main.g_form_code.SaveCurrentGameCodeSettings();
             md_main.g_form_code.FlushCodeToolLayoutSave();
             md_main.write_setting();
@@ -106,7 +107,7 @@ namespace MDTracer
         {
             if (g_filelist_view == true)
             {
-                using Font wfont = new Font("‚l‚r ƒSƒVƒbƒN", 10);
+                using Font wfont = new Font("ï¿½lï¿½r ï¿½Sï¿½Vï¿½bï¿½N", 10);
                 Brush wbrush = Brushes.White;
                 e.Graphics.DrawString("file select", wfont, wbrush, new PointF(20, 20));
                 e.Graphics.DrawString("(F key: Select in File Explorer)", wfont, wbrush, new PointF(30, 40));

@@ -11,6 +11,8 @@ namespace MDTracer
             currentProcess.PriorityClass = ProcessPriorityClass.High;
 
             g_md_cartridge = new md_cartridge();
+            g_md_sram = new md_sram();
+            g_md_mapper = new md_mapper();
             g_md_bus = new md_bus();
             g_md_control = new md_control();
             g_md_io = new md_io();
@@ -32,6 +34,12 @@ namespace MDTracer
             g_form_music = new Form_MUSIC();
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
+
+            // Wire the 68000 core's injected collaborators now that the bus and
+            // tracer exist. The core no longer reaches into md_main statics for
+            // operand access or tracing.
+            g_md_m68k.g_bus = g_md_bus;
+            g_md_m68k.g_tracer = g_form_code_trace;
 
             g_setting_name = new List<string>();
             g_setting_val = new List<string>();

@@ -7,7 +7,7 @@ namespace MDTracer
     //----------------------------------------------------------------
     //Bus arbiter : chips:315-5308
     //----------------------------------------------------------------
-    internal class md_bus
+    internal class md_bus : IM68kBus
     {
         private static void report_bus_warning(string in_message)
         {
@@ -38,7 +38,9 @@ namespace MDTracer
             in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
-                w_out = md_main.g_md_m68k.read8(in_address);
+                w_out = md_main.g_md_sram.contains(in_address)
+                      ? md_main.g_md_sram.read8(in_address)
+                      : md_main.g_md_m68k.read8(in_address);
             }
             else 
             if (0xff0000 <= in_address)
@@ -89,7 +91,9 @@ namespace MDTracer
             in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
-                w_out = md_main.g_md_m68k.read16(in_address);
+                w_out = md_main.g_md_sram.contains(in_address)
+                      ? md_main.g_md_sram.read16(in_address)
+                      : md_main.g_md_m68k.read16(in_address);
             }
             else
             if (0xff0000 <= in_address)
@@ -135,7 +139,9 @@ namespace MDTracer
             in_address &= 0xffffff;
             if (in_address <= 0x3fffff)
             {
-                w_out = md_main.g_md_m68k.read32(in_address);
+                w_out = md_main.g_md_sram.contains(in_address)
+                      ? md_main.g_md_sram.read32(in_address)
+                      : md_main.g_md_m68k.read32(in_address);
             }
             else
             if (0xff0000 <= in_address)
@@ -183,6 +189,11 @@ namespace MDTracer
             in_address &= 0xffffff;
             var w_form_code = md_main.g_form_code;
             if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 1);
+            if (md_main.g_md_sram.contains(in_address))
+            {
+                md_main.g_md_sram.write8(in_address, in_data);
+            }
+            else
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write8(in_address, in_data);
@@ -232,6 +243,11 @@ namespace MDTracer
             in_address &= 0xffffff;
             var w_form_code = md_main.g_form_code;
             if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 2);
+            if (md_main.g_md_sram.contains(in_address))
+            {
+                md_main.g_md_sram.write16(in_address, in_data);
+            }
+            else
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write16(in_address, in_data);
@@ -282,6 +298,11 @@ namespace MDTracer
             in_address &= 0xffffff;
             var w_form_code = md_main.g_form_code;
             if (w_form_code.memory_monitor_active == true) w_form_code.memory_monitor_check(in_address, in_data, true, 4);
+            if (md_main.g_md_sram.contains(in_address))
+            {
+                md_main.g_md_sram.write32(in_address, in_data);
+            }
+            else
             if (0xff0000 <= in_address)
             {
                 md_main.g_md_m68k.write32(in_address, in_data);

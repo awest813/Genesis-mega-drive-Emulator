@@ -10,7 +10,7 @@ namespace MDTracer
             uint w_pc = g_reg_PC;
             g_reg_SR = stack_pop16();
             g_reg_PC = stack_pop32();
-            md_main.g_form_code_trace.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);
+            g_tracer.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);
         }
    }
 }
