@@ -58,7 +58,7 @@ namespace MDTracer
                 case "W": md_main.g_screenW_enable = false; break;
                 case "S": md_main.g_screenS_enable = false; break;
             }
-            md_main.g_form_setting.update();
+            WinFormsDebugTools.g_form_setting.update();
             md_main.write_setting();
             e.Cancel = true;
         }

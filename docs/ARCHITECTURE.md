@@ -82,6 +82,10 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 
 | File | Purpose |
 |------|---------|
+| `WinFormsDebugTools.cs` | Debug-tool window registry and frontend collaborator wiring |
+| `md_main_ui_hooks.cs` | Main-loop UI hook interface (`IMainLoopUiHooks`) |
+| `md_frontend_settings_hooks.cs` | Window-layout settings persistence hooks |
+| `md_io_frontend_hooks.cs` | I/O device-change notification hooks |
 | `Form_Main.cs` | Main window, game screen, menu |
 | `Form_Code.cs` | Disassembly/code view |
 | `Form_Code_Trace.cs` | Execution tracing |
@@ -141,7 +145,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 
 ## Current Limitations
 
-- **Tight UI coupling:** The emulation core (`md_main`, `md_bus`, CPU classes) directly references WinForms UI classes for tracing and debug display
+- **Residual UI coupling:** Core subsystems use injected hooks (`IMainLoopUiHooks`, `IFrontendSettingsHooks`, `IIoFrontendHooks`) with null defaults, but debug tools still live in the same assembly as the core
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -183,7 +187,7 @@ The following coupling points are being untangled before extracting a standalone
    and production implementations now have zero UI dependency. `Form_Code_Trace` keeps
    internal constants for its own methods and `STACK_LIST` struct, which still lives there.
 
-2. **`md_bus` no longer calls `md_main.g_form_code` directly** — `IBusMonitor` /
+2. **`md_bus` no longer calls `Form_Code` through `md_main`** — `IBusMonitor` /
    `NullBusMonitor` introduced in `md_bus_interfaces.cs`. `md_bus.g_monitor` is injected
    at startup (defaults to `NullBusMonitor`); production wires in `Form_Code`.
    Every read/write hook now routes through the interface.
@@ -193,10 +197,34 @@ The following coupling points are being untangled before extracting a standalone
    `md_main` now invokes UI actions through the injected hook, while production wires
    in `WinFormsMainLoopUiHooks` during initialization.
 
+4. **`md_main` no longer owns debug-tool `Form_*` instances** — `WinFormsDebugTools`
+   introduced as the frontend registry. Form creation and collaborator wiring (tracer,
+   bus monitor, settings hooks) happen in `WinFormsDebugTools.Initialize()`, called from
+   `Form_Main` after `md_main.initialize()`.
+
+5. **Settings persistence no longer reaches into `Form_*` from `md_main_setting`** —
+   `IFrontendSettingsHooks` / `WinFormsFrontendSettingsHooks` handle window layout and
+   recent-file settings. The core settings loader/saver delegates UI keys to the hook.
+
+6. **VDP scanline renderer no longer reads `Form_Setting`** — game-view layer overlay
+   toggles moved to `md_vdp` (`md_vdp_overlay.cs`). `Form_Setting` syncs checkboxes to
+   the VDP overlay state; the renderer reads flags directly from the VDP subsystem.
+
+7. **Joystick rescan no longer reaches into `Form_IO` from `md_io_device`** —
+   `IIoFrontendHooks` / `WinFormsIoFrontendHooks` notify the frontend when device lists
+   change.
+
 ### Remaining coupling hotspots
 
-1. `md_main` still owns WinForms instances as global static state (`g_form_*`) used by
-   settings and tool windows outside the core execution loop.
+1. Debug-tool windows still cross-reference each other through `WinFormsDebugTools`
+   (e.g. `Form_Code` ↔ `Form_Code_Trace`). A future step is to route those through
+   narrow event/callback interfaces.
+
+2. `md_main` still owns debug-window visibility flags (`g_screenA_enable`, etc.) and
+   trace preferences (`g_trace_fsb`, `g_trace_sip`) used by both core and frontend.
+
+3. `opcode_make/` code generator still emits references to the old `md_main.g_form_*`
+   tracer wiring; regenerate opcode tables after the generator is updated.
 
 ## Development Roadmap
 
@@ -218,7 +246,10 @@ The following coupling points are being untangled before extracting a standalone
 - Create a minimal game-playing frontend separate from the debug tools
 - **Done:** `M68kStackEntryType` moved to core interfaces; `IBusMonitor` injected into `md_bus`
 - **Done:** `md_main` emulation-loop UI calls moved behind `IMainLoopUiHooks`
-- **Remaining:** remove `md_main` global `g_form_*` ownership used by settings/tool windows
+- **Done:** debug-tool `Form_*` ownership moved to `WinFormsDebugTools`
+- **Done:** window settings persistence moved behind `IFrontendSettingsHooks`
+- **Done:** VDP overlay compositing flags moved off `Form_Setting` onto `md_vdp`
+- **Remaining:** extract core into a separate library project; decouple debug-tool cross-talk
 
 ### Phase 4 — Platform Expansion
 - Platform-independent rendering backend (replacing SharpDX)

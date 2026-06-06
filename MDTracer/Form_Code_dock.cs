@@ -621,7 +621,7 @@ namespace MDTracer
         {
             if (g_code_tool_windows_ready == false) return;
             if (g_code_tool_layout_updating == true) return;
-            if (ReferenceEquals(md_main.g_form_code, this) == false) return;
+            if (ReferenceEquals(WinFormsDebugTools.g_form_code, this) == false) return;
 
             g_code_tool_layout_save_pending = true;
             g_code_tool_layout_save_timer.Stop();
@@ -632,7 +632,7 @@ namespace MDTracer
         {
             if (g_code_tool_windows_ready == false) return;
             if (g_code_tool_layout_updating == true) return;
-            if (ReferenceEquals(md_main.g_form_code, this) == false) return;
+            if (ReferenceEquals(WinFormsDebugTools.g_form_code, this) == false) return;
             if (g_code_tool_layout_save_pending == false) return;
 
             g_code_tool_layout_save_timer.Stop();

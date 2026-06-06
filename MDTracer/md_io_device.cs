@@ -98,9 +98,9 @@ namespace MDTracer
                     bool w_changed = w_old_device_cur != w_new_joy_device_cur
                         || w_old_name != w_new_joy_name
                         || !w_old_name_list.SequenceEqual(w_new_joy_name_list);
-                    if (w_changed && w_new_joy_device.Count > 0 && md_main.g_form_io != null)
+                    if (w_changed && w_new_joy_device.Count > 0)
                     {
-                        md_main.g_form_io.update_joystick_combo_from_device_scan();
+                        g_frontendHooks.NotifyJoystickDevicesChanged();
                     }
                 }
             }

@@ -35,6 +35,7 @@ namespace MDTracer
         public static bool g_hard_reset_req;
         public static bool g_trace_nextframe;
         internal static IMainLoopUiHooks g_mainLoopUI = new NullMainLoopUiHooks();
+        internal static IFrontendSettingsHooks g_frontendSettings = new NullFrontendSettingsHooks();
 
         private static int g_task_usage;
         //----------------------------------------------------------------

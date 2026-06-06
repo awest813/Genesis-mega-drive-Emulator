@@ -212,9 +212,9 @@ namespace MDTracer
                     g_chk_enable = false;
                 }
                 g_analyse_code[w_line].break_flash = false;
-                md_main.g_form_code.RequestTraceBreakView(w_line);
-                md_main.g_form_registry.RequestRegistryRefresh();
-                md_main.g_form_flow.RequestFlowUpdate(g_func_address, g_caller_address);
+                WinFormsDebugTools.g_form_code.RequestTraceBreakView(w_line);
+                WinFormsDebugTools.g_form_registry.RequestRegistryRefresh();
+                WinFormsDebugTools.g_form_flow.RequestFlowUpdate(g_func_address, g_caller_address);
 
                 g_waitHandle.WaitOne(Timeout.Infinite);
                 g_waitHandle.Reset();

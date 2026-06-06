@@ -45,17 +45,18 @@ namespace MDTracer
             pictureBox_game.Image = new Bitmap(320, 240);
             pictureBox_game.BackColor = Color.Black;
             md_main.initialize();
+            WinFormsDebugTools.Initialize();
             md_main.read_setting();
-            md_main.g_form_setting.update();
-            md_main.g_form_setting.show_window();
-            md_main.g_form_screenA.initialize("A", 256, 256, "screen A");
-            md_main.g_form_screenB.initialize("B", 256, 256, "screen B");
-            md_main.g_form_screenW.initialize("W", 256, 256, "screen W");
-            md_main.g_form_screenS.initialize("S", 512, 512, "screen S");
-            md_main.g_form_io.initialize();
-            md_main.g_form_music.initialize();
+            WinFormsDebugTools.g_form_setting.update();
+            WinFormsDebugTools.g_form_setting.show_window();
+            WinFormsDebugTools.g_form_screenA.initialize("A", 256, 256, "screen A");
+            WinFormsDebugTools.g_form_screenB.initialize("B", 256, 256, "screen B");
+            WinFormsDebugTools.g_form_screenW.initialize("W", 256, 256, "screen W");
+            WinFormsDebugTools.g_form_screenS.initialize("S", 512, 512, "screen S");
+            WinFormsDebugTools.g_form_io.initialize();
+            WinFormsDebugTools.g_form_music.initialize();
             md_main.g_md_music.setting();
-            md_main.g_form_io.rescan();
+            WinFormsDebugTools.g_form_io.rescan();
             g_filelist_view = true;
             this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
             BringToFront();
@@ -68,8 +69,8 @@ namespace MDTracer
             md_main.g_md_io.input_record_stop();
             md_main.g_md_io.input_replay_stop();
             md_main.g_md_sram.save();
-            md_main.g_form_code.SaveCurrentGameCodeSettings();
-            md_main.g_form_code.FlushCodeToolLayoutSave();
+            WinFormsDebugTools.g_form_code.SaveCurrentGameCodeSettings();
+            WinFormsDebugTools.g_form_code.FlushCodeToolLayoutSave();
             md_main.write_setting();
         }
         private void Form_Main_SizeChanged(object sender, EventArgs e)
@@ -150,7 +151,7 @@ namespace MDTracer
                         frameAdvance();
                         return true;
                     case Keys.F9:
-                        md_main.g_form_setting.Show();
+                        WinFormsDebugTools.g_form_setting.Show();
                         return true;
                     case Keys.F10:
                         screenshot();
@@ -209,7 +210,7 @@ namespace MDTracer
         //----------------------------------------------------------------
         private void SettingMenuItem1_Click(object sender, EventArgs e)
         {
-            md_main.g_form_setting.Show();
+            WinFormsDebugTools.g_form_setting.Show();
         }
         private void hardResetMenuItem_Click(object sender, EventArgs e)
         {
@@ -618,31 +619,31 @@ namespace MDTracer
 
         private void vdpScreensScreenshot(string in_timeStamp)
         {
-            md_main.g_form_screenA.SyncScreenshot(in_timeStamp);
-            md_main.g_form_screenB.SyncScreenshot(in_timeStamp);
-            md_main.g_form_screenW.SyncScreenshot(in_timeStamp);
-            md_main.g_form_screenS.SyncScreenshot(in_timeStamp);
+            WinFormsDebugTools.g_form_screenA.SyncScreenshot(in_timeStamp);
+            WinFormsDebugTools.g_form_screenB.SyncScreenshot(in_timeStamp);
+            WinFormsDebugTools.g_form_screenW.SyncScreenshot(in_timeStamp);
+            WinFormsDebugTools.g_form_screenS.SyncScreenshot(in_timeStamp);
         }
         private void vdpScreensVideoRecordingStart(string in_timeStamp)
         {
-            md_main.g_form_screenA.SyncVideoRecordingStart(in_timeStamp);
-            md_main.g_form_screenB.SyncVideoRecordingStart(in_timeStamp);
-            md_main.g_form_screenW.SyncVideoRecordingStart(in_timeStamp);
-            md_main.g_form_screenS.SyncVideoRecordingStart(in_timeStamp);
+            WinFormsDebugTools.g_form_screenA.SyncVideoRecordingStart(in_timeStamp);
+            WinFormsDebugTools.g_form_screenB.SyncVideoRecordingStart(in_timeStamp);
+            WinFormsDebugTools.g_form_screenW.SyncVideoRecordingStart(in_timeStamp);
+            WinFormsDebugTools.g_form_screenS.SyncVideoRecordingStart(in_timeStamp);
         }
         private void vdpScreensVideoRecordingStop()
         {
-            md_main.g_form_screenA.SyncVideoRecordingStop();
-            md_main.g_form_screenB.SyncVideoRecordingStop();
-            md_main.g_form_screenW.SyncVideoRecordingStop();
-            md_main.g_form_screenS.SyncVideoRecordingStop();
+            WinFormsDebugTools.g_form_screenA.SyncVideoRecordingStop();
+            WinFormsDebugTools.g_form_screenB.SyncVideoRecordingStop();
+            WinFormsDebugTools.g_form_screenW.SyncVideoRecordingStop();
+            WinFormsDebugTools.g_form_screenS.SyncVideoRecordingStop();
         }
         private void vdpScreensVideoRecordingAddAudioSamples(byte[] in_buffer, int in_offset, int in_count)
         {
-            md_main.g_form_screenA.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
-            md_main.g_form_screenB.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
-            md_main.g_form_screenW.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
-            md_main.g_form_screenS.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            WinFormsDebugTools.g_form_screenA.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            WinFormsDebugTools.g_form_screenB.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            WinFormsDebugTools.g_form_screenW.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
+            WinFormsDebugTools.g_form_screenS.SyncVideoRecordingAddAudioSamples(in_buffer, in_offset, in_count);
         }
         private void StateSave()
         {
