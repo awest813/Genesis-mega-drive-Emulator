@@ -19,11 +19,18 @@ namespace MDTracer
         public static int g_mouseclick_pos_y;
         public static bool g_mouseclick_interrupt;
         public static string[] g_file_name;
+        public static GameScreenScaleMode g_scale_mode = GameScreenScaleMode.IntegerFit;
         private static bool g_filelist_view;
-        private Bitmap g_work_bitmap = null;
+        private Bitmap? g_work_bitmap;
+        private Bitmap? g_display_bitmap;
         private int g_work_bitmapW = -1;
         private int g_work_bitmapH = -1;
+        private int g_frame_update_pending;
         private readonly object g_videoRecordLock = new object();
+        private readonly WinFormsFullscreenHelper g_fullscreen = new();
+        private ToolStripMenuItem? g_scaleIntegerMenuItem;
+        private ToolStripMenuItem? g_scaleStretchMenuItem;
+        private ToolStripMenuItem? g_fullscreenMenuItem;
         private Form_Main_AviRecorder? g_videoRecorder;
         private string g_videoRecordPath = "";
 
@@ -36,6 +43,31 @@ namespace MDTracer
             Instance = this;
             this.MaximumSize = this.Size;
             this.MinimumSize = this.Size;
+            InitializeViewMenu();
+        }
+
+        private void InitializeViewMenu()
+        {
+            var w_viewMenu = new ToolStripMenuItem("&View");
+            g_scaleIntegerMenuItem = new ToolStripMenuItem(
+                "&Integer Scale (letterbox)",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.IntegerFit));
+            g_scaleStretchMenuItem = new ToolStripMenuItem(
+                "&Stretch to Window",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.Stretch));
+            g_fullscreenMenuItem = new ToolStripMenuItem(
+                "&Fullscreen",
+                null,
+                (_, _) => ToggleFullscreen());
+            g_fullscreenMenuItem.ShortcutKeys = Keys.Alt | Keys.Enter;
+            w_viewMenu.DropDownItems.Add(g_scaleIntegerMenuItem);
+            w_viewMenu.DropDownItems.Add(g_scaleStretchMenuItem);
+            w_viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            w_viewMenu.DropDownItems.Add(g_fullscreenMenuItem);
+            menuStrip1.Items.Insert(3, w_viewMenu);
+            UpdateScaleMenuChecks();
         }
         //----------------------------------------------------------------
         //Event Handling: Screen Operations
@@ -55,7 +87,6 @@ namespace MDTracer
                 g_screen_size_y = 448;
             }
             md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
-            WinFormsDebugTools.g_form_setting.show_window();
             WinFormsDebugTools.g_form_screenA.initialize("A", 256, 256, "screen A");
             WinFormsDebugTools.g_form_screenB.initialize("B", 256, 256, "screen B");
             WinFormsDebugTools.g_form_screenW.initialize("W", 256, 256, "screen W");
@@ -66,6 +97,7 @@ namespace MDTracer
             WinFormsDebugTools.g_form_io.rescan();
             g_filelist_view = true;
             this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
+            UpdateScaleMenuChecks();
             BringToFront();
         }
 
@@ -111,14 +143,43 @@ namespace MDTracer
             }
         }
 
+        private void Form_Main_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetDataPresent(DataFormats.FileDrop) == true)
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void Form_Main_DragDrop(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetData(DataFormats.FileDrop) is not string[] w_files || w_files.Length == 0) return;
+            StartGameWithRom(w_files[0]);
+        }
+
+        private void StartGameWithRom(string in_path)
+        {
+            if (string.IsNullOrEmpty(in_path) == true) return;
+            if (md_main.run(in_path) == false) return;
+
+            file_list_update(in_path);
+            this.MaximumSize = new Size(0, 0);
+            this.MinimumSize = new Size(0, 0);
+            this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
+            this.Width = g_screen_size_x + 16;
+            this.Height = g_screen_size_y + 85;
+            g_filelist_view = false;
+            WinFormsDebugTools.g_form_setting.show_window();
+        }
+
         private void pictureBox_game_Paint(object sender, PaintEventArgs e)
         {
             if (g_filelist_view == true)
             {
-                using Font wfont = new Font("�l�r �S�V�b�N", 10);
+                using Font wfont = new Font(SystemFonts.MessageBoxFont.FontFamily, 10);
                 Brush wbrush = Brushes.White;
-                e.Graphics.DrawString("file select", wfont, wbrush, new PointF(20, 20));
-                e.Graphics.DrawString("(F key: Select in File Explorer)", wfont, wbrush, new PointF(30, 40));
+                e.Graphics.DrawString("ROM Select", wfont, wbrush, new PointF(20, 20));
+                e.Graphics.DrawString("(F: browse, 1-9: recent, or drag a ROM file here)", wfont, wbrush, new PointF(30, 40));
                 for (int i = 0; i < 9; i++)
                 {
                     string w_filename = Path.GetFileName(g_file_name[i]);
@@ -132,6 +193,18 @@ namespace MDTracer
         //----------------------------------------------------------------
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Alt | Keys.Enter))
+            {
+                ToggleFullscreen();
+                return true;
+            }
+
+            if (g_fullscreen.IsFullscreen == true && keyData == Keys.Escape)
+            {
+                ToggleFullscreen();
+                return true;
+            }
+
             if (g_filelist_view == false)
             {
                 switch (keyData)
@@ -199,16 +272,7 @@ namespace MDTracer
             }
             if ((g_filelist_view == true) && (w_filename != null) && (w_filename != ""))
             {
-                if (true == md_main.run(w_filename))
-                {
-                    file_list_update(w_filename);
-                    this.MaximumSize = new Size(0, 0);
-                    this.MinimumSize = new Size(0, 0);
-                    this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
-                    this.Width = g_screen_size_x + 16;
-                    this.Height = g_screen_size_y + 85;
-                    g_filelist_view = false;
-                }
+                StartGameWithRom(w_filename);
             }
         }
 
@@ -286,8 +350,7 @@ namespace MDTracer
         }
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var newForm = new Form_About();
-            newForm.ShowDialog();
+            WinFormsAboutDialog.Show(this);
         }
         private static void openSaveFolder(string in_folderName)
         {
@@ -307,8 +370,7 @@ namespace MDTracer
         public void picture_update(int in_cpu)
         {
             if (IsDisposed == true || IsHandleCreated == false) return;
-            Size w_clientSize = GetGamePanelClientSize();
-            if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
+            if (Interlocked.Exchange(ref g_frame_update_pending, 1) == 1) return;
 
             g_filelist_view = false;
             string w_statusText1 = "task usage:" + in_cpu + "%";
@@ -316,28 +378,51 @@ namespace MDTracer
                                 + (md_main.g_md_io.g_input_replaying ? "INPUT PLAY" : "")
                                 + (g_videoRecorder != null ? "  VIDEO REC" : "");
             string w_statusText3 = (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
-            Bitmap w_displayBitmap;
+
+            try
+            {
+                BeginInvoke(new Action<string, string, string>(ApplyPictureUpdate), w_statusText1, w_statusText2, w_statusText3);
+            }
+            catch
+            {
+                Interlocked.Exchange(ref g_frame_update_pending, 0);
+            }
+        }
+
+        private void ApplyPictureUpdate(string in_statusText1, string in_statusText2, string in_statusText3)
+        {
+            Interlocked.Exchange(ref g_frame_update_pending, 0);
+            if (IsDisposed == true || IsHandleCreated == false) return;
+            if (WindowState == FormWindowState.Minimized) return;
+
+            Size w_clientSize = panel_game.ClientSize;
+            if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
+
             int w_bitmap_x = w_clientSize.Width;
             int w_bitmap_y = w_clientSize.Height;
+            int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
+            int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
+            uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
+
             lock (g_bitmapLock)
             {
-                int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
-                int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
-                uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
-
                 if (g_work_bitmap == null || g_work_bitmapW != w_bitmap_x || g_work_bitmapH != w_bitmap_y)
                 {
                     g_work_bitmap?.Dispose();
+                    g_display_bitmap?.Dispose();
                     g_work_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y, PixelFormat.Format32bppArgb);
+                    g_display_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y, PixelFormat.Format32bppArgb);
                     g_work_bitmapW = w_bitmap_x;
                     g_work_bitmapH = w_bitmap_y;
                 }
+
                 WinFormsGameScreenBitmap.WriteScaledPixels(
-                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_work_bitmap);
+                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_work_bitmap, g_scale_mode);
                 videoRecordingAddFrame(g_work_bitmap);
-                w_displayBitmap = new Bitmap(g_work_bitmap);
+                (g_work_bitmap, g_display_bitmap) = (g_display_bitmap, g_work_bitmap);
             }
-            UpdateGamePicture(w_displayBitmap, w_bitmap_x, w_bitmap_y, w_statusText1, w_statusText2, w_statusText3);
+
+            UpdateGamePicture(g_display_bitmap, w_bitmap_x, w_bitmap_y, in_statusText1, in_statusText2, in_statusText3);
         }
 
         private Size GetGamePanelClientSize()
@@ -361,11 +446,7 @@ namespace MDTracer
 
         private void UpdateGamePicture(Bitmap in_bitmap, int in_width, int in_height, string in_statusText1, string in_statusText2, string in_statusText3)
         {
-            if (IsDisposed == true || IsHandleCreated == false)
-            {
-                in_bitmap.Dispose();
-                return;
-            }
+            if (IsDisposed == true || IsHandleCreated == false) return;
             if (InvokeRequired == true)
             {
                 try
@@ -374,24 +455,39 @@ namespace MDTracer
                 }
                 catch
                 {
-                    in_bitmap.Dispose();
                 }
                 return;
             }
 
-            if (WindowState == FormWindowState.Minimized)
-            {
-                in_bitmap.Dispose();
-                return;
-            }
+            if (WindowState == FormWindowState.Minimized) return;
 
             toolStripStatusLabel1.Text = in_statusText1;
             toolStripStatusLabel2.Text = in_statusText2;
             toolStripStatusLabel3.Text = in_statusText3;
-            pictureBox_game.Image?.Dispose();
             pictureBox_game.Image = in_bitmap;
             pictureBox_game.Width = in_width;
             pictureBox_game.Height = in_height;
+        }
+
+        private void SetScaleMode(GameScreenScaleMode in_mode)
+        {
+            g_scale_mode = in_mode;
+            UpdateScaleMenuChecks();
+            md_main.write_setting();
+        }
+
+        private void ToggleFullscreen()
+        {
+            g_fullscreen.Toggle(this, menuStrip1, statusStrip1);
+            if (g_fullscreenMenuItem != null) g_fullscreenMenuItem.Checked = g_fullscreen.IsFullscreen;
+        }
+
+        public void UpdateScaleMenuChecks()
+        {
+            if (g_scaleIntegerMenuItem == null || g_scaleStretchMenuItem == null) return;
+            g_scaleIntegerMenuItem.Checked = g_scale_mode == GameScreenScaleMode.IntegerFit;
+            g_scaleStretchMenuItem.Checked = g_scale_mode == GameScreenScaleMode.Stretch;
+            if (g_fullscreenMenuItem != null) g_fullscreenMenuItem.Checked = g_fullscreen.IsFullscreen;
         }
         //----------------------------------------------------------------
         //Sub
@@ -422,29 +518,11 @@ namespace MDTracer
                     return;
                 }
 
-                string w_basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string w_directoryPath = Path.Combine(w_basePath, "MDTracer", "Screenshot");
-                Directory.CreateDirectory(w_directoryPath);
-
-                string w_romName = md_main.g_state_capture_rom_file_name;
-                if (string.IsNullOrEmpty(w_romName) == true) w_romName = "screenshot";
-                foreach (char w_char in Path.GetInvalidFileNameChars())
-                {
-                    w_romName = w_romName.Replace(w_char, '_');
-                }
-
                 string w_timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
-                string w_filePrefix = w_romName + "_screenshot_" + w_timeStamp + "_screen";
-                string w_filePath = Path.Combine(w_directoryPath, w_filePrefix + ".png");
-                int w_suffix = 1;
-                while (File.Exists(w_filePath) == true)
-                {
-                    w_filePath = Path.Combine(w_directoryPath, w_filePrefix + "_" + w_suffix + ".png");
-                    w_suffix++;
-                }
-
-                using Bitmap w_bitmap = new Bitmap(w_image);
-                w_bitmap.Save(w_filePath, ImageFormat.Png);
+                string w_filePath = GenesisEmu.Frontend.Windows.WinFormsGameScreenshot.SavePng(
+                    w_image,
+                    "MDTracer",
+                    md_main.g_state_capture_rom_file_name);
                 vdpScreensScreenshot(w_timeStamp);
                 toolStripStatusLabel1.Text = "screenshot saved: " + Path.GetFileName(w_filePath);
             }
@@ -663,59 +741,34 @@ namespace MDTracer
         }
         private void StateRestoreLatestWithMatchingInputReplay()
         {
-            CaptureListEntry? w_entry = GetLatestCaptureEntry();
+            CaptureListSelection? w_entry = GetLatestCaptureEntry();
             if (w_entry == null)
             {
                 StateRestoreLatest();
                 return;
             }
 
-            ExecuteCaptureEntry(w_entry.StateEntry, w_entry.InputEntry);
+            ExecuteCaptureEntry(w_entry.StateFilePath, w_entry.InputFilePath);
         }
         private void StateRestoreLatest()
         {
             md_main.request_state_capture_restore_latest();
         }
-        private CaptureListEntry? GetLatestCaptureEntry()
+        private CaptureListSelection? GetLatestCaptureEntry()
         {
-            Dictionary<string, CaptureListEntry> w_entries = new Dictionary<string, CaptureListEntry>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (md_main.StateListEntry w_stateEntry in md_main.StateStore.GetEntries())
-            {
-                string w_timestamp = Path.GetFileNameWithoutExtension(w_stateEntry.FilePath);
-                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
-                {
-                    w_entry = new CaptureListEntry(w_timestamp);
-                    w_entries.Add(w_timestamp, w_entry);
-                }
-                w_entry.StateEntry = w_stateEntry;
-            }
-
-            foreach (md_main.InputRecordEntry w_inputEntry in md_main.InputRecordStore.GetEntries())
-            {
-                string w_timestamp = Path.GetFileNameWithoutExtension(w_inputEntry.FilePath);
-                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
-                {
-                    w_entry = new CaptureListEntry(w_timestamp);
-                    w_entries.Add(w_timestamp, w_entry);
-                }
-                w_entry.InputEntry = w_inputEntry;
-            }
-
-            return w_entries.Values
-                .OrderByDescending(in_entry => in_entry.Timestamp, StringComparer.OrdinalIgnoreCase)
-                .FirstOrDefault();
+            CaptureListEntry? w_entry = WinFormsCaptureList.BuildEntries(CaptureListMode.StateAndInput).FirstOrDefault();
+            return w_entry?.ToSelection();
         }
         private void capture_list()
         {
             try
             {
-                using Form_Main_Capture_list w_form = new Form_Main_Capture_list();
+                using WinFormsCaptureListDialog w_form = new WinFormsCaptureListDialog(CaptureListMode.StateAndInput);
                 w_form.EntrySelected += in_entry =>
                 {
                     try
                     {
-                        ExecuteCaptureEntry(in_entry.StateEntry, in_entry.InputEntry);
+                        ExecuteCaptureEntry(in_entry.StateFilePath, in_entry.InputFilePath);
                     }
                     catch (Exception ex)
                     {
@@ -729,22 +782,24 @@ namespace MDTracer
                 MessageBox.Show(ex.Message, "Capture History");
             }
         }
-        private void ExecuteCaptureEntry(md_main.StateListEntry? in_stateEntry, md_main.InputRecordEntry? in_inputEntry)
+        private void ExecuteCaptureEntry(string? in_stateFilePath, string? in_inputFilePath)
         {
-            md_main.InputRecordEntry? w_inputEntry = in_inputEntry;
-            if (in_stateEntry != null)
+            string? w_inputFilePath = in_inputFilePath;
+            if (string.IsNullOrEmpty(in_stateFilePath) == false)
             {
-                md_main.request_state_capture_restore_file(in_stateEntry.FilePath);
-                if (w_inputEntry == null)
+                md_main.request_state_capture_restore_file(in_stateFilePath);
+                if (string.IsNullOrEmpty(w_inputFilePath) == true)
                 {
-                    string w_filePrefix = Path.GetFileNameWithoutExtension(in_stateEntry.FilePath);
-                    w_inputEntry = md_main.InputRecordStore.GetEntryByFileNameWithoutExtension(w_filePrefix);
+                    string w_filePrefix = Path.GetFileNameWithoutExtension(in_stateFilePath);
+                    md_main.InputRecordEntry? w_inputEntry =
+                        md_main.InputRecordStore.GetEntryByFileNameWithoutExtension(w_filePrefix);
+                    w_inputFilePath = w_inputEntry?.FilePath;
                 }
             }
 
-            if (w_inputEntry != null)
+            if (string.IsNullOrEmpty(w_inputFilePath) == false)
             {
-                md_main.input_capture_replay_file(w_inputEntry.FilePath);
+                md_main.input_capture_replay_file(w_inputFilePath);
             }
         }
         private void input_capture_Start()

@@ -78,7 +78,7 @@ namespace MDTracer
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { SettingMenuItem1, exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(58, 20);
-            fileToolStripMenuItem.Text = "Control";
+            fileToolStripMenuItem.Text = "&File";
             // 
             // SettingMenuItem1
             // 
@@ -230,7 +230,7 @@ namespace MDTracer
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             aboutToolStripMenuItem.Size = new Size(50, 20);
-            aboutToolStripMenuItem.Text = "about";
+            aboutToolStripMenuItem.Text = "&About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
@@ -294,7 +294,10 @@ namespace MDTracer
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "Form_Main";
-            Text = "MD Tracer";
+            Text = "GenesisEmu — MD Tracer";
+            AllowDrop = true;
+            DragEnter += Form_Main_DragEnter;
+            DragDrop += Form_Main_DragDrop;
             FormClosing += Form_Main_FormClosing;
             Load += Form_Main_Load;
             ResizeEnd += Form_Main_ResizeEnd;

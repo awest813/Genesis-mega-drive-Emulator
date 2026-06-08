@@ -9,11 +9,45 @@ namespace MDTracer
         //----------------------------------------------------------------
         //form
         //----------------------------------------------------------------
+        private ComboBox? comboBox_scaleMode;
+
         public Form_Setting()
         {
             InitializeComponent();
             this.MaximumSize = this.Size;
             this.MinimumSize = this.Size;
+            InitializeScaleModeControls();
+        }
+
+        private void InitializeScaleModeControls()
+        {
+            var w_label = new Label
+            {
+                AutoSize = true,
+                Location = new Point(10, 73),
+                Text = "Display scale",
+            };
+            comboBox_scaleMode = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(110, 70),
+                Size = new Size(85, 23),
+            };
+            comboBox_scaleMode.Items.AddRange(new object[] { "Stretch", "Integer" });
+            comboBox_scaleMode.SelectedIndexChanged += comboBox_scaleMode_SelectedIndexChanged;
+            groupBox3.Controls.Add(w_label);
+            groupBox3.Controls.Add(comboBox_scaleMode);
+            groupBox3.Height = 104;
+        }
+
+        private void comboBox_scaleMode_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (g_updating == true || comboBox_scaleMode == null) return;
+            Form_Main.g_scale_mode = comboBox_scaleMode.SelectedIndex == 1
+                ? GenesisEmu.Frontend.Windows.GameScreenScaleMode.IntegerFit
+                : GenesisEmu.Frontend.Windows.GameScreenScaleMode.Stretch;
+            Form_Main.Instance?.UpdateScaleMenuChecks();
+            md_main.write_setting();
         }
 
         //----------------------------------------------------------------
@@ -159,6 +193,11 @@ namespace MDTracer
                 checkBox_sip.Checked = md_main.g_debugView.trace_sip;
                 comboBox_videoformat.SelectedIndex = md_main.g_md_vdp.g_vdp_status_0_tvmode;
                 comboBox_rendering.SelectedIndex = (md_main.g_md_vdp.rendering_gpu == false) ? 0 : 1;
+                if (comboBox_scaleMode != null)
+                {
+                    comboBox_scaleMode.SelectedIndex =
+                        Form_Main.g_scale_mode == GenesisEmu.Frontend.Windows.GameScreenScaleMode.IntegerFit ? 1 : 0;
+                }
                 checkBox_viewA.Checked = g_vdp.g_overlay_view_screenA;
                 checkBox_viewB.Checked = g_vdp.g_overlay_view_screenB;
                 checkBox_viewW.Checked = g_vdp.g_overlay_view_screenW;

@@ -13,4 +13,9 @@
     <ProjectReference Include="..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="GenesisEmu.Game" />
+    <InternalsVisibleTo Include="MDTracer" />
+  </ItemGroup>
+
 </Project>

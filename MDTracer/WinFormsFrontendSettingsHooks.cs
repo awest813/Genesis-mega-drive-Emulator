@@ -13,6 +13,11 @@ namespace MDTracer
                     Form_Main.g_screen_size_x = int.Parse(w_val[2]);
                     Form_Main.g_screen_size_y = int.Parse(w_val[3]);
                     return true;
+                case "game_scale":
+                    Form_Main.g_scale_mode = in_value == "1"
+                        ? GenesisEmu.Frontend.Windows.GameScreenScaleMode.IntegerFit
+                        : GenesisEmu.Frontend.Windows.GameScreenScaleMode.Stretch;
+                    return true;
                 case "screenA":
                     md_main.g_debugView.screenA_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_screenA.g_screen_xpos = int.Parse(w_val[1]);
@@ -99,6 +104,9 @@ namespace MDTracer
                 + ":" + Form_Main.g_screen_size_x
                 + ":" + Form_Main.g_screen_size_y;
             settingAdd("screen_main", w_val);
+            settingAdd(
+                "game_scale",
+                Form_Main.g_scale_mode == GenesisEmu.Frontend.Windows.GameScreenScaleMode.IntegerFit ? "1" : "0");
 
             w_val = ((md_main.g_debugView.screenA_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_screenA.g_screen_xpos

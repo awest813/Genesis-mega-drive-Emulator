@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using GenesisEmu.Frontend.Windows;
@@ -13,6 +14,12 @@ namespace GenesisEmu.Game
     {
         private const int DefaultClientWidth = 640;
         private const int DefaultClientHeight = 448;
+        public static int g_screen_size_x = DefaultClientWidth;
+        public static int g_screen_size_y = DefaultClientHeight;
+        public static int g_screen_xpos;
+        public static int g_screen_ypos;
+        public static string[] g_file_name = new string[9];
+        public static GameScreenScaleMode g_scale_mode = GameScreenScaleMode.IntegerFit;
 
         private readonly Panel g_gamePanel;
         private readonly PictureBox g_pictureBox;
@@ -20,11 +27,19 @@ namespace GenesisEmu.Game
         private readonly ToolStripStatusLabel g_statusCpu;
         private readonly ToolStripStatusLabel g_statusRom;
         private readonly OpenFileDialog g_openFileDialog;
+        private readonly ToolStripMenuItem g_scaleStretchItem;
+        private readonly ToolStripMenuItem g_scaleIntegerItem;
+        private readonly ToolStripMenuItem g_fullscreenItem;
+        private readonly MenuStrip g_menuStrip;
+        private readonly WinFormsFullscreenHelper g_fullscreen = new();
         private readonly object g_bitmapLock = new object();
         private Bitmap? g_workBitmap;
+        private Bitmap? g_displayBitmap;
         private int g_workBitmapWidth = -1;
         private int g_workBitmapHeight = -1;
         private bool g_romLoaded;
+        private string? g_pendingRomPath;
+        private int g_frameUpdatePending;
 
         public GameForm(string[] in_args)
         {
@@ -35,11 +50,21 @@ namespace GenesisEmu.Game
             KeyPreview = true;
 
             var w_menu = new MenuStrip();
+
             var w_fileMenu = new ToolStripMenuItem("&File");
             var w_openItem = new ToolStripMenuItem("&Open ROM...", null, (_, _) => OpenRomDialog());
             w_openItem.ShortcutKeys = Keys.Control | Keys.O;
+            var w_screenshotItem = new ToolStripMenuItem("&Screenshot", null, (_, _) => Screenshot());
+            w_screenshotItem.ShortcutKeys = Keys.F10;
+            var w_openScreenshotFolderItem = new ToolStripMenuItem(
+                "Open Screenshot &Folder",
+                null,
+                (_, _) => OpenScreenshotFolder());
             var w_exitItem = new ToolStripMenuItem("E&xit", null, (_, _) => Close());
             w_fileMenu.DropDownItems.Add(w_openItem);
+            w_fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            w_fileMenu.DropDownItems.Add(w_screenshotItem);
+            w_fileMenu.DropDownItems.Add(w_openScreenshotFolderItem);
             w_fileMenu.DropDownItems.Add(new ToolStripSeparator());
             w_fileMenu.DropDownItems.Add(w_exitItem);
 
@@ -52,14 +77,58 @@ namespace GenesisEmu.Game
             w_resetItem.ShortcutKeys = Keys.F12;
             var w_saveItem = new ToolStripMenuItem("&Save State", null, (_, _) => SaveState());
             w_saveItem.ShortcutKeys = Keys.F1;
+            var w_loadItem = new ToolStripMenuItem("&Load Latest State", null, (_, _) => LoadState());
+            w_loadItem.ShortcutKeys = Keys.F4;
+            var w_stateListItem = new ToolStripMenuItem("State &List...", null, (_, _) => OpenStateList());
+            w_stateListItem.ShortcutKeys = Keys.Control | Keys.F4;
+            var w_openStateFolderItem = new ToolStripMenuItem(
+                "Open Save States &Folder",
+                null,
+                (_, _) => OpenStateFolder());
             w_emulationMenu.DropDownItems.Add(w_pauseItem);
             w_emulationMenu.DropDownItems.Add(w_frameItem);
             w_emulationMenu.DropDownItems.Add(w_resetItem);
             w_emulationMenu.DropDownItems.Add(new ToolStripSeparator());
             w_emulationMenu.DropDownItems.Add(w_saveItem);
+            w_emulationMenu.DropDownItems.Add(w_loadItem);
+            w_emulationMenu.DropDownItems.Add(w_stateListItem);
+            w_emulationMenu.DropDownItems.Add(w_openStateFolderItem);
+
+            var w_viewMenu = new ToolStripMenuItem("&View");
+            g_scaleIntegerItem = new ToolStripMenuItem(
+                "&Integer Scale (letterbox)",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.IntegerFit));
+            g_scaleStretchItem = new ToolStripMenuItem(
+                "&Stretch to Window",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.Stretch));
+            g_fullscreenItem = new ToolStripMenuItem(
+                "&Fullscreen",
+                null,
+                (_, _) => ToggleFullscreen());
+            g_fullscreenItem.ShortcutKeys = Keys.Alt | Keys.Enter;
+            w_viewMenu.DropDownItems.Add(g_scaleIntegerItem);
+            w_viewMenu.DropDownItems.Add(g_scaleStretchItem);
+            w_viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            w_viewMenu.DropDownItems.Add(g_fullscreenItem);
+
+            var w_optionsMenu = new ToolStripMenuItem("&Options");
+            var w_controlsItem = new ToolStripMenuItem("&Controller Settings (P1 / P2)...", null, (_, _) => OpenControlsDialog());
+            var w_gamepadItem = new ToolStripMenuItem("&Gamepad Device...", null, (_, _) => OpenGamepadDialog());
+            w_optionsMenu.DropDownItems.Add(w_controlsItem);
+            w_optionsMenu.DropDownItems.Add(w_gamepadItem);
+
+            var w_helpMenu = new ToolStripMenuItem("&Help");
+            var w_aboutItem = new ToolStripMenuItem("&About GenesisEmu...", null, (_, _) => WinFormsAboutDialog.Show(this));
+            w_helpMenu.DropDownItems.Add(w_aboutItem);
 
             w_menu.Items.Add(w_fileMenu);
             w_menu.Items.Add(w_emulationMenu);
+            w_menu.Items.Add(w_viewMenu);
+            w_menu.Items.Add(w_optionsMenu);
+            w_menu.Items.Add(w_helpMenu);
+            g_menuStrip = w_menu;
             MainMenuStrip = w_menu;
             Controls.Add(w_menu);
 
@@ -71,11 +140,16 @@ namespace GenesisEmu.Game
             g_pictureBox = new PictureBox
             {
                 Dock = DockStyle.Fill,
-                SizeMode = PictureBoxSizeMode.StretchImage,
+                SizeMode = PictureBoxSizeMode.Normal,
                 BackColor = Color.Black,
             };
+            g_pictureBox.Paint += GamePictureBox_Paint;
             g_gamePanel.Controls.Add(g_pictureBox);
             Controls.Add(g_gamePanel);
+            g_gamePanel.Resize += (_, _) =>
+            {
+                if (g_romLoaded == false) g_pictureBox.Invalidate();
+            };
 
             g_statusStrip = new StatusStrip();
             g_statusCpu = new ToolStripStatusLabel("Ready");
@@ -92,6 +166,7 @@ namespace GenesisEmu.Game
 
             Load += GameForm_Load;
             FormClosing += GameForm_FormClosing;
+            ResizeEnd += GameForm_ResizeEnd;
             DragEnter += GameForm_DragEnter;
             DragDrop += GameForm_DragDrop;
             AllowDrop = true;
@@ -102,29 +177,74 @@ namespace GenesisEmu.Game
             }
         }
 
-        private string? g_pendingRomPath;
-
         private void GameForm_Load(object? sender, EventArgs e)
         {
             g_pictureBox.Image = new Bitmap(320, 240);
             WindowsPlatformServices.Register();
+            md_main.g_frontendSettings = new GameFrontendSettingsHooks();
             md_main.initialize();
+            md_main.read_setting();
             md_main.g_mainLoopUI = new GameMainLoopUiHooks(this);
             md_main.g_md_music.setting();
+
+            if (g_screen_size_x <= 0) g_screen_size_x = DefaultClientWidth;
+            if (g_screen_size_y <= 0) g_screen_size_y = DefaultClientHeight;
+            if (g_screen_xpos != 0 || g_screen_ypos != 0)
+            {
+                Location = new Point(g_screen_xpos, g_screen_ypos);
+            }
+            ClientSize = new Size(g_screen_size_x, g_screen_size_y + (ClientSize.Height - g_gamePanel.ClientSize.Height));
+
+            UpdateScaleMenuChecks();
 
             if (string.IsNullOrEmpty(g_pendingRomPath) == false)
             {
                 LoadRom(g_pendingRomPath);
             }
+            else if (string.IsNullOrEmpty(g_file_name[0]) == false && File.Exists(g_file_name[0]))
+            {
+                g_statusCpu.Text = "Open a ROM (Ctrl+O), drag a file, or pick a recent ROM";
+            }
             else
             {
                 g_statusCpu.Text = "Open a ROM (Ctrl+O) or drag a file onto the window";
             }
+
+            RebuildRecentRomMenu();
+            if (g_romLoaded == false) g_pictureBox.Invalidate();
+        }
+
+        private void GamePictureBox_Paint(object? sender, PaintEventArgs e)
+        {
+            if (g_romLoaded == true) return;
+
+            e.Graphics.Clear(Color.Black);
+            using Font w_font = new Font(SystemFonts.MessageBoxFont.FontFamily, 10);
+            using Brush w_brush = new SolidBrush(Color.FromArgb(220, 220, 220));
+            e.Graphics.DrawString("GenesisEmu", new Font(w_font.FontFamily, 14, FontStyle.Bold), w_brush, new PointF(24, 24));
+            e.Graphics.DrawString("Open a ROM (Ctrl+O) or drag a file here", w_font, w_brush, new PointF(24, 52));
+            e.Graphics.DrawString("Recent ROMs appear under File after you load a game", w_font, w_brush, new PointF(24, 72));
+            e.Graphics.DrawString("Esc pause  ·  F1 save  ·  F4 load  ·  Ctrl+F4 state list  ·  F10 screenshot", w_font, w_brush, new PointF(24, 100));
         }
 
         private void GameForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
+            g_screen_xpos = Location.X;
+            g_screen_ypos = Location.Y;
+            g_screen_size_x = ClientSize.Width;
+            g_screen_size_y = g_gamePanel.ClientSize.Height;
+            md_main.write_setting();
             md_main.g_md_sram.save();
+        }
+
+        private void GameForm_ResizeEnd(object? sender, EventArgs e)
+        {
+            if (WindowState != FormWindowState.Normal) return;
+            g_screen_xpos = Location.X;
+            g_screen_ypos = Location.Y;
+            g_screen_size_x = ClientSize.Width;
+            g_screen_size_y = g_gamePanel.ClientSize.Height;
+            md_main.write_setting();
         }
 
         private void GameForm_DragEnter(object? sender, DragEventArgs e)
@@ -143,6 +263,23 @@ namespace GenesisEmu.Game
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            switch (keyData)
+            {
+                case Keys.F10:
+                    Screenshot();
+                    return true;
+                case Keys.Alt | Keys.Enter:
+                case Keys.F11:
+                    ToggleFullscreen();
+                    return true;
+            }
+
+            if (g_fullscreen.IsFullscreen == true && keyData == Keys.Escape)
+            {
+                ToggleFullscreen();
+                return true;
+            }
+
             if (g_romLoaded == false) return base.ProcessCmdKey(ref msg, keyData);
 
             switch (keyData)
@@ -152,6 +289,12 @@ namespace GenesisEmu.Game
                     return true;
                 case Keys.F1:
                     SaveState();
+                    return true;
+                case Keys.F4:
+                    LoadState();
+                    return true;
+                case Keys.Control | Keys.F4:
+                    OpenStateList();
                     return true;
                 case Keys.F5:
                     FrameAdvance();
@@ -184,9 +327,12 @@ namespace GenesisEmu.Game
             }
 
             g_romLoaded = true;
+            g_pictureBox.Invalidate();
+            UpdateRecentRomList(in_path);
             g_statusRom.Text = Path.GetFileName(in_path);
             g_statusCpu.Text = "Running";
             Text = "GenesisEmu — " + Path.GetFileName(in_path);
+            RebuildRecentRomMenu();
         }
 
         private void TogglePause()
@@ -218,6 +364,184 @@ namespace GenesisEmu.Game
             if (g_romLoaded == false) return;
             if (md_main.StateStore.IsAvailable() == false) return;
             md_main.request_state_capture_save();
+            g_statusCpu.Text = "State saved";
+        }
+
+        private void LoadState()
+        {
+            if (g_romLoaded == false) return;
+            if (md_main.StateStore.IsAvailable() == false) return;
+            md_main.request_state_capture_restore_latest();
+            g_statusCpu.Text = "State loaded";
+        }
+
+        private void OpenStateList()
+        {
+            if (g_romLoaded == false)
+            {
+                MessageBox.Show(this, "Load a ROM before opening the state list.", "Save State History", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (md_main.StateStore.IsAvailable() == false) return;
+
+            try
+            {
+                using var w_dialog = new WinFormsCaptureListDialog(CaptureListMode.StateOnly);
+                w_dialog.EntrySelected += in_entry =>
+                {
+                    if (string.IsNullOrEmpty(in_entry.StateFilePath) == true) return;
+                    md_main.request_state_capture_restore_file(in_entry.StateFilePath);
+                    g_statusCpu.Text = "State loaded";
+                };
+                w_dialog.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Save State History", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void Screenshot()
+        {
+            if (g_romLoaded == false)
+            {
+                MessageBox.Show(this, "Load a ROM before taking a screenshot.", "Screenshot", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                Image? w_image = g_pictureBox.Image;
+                if (w_image == null)
+                {
+                    g_statusCpu.Text = "Screenshot image is empty";
+                    return;
+                }
+
+                string w_filePath = WinFormsGameScreenshot.SavePng(
+                    w_image,
+                    "GenesisEmu",
+                    md_main.g_state_capture_rom_file_name);
+                g_statusCpu.Text = "Screenshot saved: " + Path.GetFileName(w_filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Screenshot", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OpenScreenshotFolder()
+        {
+            string w_folder = WinFormsGameScreenshot.GetScreenshotFolder("GenesisEmu");
+            Directory.CreateDirectory(w_folder);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = w_folder,
+                UseShellExecute = true,
+            });
+        }
+
+        private void SetScaleMode(GameScreenScaleMode in_mode)
+        {
+            g_scale_mode = in_mode;
+            UpdateScaleMenuChecks();
+            md_main.write_setting();
+        }
+
+        private void ToggleFullscreen()
+        {
+            g_fullscreen.Toggle(this, g_menuStrip, g_statusStrip);
+            g_fullscreenItem.Checked = g_fullscreen.IsFullscreen;
+        }
+
+        private void OpenControlsDialog()
+        {
+            using var w_dialog = new GameControlsDialog();
+            w_dialog.ShowDialog(this);
+        }
+
+        private void OpenGamepadDialog()
+        {
+            using var w_dialog = new GameGamepadDialog();
+            w_dialog.ShowDialog(this);
+        }
+
+        private void OpenStateFolder()
+        {
+            try
+            {
+                WinFormsStateFolder.OpenCurrentRomStateDirectory();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Save States", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void UpdateScaleMenuChecks()
+        {
+            g_scaleIntegerItem.Checked = g_scale_mode == GameScreenScaleMode.IntegerFit;
+            g_scaleStretchItem.Checked = g_scale_mode == GameScreenScaleMode.Stretch;
+            g_fullscreenItem.Checked = g_fullscreen.IsFullscreen;
+        }
+
+        private void RebuildRecentRomMenu()
+        {
+            if (MainMenuStrip?.Items[0] is not ToolStripMenuItem w_fileMenu) return;
+
+            for (int i = w_fileMenu.DropDownItems.Count - 1; i >= 0; i--)
+            {
+                if (w_fileMenu.DropDownItems[i].Tag as string == "recent")
+                {
+                    w_fileMenu.DropDownItems.RemoveAt(i);
+                }
+            }
+
+            bool w_hasRecent = false;
+            for (int i = 0; i < 9; i++)
+            {
+                if (string.IsNullOrEmpty(g_file_name[i])) continue;
+                w_hasRecent = true;
+                break;
+            }
+            if (w_hasRecent == false) return;
+
+            int w_insertIndex = 1;
+            w_fileMenu.DropDownItems.Insert(w_insertIndex++, new ToolStripSeparator { Tag = "recent" });
+
+            for (int i = 0; i < 9; i++)
+            {
+                string w_path = g_file_name[i];
+                if (string.IsNullOrEmpty(w_path)) continue;
+
+                string w_label = "&" + (i + 1) + " " + Path.GetFileName(w_path);
+                var w_item = new ToolStripMenuItem(w_label, null, (_, _) => LoadRom(w_path))
+                {
+                    Tag = "recent",
+                    Enabled = File.Exists(w_path),
+                };
+                w_fileMenu.DropDownItems.Insert(w_insertIndex++, w_item);
+            }
+        }
+
+        private static void UpdateRecentRomList(string in_file)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (g_file_name[i] == in_file)
+                {
+                    for (int m = i; m < 8; m++)
+                    {
+                        g_file_name[m] = g_file_name[m + 1];
+                    }
+                    break;
+                }
+            }
+            for (int i = 8; i >= 1; i--)
+            {
+                g_file_name[i] = g_file_name[i - 1];
+            }
+            g_file_name[0] = in_file;
         }
 
         public void PictureUpdate(int in_cpuUsage)
@@ -225,65 +549,58 @@ namespace GenesisEmu.Game
             if (IsDisposed == true || IsHandleCreated == false) return;
             if (g_romLoaded == false) return;
 
+            string w_statusText = "CPU load: " + in_cpuUsage + "%";
+            if (Interlocked.Exchange(ref g_frameUpdatePending, 1) == 1) return;
+
+            try
+            {
+                BeginInvoke(new Action<string>(ApplyPictureUpdate), w_statusText);
+            }
+            catch
+            {
+                Interlocked.Exchange(ref g_frameUpdatePending, 0);
+            }
+        }
+
+        private void ApplyPictureUpdate(string in_statusText)
+        {
+            Interlocked.Exchange(ref g_frameUpdatePending, 0);
+            if (IsDisposed == true || IsHandleCreated == false) return;
+            if (WindowState == FormWindowState.Minimized) return;
+
             Size w_clientSize = g_gamePanel.ClientSize;
             if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
 
-            string w_statusText = "CPU load: " + in_cpuUsage + "%";
-            Bitmap w_displayBitmap;
             int w_bitmapWidth = w_clientSize.Width;
             int w_bitmapHeight = w_clientSize.Height;
+            int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
+            int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
+            uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
 
             lock (g_bitmapLock)
             {
-                int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
-                int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
-                uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
-
                 if (g_workBitmap == null || g_workBitmapWidth != w_bitmapWidth || g_workBitmapHeight != w_bitmapHeight)
                 {
                     g_workBitmap?.Dispose();
+                    g_displayBitmap?.Dispose();
                     g_workBitmap = new Bitmap(w_bitmapWidth, w_bitmapHeight, PixelFormat.Format32bppArgb);
+                    g_displayBitmap = new Bitmap(w_bitmapWidth, w_bitmapHeight, PixelFormat.Format32bppArgb);
                     g_workBitmapWidth = w_bitmapWidth;
                     g_workBitmapHeight = w_bitmapHeight;
                 }
 
                 WinFormsGameScreenBitmap.WriteScaledPixels(
-                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_workBitmap);
-                w_displayBitmap = new Bitmap(g_workBitmap);
-            }
+                    w_gameScreen,
+                    w_sourceWidth,
+                    w_sourceHeight,
+                    g_workBitmap,
+                    g_scale_mode);
 
-            UpdateGamePicture(w_displayBitmap, w_statusText);
-        }
-
-        private void UpdateGamePicture(Bitmap in_bitmap, string in_statusText)
-        {
-            if (IsDisposed == true || IsHandleCreated == false)
-            {
-                in_bitmap.Dispose();
-                return;
-            }
-            if (InvokeRequired == true)
-            {
-                try
-                {
-                    BeginInvoke(new Action<Bitmap, string>(UpdateGamePicture), in_bitmap, in_statusText);
-                }
-                catch
-                {
-                    in_bitmap.Dispose();
-                }
-                return;
-            }
-
-            if (WindowState == FormWindowState.Minimized)
-            {
-                in_bitmap.Dispose();
-                return;
+                (g_workBitmap, g_displayBitmap) = (g_displayBitmap, g_workBitmap);
             }
 
             g_statusCpu.Text = in_statusText;
-            g_pictureBox.Image?.Dispose();
-            g_pictureBox.Image = in_bitmap;
+            g_pictureBox.Image = g_displayBitmap;
         }
     }
 }
