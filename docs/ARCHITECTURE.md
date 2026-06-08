@@ -223,8 +223,8 @@ The following coupling points are being untangled before extracting a standalone
 2. `md_main` still owns debug-window visibility flags (`g_screenA_enable`, etc.) and
    trace preferences (`g_trace_fsb`, `g_trace_sip`) used by both core and frontend.
 
-3. `opcode_make/` code generator still emits references to the old `md_main.g_form_*`
-   tracer wiring; regenerate opcode tables after the generator is updated.
+3. ~~`opcode_make/` code generator still emits references to the old `md_main.g_form_*`
+   tracer wiring~~ — **Done:** generator emits `g_tracer` / `M68kStackEntryType` wiring.
 
 ## Development Roadmap
 
