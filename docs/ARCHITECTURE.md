@@ -273,8 +273,16 @@ The following coupling points are being untangled before extracting a standalone
     `WinFormsVdpDebugBitmap` converts them for display in `MDTracer`.
 
 13. **Frontend display wiring consolidated in `WinFormsDebugTools`** —
-    `UpdateDebugWindowDisplays()` owns debug-layer refresh; `WinFormsGameScreenBitmap`
-    scales `g_game_screen` for the main game panel.
+    `UpdateDebugWindowDisplays()` owns debug-layer refresh; `GenesisEmu.Frontend.Windows`
+  scales `g_game_screen` for the main game panel.
+
+14. **`opcode_make/` generator aligned with `IM68kTracer`** —
+    generator emits `g_tracer` / `M68kStackEntryType` wiring (safe to regenerate opcode tables).
+
+15. **Tier 1 emulation correctness (from main)** —
+    VDP DMA instant transfers call `dma_complete()` so the 68000 is not stalled afterward;
+    memory DMA reads route through `md_bus` for SRAM-gate correctness; `.srm` autosave
+    flushes every 180 frames when dirty (plus on hard reset and save-state).
 
 ## Development Roadmap
 

@@ -34,24 +34,31 @@ namespace MDTracer
                 g_dma_leng -= w_tran;
                 if (g_dma_leng <= 0)
                 {
-                    g_dma_leng = 0;
-                    write_dma_leng();
-                    switch (g_dma_mode)
-                    {
-                        case 1:
-                            write_dma_src_addr(g_dma_src_addr >> 1);
-                            break;
-                        case 3:
-                            write_dma_src_addr(g_dma_src_addr);
-                            break;
-                    }
-                    g_dma_mode = 0;
-                    g_dma_leng = 0;
-                    g_vdp_status_1_dma = 0;
-                    g_vdp_status_8_full = 0;
+                    dma_complete();
                 }
             }
             return w_clock;
+        }
+
+        // Clears DMA busy state after an instant transfer completes. VRAM/CRAM
+        // data is written in one shot inside dma_run_*; leaving g_dma_leng
+        // non-zero would stall the 68000 for many scanlines after the work is done.
+        private void dma_complete()
+        {
+            g_dma_leng = 0;
+            write_dma_leng();
+            switch (g_dma_mode)
+            {
+                case 1:
+                    write_dma_src_addr(g_dma_src_addr >> 1);
+                    break;
+                case 3:
+                    write_dma_src_addr(g_dma_src_addr);
+                    break;
+            }
+            g_dma_mode = 0;
+            g_vdp_status_1_dma = 0;
+            g_vdp_status_8_full = 0;
         }
 
         private void dma_run_memory_req()
@@ -62,13 +69,13 @@ namespace MDTracer
             g_vdp_status_1_dma = 1;
             g_vdp_status_8_full = 1;
             int w_loop_cnt = g_dma_leng;
-            md_m68k w_m68k = md_main.g_md_m68k;
+            md_bus w_bus = md_main.g_md_bus;
             switch (g_vdp_reg_code & 0x0f)
             {
                 case 1:
                     do
                     {
-                        ushort w_val = w_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_bus.read16(g_dma_src_addr);
                         vram_write_w(g_vdp_reg_dest_address, w_val);
                         pattern_chk(g_vdp_reg_dest_address);
                         pattern_chk(g_vdp_reg_dest_address + 1);
@@ -79,7 +86,7 @@ namespace MDTracer
                 case 3:
                     do
                     {
-                        ushort w_val = w_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_bus.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) & 0x3f);
                         cram_set(wcol_num, w_val);
                         g_dma_src_addr += 2;
@@ -89,14 +96,14 @@ namespace MDTracer
                 case 5:
                     do
                     {
-                        ushort w_val = w_m68k.read16(g_dma_src_addr);
+                        ushort w_val = w_bus.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) % 40);
                         g_vsram[wcol_num] = w_val; g_dma_src_addr += 2;
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
                     break;
             }
-
+            dma_complete();
         }
         private void dma_run_fill_req(ushort in_data)
         {
@@ -138,6 +145,7 @@ namespace MDTracer
                     } while (--w_loop_cnt > 0);
                     break;
             }
+            dma_complete();
         }
         private void dma_run_copy_req()
         {
@@ -167,6 +175,7 @@ namespace MDTracer
                     report_vdp_warning("md_vdp.dma_run_copy");
                     break;
             }
+            dma_complete();
         }
         //--------------------------------------------------
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
