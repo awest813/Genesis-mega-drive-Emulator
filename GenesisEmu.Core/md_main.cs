@@ -6,6 +6,8 @@ namespace MDTracer
     {
         public const int VDL_LINE_RENDER_MC68_CLOCK = 488;  //7670453(cpu)  / 60(frame) / 262(line)
         public const int VDL_LINE_RENDER_Z80_CLOCK = 228;   //VDL_LINE_RENDER_MC68_CLOCK / (7.67 / 3.58)
+        public const float FRAME_WAIT_NTSC_US = 16666.666f;
+        public const float FRAME_WAIT_PAL_US = 20119.87f;   // 53203424 / (313 * 3420) ~= 49.7015 Hz
 
         public static md_cartridge g_md_cartridge;
         public static md_sram g_md_sram;
@@ -41,6 +43,7 @@ namespace MDTracer
             g_md_sram.configure(g_md_cartridge, in_romname);
             g_md_sram.load();
             g_md_mapper.configure(g_md_cartridge);
+            ApplyVideoTimingForLoadedRom();
             g_state_capture_status = "";
             g_sram_autosave_frame_counter = 0;
             g_md_m68k.reset();
@@ -129,7 +132,7 @@ namespace MDTracer
                 TimeSpan timeSpan2 = w_stopwatch.Elapsed;
                 int wtime = 0;
                 TimeSpan timeSpan;
-                float w_wait = 16666.666f;
+                float w_wait = g_md_vdp.IsPalMode() ? FRAME_WAIT_PAL_US : FRAME_WAIT_NTSC_US;
 
                 timeSpan = w_stopwatch.Elapsed;
                 wtime = (int)(timeSpan.TotalMilliseconds * 1000);
@@ -153,6 +156,11 @@ namespace MDTracer
                 w_stopwatch.Restart();
             }
         }
+        private static void ApplyVideoTimingForLoadedRom()
+        {
+            g_md_vdp.ApplyTimingMode(g_tvmode_req != 0);
+        }
+
         private static void maybe_autosave_sram()
         {
             if (g_md_sram.g_dirty == false) return;

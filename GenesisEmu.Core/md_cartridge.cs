@@ -22,11 +22,81 @@ namespace MDTracer
         public uint g_extra_memory_start;
         public uint g_extra_memory_end;
         public string g_country;
+        public bool g_pal_inferred;
+
+        private static bool LooksLikeGenesis(byte[] in_data)
+        {
+            if (in_data == null || in_data.Length < 0x104) return false;
+            return in_data[0x100] == (byte)'S'
+                && in_data[0x101] == (byte)'E'
+                && in_data[0x102] == (byte)'G'
+                && in_data[0x103] == (byte)'A';
+        }
+
+        // SMD interleave format support adapted from Sandopolis (MIT License).
+        private static byte[]? TryDeinterleaveSmd(byte[] in_raw, int in_payloadOffset)
+        {
+            const int w_block_size = 16 * 1024;
+            if (in_payloadOffset < 0 || in_payloadOffset >= in_raw.Length) return null;
+
+            int w_payload_len = in_raw.Length - in_payloadOffset;
+            if (w_payload_len < w_block_size) return null;
+
+            int w_full_blocks = w_payload_len / w_block_size;
+            int w_remainder = w_payload_len % w_block_size;
+            int w_out_len = w_full_blocks * w_block_size + ((w_remainder > 0) ? w_block_size : 0);
+            byte[] w_out = new byte[w_out_len];
+
+            int w_src = in_payloadOffset;
+            int w_dst = 0;
+            for (int w_block = 0; w_block < w_full_blocks; w_block++)
+            {
+                int w_half = w_block_size / 2;
+                for (int i = 0; i < w_half; i++)
+                {
+                    w_out[w_dst + i * 2] = in_raw[w_src + i];
+                    w_out[w_dst + i * 2 + 1] = in_raw[w_src + i + w_half];
+                }
+                w_src += w_block_size;
+                w_dst += w_block_size;
+            }
+
+            if (w_remainder > 0)
+            {
+                byte[] w_padded = new byte[w_block_size];
+                Array.Copy(in_raw, w_src, w_padded, 0, w_remainder);
+                int w_half = w_block_size / 2;
+                for (int i = 0; i < w_half; i++)
+                {
+                    w_out[w_dst + i * 2] = w_padded[i];
+                    w_out[w_dst + i * 2 + 1] = w_padded[i + w_half];
+                }
+            }
+
+            return w_out;
+        }
+
+        private static byte[] NormalizeRomBytes(byte[] in_raw)
+        {
+            if (LooksLikeGenesis(in_raw)) return in_raw;
+
+            if (in_raw.Length > 512)
+            {
+                byte[]? w_smd = TryDeinterleaveSmd(in_raw, 512);
+                if (w_smd != null && LooksLikeGenesis(w_smd)) return w_smd;
+            }
+
+            byte[]? w_plain = TryDeinterleaveSmd(in_raw, 0);
+            if (w_plain != null && LooksLikeGenesis(w_plain)) return w_plain;
+
+            return in_raw;
+        }
+
         public bool load(string in_romname)
         {
             try
             {
-                g_file = File.ReadAllBytes(in_romname);
+                g_file = NormalizeRomBytes(File.ReadAllBytes(in_romname));
                 g_file_size = g_file.Length;
             }
             catch (IOException ex)
@@ -47,7 +117,7 @@ namespace MDTracer
                         using Stream zipEntryStream = entry.Open();
                         using MemoryStream memoryStream = new MemoryStream((int)entry.Length);
                         zipEntryStream.CopyTo(memoryStream);
-                        g_file = memoryStream.ToArray();
+                        g_file = NormalizeRomBytes(memoryStream.ToArray());
                         g_file_size = g_file.Length;
                         break;
                     }
@@ -74,6 +144,7 @@ namespace MDTracer
             g_extra_memory_start = get_uint(0x1b4);
             g_extra_memory_end = get_uint(0x1b8);
             g_country = get_string(0x1f0, 0x1f2);
+            g_pal_inferred = md_rom_metadata.InferPalModeFromCountryCodes(g_country) == true;
             return true;
         }
         public string get_string(int in_start, int in_end)

@@ -139,14 +139,13 @@ namespace MDTracer
                     {
                         g_display_ysize = 224;
                         g_display_ycell = 28;
-                        g_vertical_line_max = 262;
                     }
                     else
                     {
                         g_display_ysize = 240;
                         g_display_ycell = 30;
-                        g_vertical_line_max = 312;
                     }
+                    UpdateVerticalLineMax();
                     break;
                 case 2:
                     g_vdp_reg_2_scrolla = (ushort)(in_data << 10);

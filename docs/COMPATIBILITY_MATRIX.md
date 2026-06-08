@@ -25,4 +25,5 @@ Use this matrix after core changes (mapper, bus routing, timing, CPU/VDP/audio s
 |---|---|---|
 | Mapper coverage | Mapper bank switching covered by unit/bus tests; ROM boot matrix still pending for SSF2 | Open |
 | Save states | v6 round-trip covered by `SaveStateTests`; manual in-game verify still recommended | Partial |
-| Timing | Baseline constants are covered, but deeper per-subsystem timing conformance remains in progress | Open |
+| Timing | PAL 50 Hz frame loop and 313-line scanline count wired to VDP TV-mode setting; deeper per-subsystem timing conformance remains in progress | Partial |
+| SMD ROM format | `.smd` interleaved images deinterleaved on load (Sandopolis-derived) | Automated (`CartridgeTests`) |

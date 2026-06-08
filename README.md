@@ -138,11 +138,11 @@ The following commercially released titles have been verified to run:
 ## Unimplemented Features
 
 - Interlace mode
-- PAL video timing (NTSC frame loop only; settings TV-mode bit is cosmetic)
+- Interlace rendering (HV counter paths exist; full double-field output is still deferred)
 - Sega 32X
 - Sega CD
 
-**Recently implemented:** SRAM / battery-backed save (`.srm` persistence + periodic autosave), Sega mapper controller (`0xA13000+`, SSF2-style bank switching), VDP DMA timing and bus-routing fixes
+**Recently implemented:** SRAM / battery-backed save (`.srm` persistence + periodic autosave), Sega mapper controller (`0xA13000+`, SSF2-style bank switching), VDP DMA timing and bus-routing fixes, PAL video timing (50 Hz / 313-line frame loop), SMD ROM deinterleaving, DMA 128 KB source-window wrap
 
 ## Roadmap
 
@@ -189,6 +189,7 @@ The following open-source projects and documentation were referenced during deve
 
 - [Gens](http://www.gens.me/) — Genesis emulator
 - [BlastEm](https://www.retrodev.com/blastem/) — Genesis emulator
+- [Sandopolis](https://github.com/pixel-clover/sandopolis) — MIT-licensed Genesis emulator (PAL timing, DMA source wrap, SMD loader, mapper page mask)
 - MDSound — Sound emulation reference
 - Sega Genesis VDP Documentation by Charles MacDonald
 

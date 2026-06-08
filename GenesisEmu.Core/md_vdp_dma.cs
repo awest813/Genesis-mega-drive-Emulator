@@ -79,7 +79,7 @@ namespace MDTracer
                         vram_write_w(g_vdp_reg_dest_address, w_val);
                         pattern_chk(g_vdp_reg_dest_address);
                         pattern_chk(g_vdp_reg_dest_address + 1);
-                        g_dma_src_addr += 2;
+                        AdvanceMemoryDmaSourceAddress();
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
                     break;
@@ -89,7 +89,7 @@ namespace MDTracer
                         ushort w_val = w_bus.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) & 0x3f);
                         cram_set(wcol_num, w_val);
-                        g_dma_src_addr += 2;
+                        AdvanceMemoryDmaSourceAddress();
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
                     break;
@@ -98,7 +98,8 @@ namespace MDTracer
                     {
                         ushort w_val = w_bus.read16(g_dma_src_addr);
                         int wcol_num = (int)((g_vdp_reg_dest_address >> 1) % 40);
-                        g_vsram[wcol_num] = w_val; g_dma_src_addr += 2;
+                        g_vsram[wcol_num] = w_val;
+                        AdvanceMemoryDmaSourceAddress();
                         g_vdp_reg_dest_address = (ushort)(g_vdp_reg_dest_address + g_vdp_reg_15_autoinc);
                     } while (--w_loop_cnt > 0);
                     break;
@@ -177,6 +178,15 @@ namespace MDTracer
             }
             dma_complete();
         }
+        // DMA source wraps within a 128 KB window (bits 0-16), preserving the
+        // upper address from register 23. Adapted from Sandopolis (MIT).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void AdvanceMemoryDmaSourceAddress()
+        {
+            uint w_next = g_dma_src_addr + 2;
+            g_dma_src_addr = (g_dma_src_addr & 0xFFFE0000) | (w_next & 0x1FFFF);
+        }
+
         //--------------------------------------------------
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint read_dma_src_addr()

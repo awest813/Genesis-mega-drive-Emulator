@@ -62,6 +62,7 @@ namespace MDTracer
         {
             if (g_updating == true) return;
             md_main.g_tvmode_req = comboBox_videoformat.SelectedIndex;
+            md_main.g_md_vdp.ApplyTimingMode(md_main.g_tvmode_req != 0);
             md_main.write_setting();
         }
         private void comboBox_rendering_SelectedIndexChanged(object sender, EventArgs e)
