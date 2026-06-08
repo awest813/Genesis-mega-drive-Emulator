@@ -48,8 +48,8 @@ namespace MDTracer
         }
         private void Form_Pattern_FormClosing(object sender, FormClosingEventArgs e)
         {
-            md_main.g_pattern_enable = false;
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_debugView.pattern_enable = false;
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
             md_main.write_setting();
             e.Cancel = true;
         }
@@ -96,24 +96,13 @@ namespace MDTracer
             pictureBox_pattern.Image = in_bitmap;
         }
 
-        public void picture_update(Bitmap in_bitmap)
+        public void picture_update(uint[] in_pixels, int in_width, int in_height)
         {
             if (IsDisposed == true || IsHandleCreated == false || Visible == false) return;
-            if (in_bitmap.Width < 128 || in_bitmap.Height < 128) return;
+            if (in_width < 128 || in_height < 128) return;
 
-            int w_y = g_cur_char << 3;
-            int w_maxY = in_bitmap.Height - 128;
-            if (w_y < 0)
-            {
-                w_y = 0;
-            }
-            else if (w_y > w_maxY)
-            {
-                w_y = w_maxY;
-            }
-
-            Rectangle rect = new Rectangle(0, w_y, 128, 128);
-            Bitmap bmp_dst = in_bitmap.Clone(rect, in_bitmap.PixelFormat);
+            Bitmap bmp_dst = WinFormsVdpDebugBitmap.CreatePatternTileView(
+                in_pixels, in_width, in_height, g_cur_char << 3);
             UpdatePictureBox(bmp_dst);
         }
     }

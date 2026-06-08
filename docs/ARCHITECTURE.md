@@ -17,9 +17,27 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 └─────────┴──────────┴───────┴────────┴──────┴────────────┘
 ```
 
+## Solution Layout
+
+```
+GenesisEmu.Core/              # Emulation core class library (net9.0)
+GenesisEmu.Platform.Windows/  # Windows audio/input/GPU backends (NAudio, DirectInput, D3D12)
+GenesisEmu.Frontend.Windows/  # Shared WinForms display helpers (game framebuffer scaling)
+GenesisEmu.Game/              # Minimal game-playing WinExe (no debug tools)
+MDTracer/                     # Full WinForms frontend with debug tools
+opcode_make/                  # MC68000 opcode table generator (build-time tool)
+tests/GenesisEmu.Core.Tests/
+```
+
+The core and frontend share the `MDTracer` root namespace for now so existing
+call sites and tests did not need a sweeping rename. Frontend hook interfaces
+(`IMainLoopUiHooks`, `IFrontendSettingsHooks`, `IIoFrontendHooks`,
+`IAudioFrontendHooks`) and their null implementations live in the core; WinForms
+production implementations live in `MDTracer/`.
+
 ## Source File Map
 
-### Emulation Core
+### Emulation Core (`GenesisEmu.Core/`)
 
 | File | Component | Hardware Reference |
 |------|-----------|-------------------|
@@ -46,8 +64,8 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 | `md_vdp_renderer_line.cs` | Scanline rendering | — |
 | `md_vdp_renderer_data.cs` | Renderer data structures | — |
 | `md_vdp_renderer_snap.cs` | Renderer snapshot | — |
-| `md_vdp_renderer_frame_directx.cs` | DirectX 12 frame output | — |
-| `md_vdp_renderer_frame_directx_sub.cs` | DirectX helpers | — |
+| `md_vdp_gpu_interfaces.cs` | VDP GPU snapshot types and `IVdpGpuRenderer` seam | — |
+| `md_vdp_debug_layers.cs` | VDP debug-layer ARGB buffer constants | — |
 | `md_vdp_initialize.cs` | VDP initialization | — |
 | `md_vdp_state.cs` | VDP state save/restore | — |
 | `md_music.cs` | Audio coordinator | — |
@@ -78,14 +96,33 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 | `md_main_input_capture.cs` | Input recording storage |
 | `md_main_input_capture_request.cs` | Input recording request handling |
 
-### Frontend (WinForms)
+### Shared WinForms helpers (`GenesisEmu.Frontend.Windows/`)
+
+| File | Purpose |
+|------|---------|
+| `WinFormsGameScreenBitmap.cs` | Scales core `uint[]` game framebuffer to a WinForms `Bitmap` |
+
+### Game-only frontend (`GenesisEmu.Game/`)
+
+| File | Purpose |
+|------|---------|
+| `GameForm.cs` | Minimal main window: ROM open, pause, frame advance, reset, save state |
+| `GameMainLoopUiHooks.cs` | `IMainLoopUiHooks` with only `UpdateGameScreen` wired; debug calls are no-ops |
+| `Program.cs` | WinExe entry point; optional ROM path CLI argument |
+
+`GenesisEmu.Game` does not call `WinFormsDebugTools.Initialize()` — no tracer, disassembler, VDP viewers, or settings dialog.
+
+### Debug frontend (`MDTracer/`)
 
 | File | Purpose |
 |------|---------|
 | `WinFormsDebugTools.cs` | Debug-tool window registry and frontend collaborator wiring |
-| `md_main_ui_hooks.cs` | Main-loop UI hook interface (`IMainLoopUiHooks`) |
-| `md_frontend_settings_hooks.cs` | Window-layout settings persistence hooks |
-| `md_io_frontend_hooks.cs` | I/O device-change notification hooks |
+| `ICodeAnalysisSession.cs` | Shared disassembly/trace analysis session seam |
+| `IDebugToolsCoordinator.cs` | Trace-break UI coordination hook |
+| `WinFormsMainLoopUiHooks.cs` | Production `IMainLoopUiHooks` implementation |
+| `WinFormsFrontendSettingsHooks.cs` | Production `IFrontendSettingsHooks` implementation |
+| `WinFormsIoFrontendHooks.cs` | Production `IIoFrontendHooks` implementation |
+| `WinFormsAudioFrontendHooks.cs` | Production `IAudioFrontendHooks` implementation |
 | `Form_Main.cs` | Main window, game screen, menu |
 | `Form_Code.cs` | Disassembly/code view |
 | `Form_Code_Trace.cs` | Execution tracing |
@@ -145,7 +182,8 @@ Each frame follows this sequence (in `md_main.md_run()`):
 
 ## Current Limitations
 
-- **Residual UI coupling:** Core subsystems use injected hooks (`IMainLoopUiHooks`, `IFrontendSettingsHooks`, `IIoFrontendHooks`) with null defaults, but debug tools still live in the same assembly as the core
+- **Residual platform coupling:** WinForms debug viewers convert core ARGB buffers to bitmaps in `MDTracer`; audio, input, and accelerated VDP GPU rendering use injectable backends with Windows implementations in `GenesisEmu.Platform.Windows`
+- **Residual frontend coupling:** VDP GPU rendering still lives in core; trace execution still wires `Form_Code_Trace` as `IM68kTracer`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -214,17 +252,37 @@ The following coupling points are being untangled before extracting a standalone
    `IIoFrontendHooks` / `WinFormsIoFrontendHooks` notify the frontend when device lists
    change.
 
-### Remaining coupling hotspots
+8. **Debug-tool analysis state no longer cross-references `Form_Code_Trace` directly** —
+   `ICodeAnalysisSession` / `NullCodeAnalysisSession` expose disassembly buffers, trace
+   controls, and call-stack display through `WinFormsDebugTools.g_codeAnalysis`.
 
-1. Debug-tool windows still cross-reference each other through `WinFormsDebugTools`
-   (e.g. `Form_Code` ↔ `Form_Code_Trace`). A future step is to route those through
-   narrow event/callback interfaces.
+9. **Debug-window close no longer calls `Form_Setting` directly** —
+   `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged()` refreshes the settings
+   dialog menu checkmarks when any debug window hides or moves.
 
-2. `md_main` still owns debug-window visibility flags (`g_screenA_enable`, etc.) and
-   trace preferences (`g_trace_fsb`, `g_trace_sip`) used by both core and frontend.
+10. **VDP GPU compute rendering no longer lives in core** —
+    `IVdpGpuRenderer` / `DirectX12VdpGpuRenderer` handle D3D12 frame compositing;
+    the core stages per-frame snapshots and downloads the finished screen buffer.
 
-3. ~~`opcode_make/` code generator still emits references to the old `md_main.g_form_*`
-   tracer wiring~~ — **Done:** generator emits `g_tracer` / `M68kStackEntryType` wiring.
+11. **CPU execution tracing no longer references `Form_Code_Trace` directly** —
+    `WinFormsDebugTools.g_cpuTracer` (`IM68kTracer`) is wired into `md_m68k.g_tracer`;
+    analysis viewing remains on `ICodeAnalysisSession`.
+
+12. **VDP debug-layer compositing no longer uses System.Drawing in core** —
+    scroll/sprite/pattern viewers write flat `uint[]` ARGB buffers (`g_scrollA_pixels`, etc.);
+    `WinFormsVdpDebugBitmap` converts them for display in `MDTracer`.
+
+13. **Frontend display wiring consolidated in `WinFormsDebugTools`** —
+    `UpdateDebugWindowDisplays()` owns debug-layer refresh; `GenesisEmu.Frontend.Windows`
+  scales `g_game_screen` for the main game panel.
+
+14. **`opcode_make/` generator aligned with `IM68kTracer`** —
+    generator emits `g_tracer` / `M68kStackEntryType` wiring (safe to regenerate opcode tables).
+
+15. **Tier 1 emulation correctness (from main)** —
+    VDP DMA instant transfers call `dma_complete()` so the 68000 is not stalled afterward;
+    memory DMA reads route through `md_bus` for SRAM-gate correctness; `.srm` autosave
+    flushes every 180 frames when dirty (plus on hard reset and save-state).
 
 ## Development Roadmap
 
@@ -243,18 +301,30 @@ The following coupling points are being untangled before extracting a standalone
 - Extract emulation core into a standalone library (no UI dependencies)
 - Define clean interfaces between subsystems (CPU, bus, VDP, audio, I/O)
 - Make tracer/debugger/disassembler optional modules that attach to the core
-- Create a minimal game-playing frontend separate from the debug tools
+- **Done:** minimal game-playing frontend (`GenesisEmu.Game`) separate from debug tools
 - **Done:** `M68kStackEntryType` moved to core interfaces; `IBusMonitor` injected into `md_bus`
 - **Done:** `md_main` emulation-loop UI calls moved behind `IMainLoopUiHooks`
 - **Done:** debug-tool `Form_*` ownership moved to `WinFormsDebugTools`
 - **Done:** window settings persistence moved behind `IFrontendSettingsHooks`
 - **Done:** VDP overlay compositing flags moved off `Form_Setting` onto `md_vdp`
-- **Remaining:** extract core into a separate library project; decouple debug-tool cross-talk
+- **Done:** emulation core extracted into `GenesisEmu.Core` class library
+- **Done:** debug view flags consolidated into `DebugViewState`
+- **Done:** trace-break UI notifications routed through `IDebugToolsCoordinator`
+- **Done:** `opcode_make/` generator emits `g_tracer` wiring
+- **Done:** shared code-analysis state routed through `ICodeAnalysisSession`
+- **Done:** debug-window layout changes notify settings via `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged`
+- **Done:** CPU tracer wired through `WinFormsDebugTools.g_cpuTracer`
+- **Done:** VDP debug layers composited into ARGB buffers (no System.Drawing in core)
+- **Done:** `GenesisEmu.Core` retargeted to portable `net9.0`
+- **Done:** shared `GenesisEmu.Frontend.Windows` library for game-screen bitmap scaling
 
-### Phase 4 — Platform Expansion
-- Platform-independent rendering backend (replacing SharpDX)
-- Cross-platform audio output (replacing NAudio/Windows-specific APIs)
-- Cross-platform input handling
+### Phase 4 — Platform Expansion (In Progress)
+- **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends
+- **Done:** `IAudioOutputBackend` / `IInputDeviceBackend` injected into core
+- **Done:** VDP GPU compute renderer extracted to `DirectX12VdpGpuRenderer` behind `IVdpGpuRenderer`; SharpDX removed from core
+- **Done:** `CpuVdpGpuRenderer` provides a software snapshot compositor fallback in core (default before Windows registers D3D12)
+- Non-Windows accelerated VDP GPU backends (Vulkan/Metal)
+- Cross-platform audio/input backends beyond Windows
 - Linux and macOS support
 
 ### Deferred (Out of Scope for Now)

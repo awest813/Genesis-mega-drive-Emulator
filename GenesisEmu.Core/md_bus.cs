@@ -189,9 +189,16 @@ namespace MDTracer
         {
             in_address &= 0xffffff;
             if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 1);
-            if (md_main.g_md_sram.contains(in_address))
+            if (in_address <= 0x3fffff)
             {
-                md_main.g_md_sram.write8(in_address, in_data);
+                if (md_main.g_md_sram.contains(in_address))
+                {
+                    md_main.g_md_sram.write8(in_address, in_data);
+                }
+                else
+                {
+                    md_main.g_md_m68k.write8(in_address, in_data);
+                }
             }
             else
             if (0xff0000 <= in_address)
@@ -242,9 +249,16 @@ namespace MDTracer
         {
             in_address &= 0xffffff;
             if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 2);
-            if (md_main.g_md_sram.contains(in_address))
+            if (in_address <= 0x3fffff)
             {
-                md_main.g_md_sram.write16(in_address, in_data);
+                if (md_main.g_md_sram.contains(in_address))
+                {
+                    md_main.g_md_sram.write16(in_address, in_data);
+                }
+                else
+                {
+                    md_main.g_md_m68k.write16(in_address, in_data);
+                }
             }
             else
             if (0xff0000 <= in_address)
@@ -296,9 +310,16 @@ namespace MDTracer
         {
             in_address &= 0xffffff;
             if (g_monitor.memory_monitor_active) g_monitor.memory_monitor_check(in_address, in_data, true, 4);
-            if (md_main.g_md_sram.contains(in_address))
+            if (in_address <= 0x3fffff)
             {
-                md_main.g_md_sram.write32(in_address, in_data);
+                if (md_main.g_md_sram.contains(in_address))
+                {
+                    md_main.g_md_sram.write32(in_address, in_data);
+                }
+                else
+                {
+                    md_main.g_md_m68k.write32(in_address, in_data);
+                }
             }
             else
             if (0xff0000 <= in_address)

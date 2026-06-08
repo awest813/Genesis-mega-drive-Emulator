@@ -7,8 +7,14 @@ namespace MDTracer
         public static void initialize()
         {
             Process currentProcess = Process.GetCurrentProcess();
-            int processId = currentProcess.Id;
-            currentProcess.PriorityClass = ProcessPriorityClass.High;
+            try
+            {
+                currentProcess.PriorityClass = ProcessPriorityClass.High;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // Optional; may fail in CI or restricted environments.
+            }
 
             g_md_cartridge = new md_cartridge();
             g_md_sram = new md_sram();

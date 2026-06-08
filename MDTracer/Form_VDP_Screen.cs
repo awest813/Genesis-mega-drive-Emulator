@@ -53,12 +53,12 @@ namespace MDTracer
             SyncVideoRecordingStop();
             switch (g_screen_type)
             {
-                case "A": md_main.g_screenA_enable = false; break;
-                case "B": md_main.g_screenB_enable = false; break;
-                case "W": md_main.g_screenW_enable = false; break;
-                case "S": md_main.g_screenS_enable = false; break;
+                case "A": md_main.g_debugView.screenA_enable = false; break;
+                case "B": md_main.g_debugView.screenB_enable = false; break;
+                case "W": md_main.g_debugView.screenW_enable = false; break;
+                case "S": md_main.g_debugView.screenS_enable = false; break;
             }
-            WinFormsDebugTools.g_form_setting.update();
+            md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
             md_main.write_setting();
             e.Cancel = true;
         }
@@ -177,21 +177,22 @@ namespace MDTracer
             Invalidate();
         }
 
-        public void picture_update(Bitmap in_bitmap, int in_screen_xsize, int in_screen_ysize)
+        public void picture_update(uint[] in_pixels, int in_layerWidth, int in_layerHeight, int in_screen_xsize, int in_screen_ysize)
         {
             if (IsDisposed == true || g_viewActive == false) return;
 
+            using Bitmap w_layerBitmap = WinFormsVdpDebugBitmap.CreateFromArgbBuffer(in_pixels, in_layerWidth, in_layerHeight);
             bool w_screenSizeChanged;
             lock (g_bitmapLock)
             {
                 w_screenSizeChanged = g_source_xsize != in_screen_xsize || g_source_ysize != in_screen_ysize;
                 g_source_bitmap?.Dispose();
-                g_source_bitmap = new Bitmap(in_bitmap);
+                g_source_bitmap = new Bitmap(w_layerBitmap);
                 g_source_xsize = in_screen_xsize;
                 g_source_ysize = in_screen_ysize;
             }
 
-            Bitmap bmp_dst = CreateDisplayBitmap(in_bitmap, in_screen_xsize, in_screen_ysize);
+            Bitmap bmp_dst = CreateDisplayBitmap(w_layerBitmap, in_screen_xsize, in_screen_ysize);
             videoRecordingAddFrame(bmp_dst);
             QueueDisplayUpdate(bmp_dst, w_screenSizeChanged);
         }

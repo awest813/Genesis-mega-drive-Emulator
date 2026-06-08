@@ -29,15 +29,28 @@ namespace GenesisEmu.Core.Tests
         }
 
         [Fact]
-        public void Write16_A130F0_UpdatesSramGateAndMapperBank()
+        public void Write16_A130F0_UpdatesSramGate()
         {
             byte[] rom = new byte[10 * md_mapper.BANK_SIZE];
             for (int i = 0; i < rom.Length; i++) rom[i] = (byte)(i / md_mapper.BANK_SIZE);
             SetupMachine(rom);
 
-            md_main.g_md_control.write16(0xA130F0, 0x0008); // low byte -> A130F1, bank1 -> page8
+            md_main.g_md_control.write16(0xA130F0, 0x0001); // low byte -> A130F1 bit0 set
+            Assert.True(md_main.g_md_sram.g_enabled);
 
+            md_main.g_md_control.write16(0xA130F0, 0x0000); // low byte -> A130F1 bit0 clear
             Assert.False(md_main.g_md_sram.g_enabled);
+        }
+
+        [Fact]
+        public void Write16_A130F2_UpdatesBank1Page8()
+        {
+            byte[] rom = new byte[10 * md_mapper.BANK_SIZE];
+            for (int i = 0; i < rom.Length; i++) rom[i] = (byte)(i / md_mapper.BANK_SIZE);
+            SetupMachine(rom);
+
+            md_main.g_md_control.write16(0xA130F2, 0x0008); // low byte -> A130F3 maps bank1 page8
+
             Assert.Equal((byte)8, md_main.g_md_mapper.g_bank_pages[1]);
             Assert.Equal(8, md_main.g_md_m68k.g_memory[0x080000]);
         }

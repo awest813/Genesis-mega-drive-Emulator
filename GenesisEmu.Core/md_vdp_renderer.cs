@@ -85,8 +85,13 @@ namespace MDTracer
                 bool w_snapshot_required = is_rendering_snapshot_required();
                 if ((rendering_gpu == true) && (w_snapshot_required == true))
                 {
-                    dx_rendering_initialize_if_needed();
-                    dx_frame_stack();
+                    g_gpuRenderer.InitializeIfNeeded();
+                    g_gpuRenderer.StageFrameData(
+                        g_snap_renderer_vram,
+                        g_snap_color,
+                        g_snap_color_shadow,
+                        g_snap_color_highlight,
+                        g_snap_line_snap);
                 }
                 if (w_snapshot_required == true)
                 {
@@ -101,11 +106,7 @@ namespace MDTracer
         }
         private static bool is_rendering_data_required()
         {
-            return md_main.g_screenA_enable == true
-                || md_main.g_screenB_enable == true
-                || md_main.g_screenW_enable == true
-                || md_main.g_screenS_enable == true
-                || md_main.g_pattern_enable == true;
+            return md_main.g_debugView.IsAnyLayerViewerEnabled;
         }
         public void run_event()
         {
@@ -116,11 +117,11 @@ namespace MDTracer
                 if ((md_main.is_stop_requested() == true) && (md_main.consume_frame_advance_update_request() == false)) continue;
                 if (rendering_gpu == true)
                 {
-                    dx_rendering_initialize_if_needed();
+                    g_gpuRenderer.InitializeIfNeeded();
                     if (g_snap_register.vdp_reg_1_6_display == 1)
                     {
-                        dx_rendering();
-                        dx_get_screen_data();
+                        g_gpuRenderer.Render(in g_snap_register, g_display_ysize);
+                        g_gpuRenderer.DownloadScreen(g_game_screen);
                     }
                     else
                     {

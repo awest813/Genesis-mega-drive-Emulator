@@ -6,7 +6,10 @@ A lightweight, focused Sega Genesis (Mega Drive) emulator written entirely in C#
 
 ## Current Status
 
-The emulator can boot and run a number of commercial Genesis/Mega Drive titles. It currently runs as a Windows desktop application using WinForms + SharpDX (Direct3D 12).
+The emulator can boot and run a number of commercial Genesis/Mega Drive titles. The emulation core (`GenesisEmu.Core`) is a portable .NET 9 class library. Windows frontends use WinForms with optional Direct3D 12 GPU compositing via `GenesisEmu.Platform.Windows`:
+
+- **`GenesisEmu.Game`** — minimal game-playing app (no debug tools)
+- **`MDTracer`** — full developer frontend with tracer, disassembler, and VDP viewers
 
 **Emulated Hardware:**
 - Motorola MC68000 main CPU
@@ -25,19 +28,42 @@ The emulator can boot and run a number of commercial Genesis/Mega Drive titles. 
 
 ### Building
 
+**Windows (game-only app):**
+
 ```bash
-dotnet build MDTracer.sln
+dotnet build GenesisEmu.Game/GenesisEmu.Game.csproj
+```
+
+**Windows (full app + debug tools):**
+
+```bash
+dotnet build MDTracer/MDTracer.csproj
+```
+
+**Portable core + tests (Linux/macOS/Windows):**
+
+```bash
+dotnet build GenesisEmu.Core/GenesisEmu.Core.csproj
+dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
 ```
 
 Or open `MDTracer.sln` in Visual Studio 2022 and build from the IDE.
 
 ### Running
 
+**Game-only (recommended for play):**
+
+```bash
+dotnet run --project GenesisEmu.Game
+```
+
+**Developer tools (tracer, VDP viewers, settings):**
+
 ```bash
 dotnet run --project MDTracer
 ```
 
-Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .zip).
+Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .gen / .smd). You can also pass a ROM path on the command line with `GenesisEmu.Game`.
 
 ### Default Controls
 
@@ -102,7 +128,7 @@ The following commercially released titles have been verified to run:
 - Sega 32X
 - Sega CD
 
-**Recently implemented:** SRAM / battery-backed save (`.srm` persistence), Sega mapper controller (`0xA13000+`, SSF2-style bank switching)
+**Recently implemented:** SRAM / battery-backed save (`.srm` persistence + periodic autosave), Sega mapper controller (`0xA13000+`, SSF2-style bank switching), VDP DMA timing and bus-routing fixes
 
 ## Roadmap
 
@@ -119,22 +145,20 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture 
 ## Project Structure
 
 ```
-MDTracer.sln              # Solution file
-MDTracer/                 # Main application (WinForms frontend + emulation core)
-  md_m68k.cs              # MC68000 CPU emulation
-  md_z80.cs               # Z80 CPU emulation
-  md_vdp.cs               # Video Display Processor
-  md_music.cs             # Audio (YM2612 + SN76489)
-  md_bus.cs               # System bus arbiter
-  md_cartridge.cs         # ROM loading and header parsing
-  md_io.cs                # Controller I/O
-  md_control.cs           # System control registers
-  md_main.cs              # Emulation coordinator / main loop
-  opc/                    # MC68000 opcode implementations
-  Form_*.cs               # WinForms UI
-opcode_make/              # Development tool: M68K opcode table generator
-tests/                    # Unit and integration tests
-docs/                     # Architecture and contributor documentation
+MDTracer.sln                    # Solution file
+GenesisEmu.Core/                # Portable emulation core (net9.0)
+  md_m68k.cs, md_z80.cs, md_vdp.cs, md_music.cs, md_bus.cs, ...
+  opc/                          # MC68000 opcode implementations
+GenesisEmu.Platform.Windows/    # Windows D3D12 GPU, NAudio, DirectInput
+GenesisEmu.Frontend.Windows/    # Shared WinForms display helpers
+GenesisEmu.Game/                # Minimal game-playing WinExe
+MDTracer/                       # Full WinForms frontend + debug tools
+  WinFormsDebugTools.cs         # Debug-tool registry and display wiring
+  WinFormsVdpDebugBitmap.cs     # ARGB buffer → Bitmap for layer viewers
+  Form_*.cs                     # UI windows
+opcode_make/                    # M68K opcode table generator (build-time)
+tests/GenesisEmu.Core.Tests/    # Core unit tests (net9.0)
+docs/                           # Architecture and compatibility docs
 ```
 
 ## References

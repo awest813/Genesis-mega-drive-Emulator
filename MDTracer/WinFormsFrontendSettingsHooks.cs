@@ -1,27 +1,5 @@
 namespace MDTracer
 {
-    //----------------------------------------------------------------
-    // Frontend settings persistence hooks.
-    //
-    // md_main_setting previously reached directly into Form_* instances
-    // to restore and capture window layout. These hooks let the core load
-    // and save settings without owning WinForms windows.
-    //----------------------------------------------------------------
-
-    internal interface IFrontendSettingsHooks
-    {
-        bool TryApplySetting(string in_name, string in_value);
-        void CaptureSettings(Action<string, string> settingAdd);
-        void EnsureCodeToolLayoutVisible();
-    }
-
-    internal sealed class NullFrontendSettingsHooks : IFrontendSettingsHooks
-    {
-        public bool TryApplySetting(string in_name, string in_value) => false;
-        public void CaptureSettings(Action<string, string> settingAdd) { }
-        public void EnsureCodeToolLayoutVisible() { }
-    }
-
     internal sealed class WinFormsFrontendSettingsHooks : IFrontendSettingsHooks
     {
         public bool TryApplySetting(string in_name, string in_value)
@@ -36,41 +14,41 @@ namespace MDTracer
                     Form_Main.g_screen_size_y = int.Parse(w_val[3]);
                     return true;
                 case "screenA":
-                    md_main.g_screenA_enable = w_val[0] == "1";
+                    md_main.g_debugView.screenA_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_screenA.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_screenA.g_screen_ypos = int.Parse(w_val[2]);
                     read_vdp_screen_menu_setting(WinFormsDebugTools.g_form_screenA, w_val);
                     return true;
                 case "screenB":
-                    md_main.g_screenB_enable = w_val[0] == "1";
+                    md_main.g_debugView.screenB_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_screenB.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_screenB.g_screen_ypos = int.Parse(w_val[2]);
                     read_vdp_screen_menu_setting(WinFormsDebugTools.g_form_screenB, w_val);
                     return true;
                 case "screenW":
-                    md_main.g_screenW_enable = w_val[0] == "1";
+                    md_main.g_debugView.screenW_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_screenW.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_screenW.g_screen_ypos = int.Parse(w_val[2]);
                     read_vdp_screen_menu_setting(WinFormsDebugTools.g_form_screenW, w_val);
                     return true;
                 case "screenS":
-                    md_main.g_screenS_enable = w_val[0] == "1";
+                    md_main.g_debugView.screenS_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_screenS.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_screenS.g_screen_ypos = int.Parse(w_val[2]);
                     read_vdp_screen_menu_setting(WinFormsDebugTools.g_form_screenS, w_val);
                     return true;
                 case "pattern":
-                    md_main.g_pattern_enable = w_val[0] == "1";
+                    md_main.g_debugView.pattern_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_pattern.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_pattern.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
                 case "pallete":
-                    md_main.g_pallete_enable = w_val[0] == "1";
+                    md_main.g_debugView.pallete_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_pallete.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_pallete.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
                 case "code":
-                    md_main.g_code_enable = w_val[0] == "1";
+                    md_main.g_debugView.code_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_code.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_code.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
@@ -78,22 +56,22 @@ namespace MDTracer
                     WinFormsDebugTools.g_form_code.SetCodeToolLayoutText(in_value);
                     return true;
                 case "io":
-                    md_main.g_io_enable = w_val[0] == "1";
+                    md_main.g_debugView.io_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_io.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_io.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
                 case "music":
-                    md_main.g_music_enable = w_val[0] == "1";
+                    md_main.g_debugView.music_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_music.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_music.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
                 case "registry":
-                    md_main.g_registry_enable = w_val[0] == "1";
+                    md_main.g_debugView.registry_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_registry.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_registry.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
                 case "flow":
-                    md_main.g_flow_enable = w_val[0] == "1";
+                    md_main.g_debugView.flow_enable = w_val[0] == "1";
                     WinFormsDebugTools.g_form_flow.g_screen_xpos = int.Parse(w_val[1]);
                     WinFormsDebugTools.g_form_flow.g_screen_ypos = int.Parse(w_val[2]);
                     return true;
@@ -122,62 +100,62 @@ namespace MDTracer
                 + ":" + Form_Main.g_screen_size_y;
             settingAdd("screen_main", w_val);
 
-            w_val = ((md_main.g_screenA_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.screenA_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_screenA.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_screenA.g_screen_ypos
                 + ":" + WinFormsDebugTools.g_form_screenA.GetMenuSettingText();
             settingAdd("screenA", w_val);
 
-            w_val = ((md_main.g_screenB_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.screenB_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_screenB.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_screenB.g_screen_ypos
                 + ":" + WinFormsDebugTools.g_form_screenB.GetMenuSettingText();
             settingAdd("screenB", w_val);
 
-            w_val = ((md_main.g_screenW_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.screenW_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_screenW.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_screenW.g_screen_ypos
                 + ":" + WinFormsDebugTools.g_form_screenW.GetMenuSettingText();
             settingAdd("screenW", w_val);
 
-            w_val = ((md_main.g_screenS_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.screenS_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_screenS.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_screenS.g_screen_ypos
                 + ":" + WinFormsDebugTools.g_form_screenS.GetMenuSettingText();
             settingAdd("screenS", w_val);
 
-            w_val = ((md_main.g_pattern_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.pattern_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_pattern.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_pattern.g_screen_ypos;
             settingAdd("pattern", w_val);
 
-            w_val = ((md_main.g_pallete_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.pallete_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_pallete.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_pallete.g_screen_ypos;
             settingAdd("pallete", w_val);
 
-            w_val = ((md_main.g_code_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.code_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_code.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_code.g_screen_ypos;
             settingAdd("code", w_val);
             settingAdd("code_tools", WinFormsDebugTools.g_form_code.GetCodeToolLayoutText());
 
-            w_val = ((md_main.g_io_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.io_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_io.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_io.g_screen_ypos;
             settingAdd("io", w_val);
 
-            w_val = ((md_main.g_music_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.music_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_music.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_music.g_screen_ypos;
             settingAdd("music", w_val);
 
-            w_val = ((md_main.g_registry_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.registry_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_registry.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_registry.g_screen_ypos;
             settingAdd("registry", w_val);
 
-            w_val = ((md_main.g_flow_enable == true) ? "1" : "0")
+            w_val = ((md_main.g_debugView.flow_enable == true) ? "1" : "0")
                 + ":" + WinFormsDebugTools.g_form_flow.g_screen_xpos
                 + ":" + WinFormsDebugTools.g_form_flow.g_screen_ypos;
             settingAdd("flow", w_val);
@@ -193,6 +171,11 @@ namespace MDTracer
         public void EnsureCodeToolLayoutVisible()
         {
             WinFormsDebugTools.g_form_code.EnsureCodeToolLayoutVisible();
+        }
+
+        public void NotifyDebugWindowLayoutChanged()
+        {
+            WinFormsDebugTools.g_form_setting?.update();
         }
 
         private static void read_vdp_screen_menu_setting(Form_VDP_Screen in_form, string[] in_val)

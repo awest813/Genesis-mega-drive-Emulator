@@ -1,4 +1,3 @@
-using SharpDX.DirectInput;
 using System.Text;
 namespace MDTracer
 {
@@ -8,6 +7,7 @@ namespace MDTracer
     internal partial class md_io
     {
         internal static IIoFrontendHooks g_frontendHooks = new NullIoFrontendHooks();
+        internal static IInputDeviceBackend g_inputBackend = new NullInputDeviceBackend();
 
         public byte g_io_a10001_7_mode;
         public byte g_io_a10001_6_vmod;
@@ -37,14 +37,15 @@ namespace MDTracer
         public byte[] g_joy_status;
         public byte[] g_key_status;
 
-        private SharpDX.DirectInput.Keyboard g_keyboard;
-        public List<SharpDX.DirectInput.Joystick> g_joy_device;
-        public List<string> g_joy_name_list;
-        public int g_joy_device_cur;
-        public string g_joy_name;
+        public string g_joy_name
+        {
+            get => g_inputBackend.JoyName;
+            set => g_inputBackend.SelectJoyByName(value);
+        }
+        public IReadOnlyList<string> g_joy_name_list => g_inputBackend.JoyNameList;
+        public int g_joy_device_cur => g_inputBackend.JoyDeviceIndex;
         private long g_joy_last_rescan_time;
         private int g_joy_rescan_in_progress;
-        private readonly object g_joy_device_lock = new object();
         private readonly object g_joy_rescan_lock = new object();
         private const int JOY_RESCAN_INTERVAL_MS = 4000;
         public int[] g_key_allocation;
@@ -80,8 +81,6 @@ namespace MDTracer
             g_io_a10017_rxdata2 = 0;
             g_io_a1001d_rxdata3 = 0;
 
-            g_joy_name_list = new List<string>();
-            g_joy_device = new List<Joystick>();
             g_joy_status = new byte[JOY_STATUS_NUM];
             g_key_status = new byte[KEY_STATUS_NUM];
             g_joy_allocation = new int[KEY_ALLCATION_NUM];
