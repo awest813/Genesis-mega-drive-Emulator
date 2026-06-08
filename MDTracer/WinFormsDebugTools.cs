@@ -1,3 +1,5 @@
+using GenesisEmu.Frontend.Windows;
+
 namespace MDTracer
 {
     //----------------------------------------------------------------
@@ -48,6 +50,19 @@ namespace MDTracer
             g_form_music = new Form_MUSIC();
             g_form_registry = new Form_Registry();
             g_form_flow = new Form_Flow();
+
+            ApplyDebugTheme(
+                g_form_setting,
+                g_form_screenA,
+                g_form_screenB,
+                g_form_screenW,
+                g_form_screenS,
+                g_form_pattern,
+                g_form_pallete,
+                g_form_io,
+                g_form_registry,
+                g_form_flow,
+                g_form_code);
 
             g_coordinator = new WinFormsDebugToolsCoordinator();
             md_main.g_mainLoopUI = new WinFormsMainLoopUiHooks();
@@ -124,5 +139,13 @@ namespace MDTracer
 
         private static md_m68k g_md_m68k => md_main.g_md_m68k;
         private static md_bus g_md_bus => md_main.g_md_bus;
+
+        private static void ApplyDebugTheme(params Form[] in_forms)
+        {
+            foreach (Form w_form in in_forms)
+            {
+                WinFormsDebugTheme.Apply(w_form);
+            }
+        }
     }
 }

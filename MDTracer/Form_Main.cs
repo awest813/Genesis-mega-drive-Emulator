@@ -742,59 +742,34 @@ namespace MDTracer
         }
         private void StateRestoreLatestWithMatchingInputReplay()
         {
-            CaptureListEntry? w_entry = GetLatestCaptureEntry();
+            CaptureListSelection? w_entry = GetLatestCaptureEntry();
             if (w_entry == null)
             {
                 StateRestoreLatest();
                 return;
             }
 
-            ExecuteCaptureEntry(w_entry.StateEntry, w_entry.InputEntry);
+            ExecuteCaptureEntry(w_entry.StateFilePath, w_entry.InputFilePath);
         }
         private void StateRestoreLatest()
         {
             md_main.request_state_capture_restore_latest();
         }
-        private CaptureListEntry? GetLatestCaptureEntry()
+        private CaptureListSelection? GetLatestCaptureEntry()
         {
-            Dictionary<string, CaptureListEntry> w_entries = new Dictionary<string, CaptureListEntry>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (md_main.StateListEntry w_stateEntry in md_main.StateStore.GetEntries())
-            {
-                string w_timestamp = Path.GetFileNameWithoutExtension(w_stateEntry.FilePath);
-                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
-                {
-                    w_entry = new CaptureListEntry(w_timestamp);
-                    w_entries.Add(w_timestamp, w_entry);
-                }
-                w_entry.StateEntry = w_stateEntry;
-            }
-
-            foreach (md_main.InputRecordEntry w_inputEntry in md_main.InputRecordStore.GetEntries())
-            {
-                string w_timestamp = Path.GetFileNameWithoutExtension(w_inputEntry.FilePath);
-                if (w_entries.TryGetValue(w_timestamp, out CaptureListEntry? w_entry) == false)
-                {
-                    w_entry = new CaptureListEntry(w_timestamp);
-                    w_entries.Add(w_timestamp, w_entry);
-                }
-                w_entry.InputEntry = w_inputEntry;
-            }
-
-            return w_entries.Values
-                .OrderByDescending(in_entry => in_entry.Timestamp, StringComparer.OrdinalIgnoreCase)
-                .FirstOrDefault();
+            CaptureListEntry? w_entry = WinFormsCaptureList.BuildEntries(CaptureListMode.StateAndInput).FirstOrDefault();
+            return w_entry?.ToSelection();
         }
         private void capture_list()
         {
             try
             {
-                using Form_Main_Capture_list w_form = new Form_Main_Capture_list();
+                using WinFormsCaptureListDialog w_form = new WinFormsCaptureListDialog(CaptureListMode.StateAndInput);
                 w_form.EntrySelected += in_entry =>
                 {
                     try
                     {
-                        ExecuteCaptureEntry(in_entry.StateEntry, in_entry.InputEntry);
+                        ExecuteCaptureEntry(in_entry.StateFilePath, in_entry.InputFilePath);
                     }
                     catch (Exception ex)
                     {
@@ -808,22 +783,24 @@ namespace MDTracer
                 MessageBox.Show(ex.Message, "Capture History");
             }
         }
-        private void ExecuteCaptureEntry(md_main.StateListEntry? in_stateEntry, md_main.InputRecordEntry? in_inputEntry)
+        private void ExecuteCaptureEntry(string? in_stateFilePath, string? in_inputFilePath)
         {
-            md_main.InputRecordEntry? w_inputEntry = in_inputEntry;
-            if (in_stateEntry != null)
+            string? w_inputFilePath = in_inputFilePath;
+            if (string.IsNullOrEmpty(in_stateFilePath) == false)
             {
-                md_main.request_state_capture_restore_file(in_stateEntry.FilePath);
-                if (w_inputEntry == null)
+                md_main.request_state_capture_restore_file(in_stateFilePath);
+                if (string.IsNullOrEmpty(w_inputFilePath) == true)
                 {
-                    string w_filePrefix = Path.GetFileNameWithoutExtension(in_stateEntry.FilePath);
-                    w_inputEntry = md_main.InputRecordStore.GetEntryByFileNameWithoutExtension(w_filePrefix);
+                    string w_filePrefix = Path.GetFileNameWithoutExtension(in_stateFilePath);
+                    md_main.InputRecordEntry? w_inputEntry =
+                        md_main.InputRecordStore.GetEntryByFileNameWithoutExtension(w_filePrefix);
+                    w_inputFilePath = w_inputEntry?.FilePath;
                 }
             }
 
-            if (w_inputEntry != null)
+            if (string.IsNullOrEmpty(w_inputFilePath) == false)
             {
-                md_main.input_capture_replay_file(w_inputEntry.FilePath);
+                md_main.input_capture_replay_file(w_inputFilePath);
             }
         }
         private void input_capture_Start()

@@ -77,14 +77,17 @@ namespace GenesisEmu.Game
             w_resetItem.ShortcutKeys = Keys.F12;
             var w_saveItem = new ToolStripMenuItem("&Save State", null, (_, _) => SaveState());
             w_saveItem.ShortcutKeys = Keys.F1;
-            var w_loadItem = new ToolStripMenuItem("&Load State", null, (_, _) => LoadState());
+            var w_loadItem = new ToolStripMenuItem("&Load Latest State", null, (_, _) => LoadState());
             w_loadItem.ShortcutKeys = Keys.F4;
+            var w_stateListItem = new ToolStripMenuItem("State &List...", null, (_, _) => OpenStateList());
+            w_stateListItem.ShortcutKeys = Keys.Control | Keys.F4;
             w_emulationMenu.DropDownItems.Add(w_pauseItem);
             w_emulationMenu.DropDownItems.Add(w_frameItem);
             w_emulationMenu.DropDownItems.Add(w_resetItem);
             w_emulationMenu.DropDownItems.Add(new ToolStripSeparator());
             w_emulationMenu.DropDownItems.Add(w_saveItem);
             w_emulationMenu.DropDownItems.Add(w_loadItem);
+            w_emulationMenu.DropDownItems.Add(w_stateListItem);
 
             var w_viewMenu = new ToolStripMenuItem("&View");
             g_scaleIntegerItem = new ToolStripMenuItem(
@@ -259,6 +262,9 @@ namespace GenesisEmu.Game
                 case Keys.F4:
                     LoadState();
                     return true;
+                case Keys.Control | Keys.F4:
+                    OpenStateList();
+                    return true;
                 case Keys.F5:
                     FrameAdvance();
                     return true;
@@ -335,6 +341,32 @@ namespace GenesisEmu.Game
             if (md_main.StateStore.IsAvailable() == false) return;
             md_main.request_state_capture_restore_latest();
             g_statusCpu.Text = "State loaded";
+        }
+
+        private void OpenStateList()
+        {
+            if (g_romLoaded == false)
+            {
+                MessageBox.Show(this, "Load a ROM before opening the state list.", "Save State History", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (md_main.StateStore.IsAvailable() == false) return;
+
+            try
+            {
+                using var w_dialog = new WinFormsCaptureListDialog(CaptureListMode.StateOnly);
+                w_dialog.EntrySelected += in_entry =>
+                {
+                    if (string.IsNullOrEmpty(in_entry.StateFilePath) == true) return;
+                    md_main.request_state_capture_restore_file(in_entry.StateFilePath);
+                    g_statusCpu.Text = "State loaded";
+                };
+                w_dialog.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Save State History", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void Screenshot()
