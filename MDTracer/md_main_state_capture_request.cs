@@ -121,6 +121,7 @@ namespace MDTracer
             {
                 try
                 {
+                    g_md_sram.save();
                     StateListEntry w_entry = string.IsNullOrEmpty(w_save_file_prefix_req) == true
                         ? StateStore.Save()
                         : StateStore.Save(w_save_file_prefix_req);
