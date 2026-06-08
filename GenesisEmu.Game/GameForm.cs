@@ -29,6 +29,9 @@ namespace GenesisEmu.Game
         private readonly OpenFileDialog g_openFileDialog;
         private readonly ToolStripMenuItem g_scaleStretchItem;
         private readonly ToolStripMenuItem g_scaleIntegerItem;
+        private readonly ToolStripMenuItem g_fullscreenItem;
+        private readonly MenuStrip g_menuStrip;
+        private readonly WinFormsFullscreenHelper g_fullscreen = new();
         private readonly object g_bitmapLock = new object();
         private Bitmap? g_workBitmap;
         private Bitmap? g_displayBitmap;
@@ -92,12 +95,25 @@ namespace GenesisEmu.Game
                 "&Stretch to Window",
                 null,
                 (_, _) => SetScaleMode(GameScreenScaleMode.Stretch));
+            g_fullscreenItem = new ToolStripMenuItem(
+                "&Fullscreen",
+                null,
+                (_, _) => ToggleFullscreen());
+            g_fullscreenItem.ShortcutKeys = Keys.Alt | Keys.Enter;
             w_viewMenu.DropDownItems.Add(g_scaleIntegerItem);
             w_viewMenu.DropDownItems.Add(g_scaleStretchItem);
+            w_viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            w_viewMenu.DropDownItems.Add(g_fullscreenItem);
+
+            var w_optionsMenu = new ToolStripMenuItem("&Options");
+            var w_controlsItem = new ToolStripMenuItem("&Controller Settings...", null, (_, _) => OpenControlsDialog());
+            w_optionsMenu.DropDownItems.Add(w_controlsItem);
 
             w_menu.Items.Add(w_fileMenu);
             w_menu.Items.Add(w_emulationMenu);
             w_menu.Items.Add(w_viewMenu);
+            w_menu.Items.Add(w_optionsMenu);
+            g_menuStrip = w_menu;
             MainMenuStrip = w_menu;
             Controls.Add(w_menu);
 
@@ -218,6 +234,16 @@ namespace GenesisEmu.Game
                 case Keys.F10:
                     Screenshot();
                     return true;
+                case Keys.Alt | Keys.Enter:
+                case Keys.F11:
+                    ToggleFullscreen();
+                    return true;
+            }
+
+            if (g_fullscreen.IsFullscreen == true && keyData == Keys.Escape)
+            {
+                ToggleFullscreen();
+                return true;
             }
 
             if (g_romLoaded == false) return base.ProcessCmdKey(ref msg, keyData);
@@ -358,10 +384,23 @@ namespace GenesisEmu.Game
             md_main.write_setting();
         }
 
+        private void ToggleFullscreen()
+        {
+            g_fullscreen.Toggle(this, g_menuStrip, g_statusStrip);
+            g_fullscreenItem.Checked = g_fullscreen.IsFullscreen;
+        }
+
+        private void OpenControlsDialog()
+        {
+            using var w_dialog = new GameControlsDialog();
+            w_dialog.ShowDialog(this);
+        }
+
         private void UpdateScaleMenuChecks()
         {
             g_scaleIntegerItem.Checked = g_scale_mode == GameScreenScaleMode.IntegerFit;
             g_scaleStretchItem.Checked = g_scale_mode == GameScreenScaleMode.Stretch;
+            g_fullscreenItem.Checked = g_fullscreen.IsFullscreen;
         }
 
         private void RebuildRecentRomMenu()

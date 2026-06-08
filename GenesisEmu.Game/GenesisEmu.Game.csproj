@@ -17,4 +17,8 @@
     <ProjectReference Include="..\GenesisEmu.Platform.Windows\GenesisEmu.Platform.Windows.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+  </ItemGroup>
+
 </Project>

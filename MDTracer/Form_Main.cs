@@ -19,11 +19,18 @@ namespace MDTracer
         public static int g_mouseclick_pos_y;
         public static bool g_mouseclick_interrupt;
         public static string[] g_file_name;
+        public static GameScreenScaleMode g_scale_mode = GameScreenScaleMode.IntegerFit;
         private static bool g_filelist_view;
-        private Bitmap g_work_bitmap = null;
+        private Bitmap? g_work_bitmap;
+        private Bitmap? g_display_bitmap;
         private int g_work_bitmapW = -1;
         private int g_work_bitmapH = -1;
+        private int g_frame_update_pending;
         private readonly object g_videoRecordLock = new object();
+        private readonly WinFormsFullscreenHelper g_fullscreen = new();
+        private ToolStripMenuItem? g_scaleIntegerMenuItem;
+        private ToolStripMenuItem? g_scaleStretchMenuItem;
+        private ToolStripMenuItem? g_fullscreenMenuItem;
         private Form_Main_AviRecorder? g_videoRecorder;
         private string g_videoRecordPath = "";
 
@@ -36,6 +43,31 @@ namespace MDTracer
             Instance = this;
             this.MaximumSize = this.Size;
             this.MinimumSize = this.Size;
+            InitializeViewMenu();
+        }
+
+        private void InitializeViewMenu()
+        {
+            var w_viewMenu = new ToolStripMenuItem("&View");
+            g_scaleIntegerMenuItem = new ToolStripMenuItem(
+                "&Integer Scale (letterbox)",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.IntegerFit));
+            g_scaleStretchMenuItem = new ToolStripMenuItem(
+                "&Stretch to Window",
+                null,
+                (_, _) => SetScaleMode(GameScreenScaleMode.Stretch));
+            g_fullscreenMenuItem = new ToolStripMenuItem(
+                "&Fullscreen",
+                null,
+                (_, _) => ToggleFullscreen());
+            g_fullscreenMenuItem.ShortcutKeys = Keys.Alt | Keys.Enter;
+            w_viewMenu.DropDownItems.Add(g_scaleIntegerMenuItem);
+            w_viewMenu.DropDownItems.Add(g_scaleStretchMenuItem);
+            w_viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            w_viewMenu.DropDownItems.Add(g_fullscreenMenuItem);
+            menuStrip1.Items.Insert(3, w_viewMenu);
+            UpdateScaleMenuChecks();
         }
         //----------------------------------------------------------------
         //Event Handling: Screen Operations
@@ -65,6 +97,7 @@ namespace MDTracer
             WinFormsDebugTools.g_form_io.rescan();
             g_filelist_view = true;
             this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
+            UpdateScaleMenuChecks();
             BringToFront();
         }
 
@@ -160,6 +193,18 @@ namespace MDTracer
         //----------------------------------------------------------------
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Alt | Keys.Enter))
+            {
+                ToggleFullscreen();
+                return true;
+            }
+
+            if (g_fullscreen.IsFullscreen == true && keyData == Keys.Escape)
+            {
+                ToggleFullscreen();
+                return true;
+            }
+
             if (g_filelist_view == false)
             {
                 switch (keyData)
@@ -326,8 +371,7 @@ namespace MDTracer
         public void picture_update(int in_cpu)
         {
             if (IsDisposed == true || IsHandleCreated == false) return;
-            Size w_clientSize = GetGamePanelClientSize();
-            if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
+            if (Interlocked.Exchange(ref g_frame_update_pending, 1) == 1) return;
 
             g_filelist_view = false;
             string w_statusText1 = "task usage:" + in_cpu + "%";
@@ -335,28 +379,51 @@ namespace MDTracer
                                 + (md_main.g_md_io.g_input_replaying ? "INPUT PLAY" : "")
                                 + (g_videoRecorder != null ? "  VIDEO REC" : "");
             string w_statusText3 = (md_main.g_state_capture_status == "" ? "" : " " + md_main.g_state_capture_status);
-            Bitmap w_displayBitmap;
+
+            try
+            {
+                BeginInvoke(new Action<string, string, string>(ApplyPictureUpdate), w_statusText1, w_statusText2, w_statusText3);
+            }
+            catch
+            {
+                Interlocked.Exchange(ref g_frame_update_pending, 0);
+            }
+        }
+
+        private void ApplyPictureUpdate(string in_statusText1, string in_statusText2, string in_statusText3)
+        {
+            Interlocked.Exchange(ref g_frame_update_pending, 0);
+            if (IsDisposed == true || IsHandleCreated == false) return;
+            if (WindowState == FormWindowState.Minimized) return;
+
+            Size w_clientSize = panel_game.ClientSize;
+            if (w_clientSize.Width <= 0 || w_clientSize.Height <= 0) return;
+
             int w_bitmap_x = w_clientSize.Width;
             int w_bitmap_y = w_clientSize.Height;
+            int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
+            int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
+            uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
+
             lock (g_bitmapLock)
             {
-                int w_sourceWidth = md_main.g_md_vdp.g_display_xsize;
-                int w_sourceHeight = md_main.g_md_vdp.g_display_ysize;
-                uint[] w_gameScreen = md_main.g_md_vdp.g_game_screen;
-
                 if (g_work_bitmap == null || g_work_bitmapW != w_bitmap_x || g_work_bitmapH != w_bitmap_y)
                 {
                     g_work_bitmap?.Dispose();
+                    g_display_bitmap?.Dispose();
                     g_work_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y, PixelFormat.Format32bppArgb);
+                    g_display_bitmap = new Bitmap(w_bitmap_x, w_bitmap_y, PixelFormat.Format32bppArgb);
                     g_work_bitmapW = w_bitmap_x;
                     g_work_bitmapH = w_bitmap_y;
                 }
+
                 WinFormsGameScreenBitmap.WriteScaledPixels(
-                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_work_bitmap);
+                    w_gameScreen, w_sourceWidth, w_sourceHeight, g_work_bitmap, g_scale_mode);
                 videoRecordingAddFrame(g_work_bitmap);
-                w_displayBitmap = new Bitmap(g_work_bitmap);
+                (g_work_bitmap, g_display_bitmap) = (g_display_bitmap, g_work_bitmap);
             }
-            UpdateGamePicture(w_displayBitmap, w_bitmap_x, w_bitmap_y, w_statusText1, w_statusText2, w_statusText3);
+
+            UpdateGamePicture(g_display_bitmap, w_bitmap_x, w_bitmap_y, in_statusText1, in_statusText2, in_statusText3);
         }
 
         private Size GetGamePanelClientSize()
@@ -380,11 +447,7 @@ namespace MDTracer
 
         private void UpdateGamePicture(Bitmap in_bitmap, int in_width, int in_height, string in_statusText1, string in_statusText2, string in_statusText3)
         {
-            if (IsDisposed == true || IsHandleCreated == false)
-            {
-                in_bitmap.Dispose();
-                return;
-            }
+            if (IsDisposed == true || IsHandleCreated == false) return;
             if (InvokeRequired == true)
             {
                 try
@@ -393,24 +456,39 @@ namespace MDTracer
                 }
                 catch
                 {
-                    in_bitmap.Dispose();
                 }
                 return;
             }
 
-            if (WindowState == FormWindowState.Minimized)
-            {
-                in_bitmap.Dispose();
-                return;
-            }
+            if (WindowState == FormWindowState.Minimized) return;
 
             toolStripStatusLabel1.Text = in_statusText1;
             toolStripStatusLabel2.Text = in_statusText2;
             toolStripStatusLabel3.Text = in_statusText3;
-            pictureBox_game.Image?.Dispose();
             pictureBox_game.Image = in_bitmap;
             pictureBox_game.Width = in_width;
             pictureBox_game.Height = in_height;
+        }
+
+        private void SetScaleMode(GameScreenScaleMode in_mode)
+        {
+            g_scale_mode = in_mode;
+            UpdateScaleMenuChecks();
+            md_main.write_setting();
+        }
+
+        private void ToggleFullscreen()
+        {
+            g_fullscreen.Toggle(this, menuStrip1, statusStrip1);
+            if (g_fullscreenMenuItem != null) g_fullscreenMenuItem.Checked = g_fullscreen.IsFullscreen;
+        }
+
+        public void UpdateScaleMenuChecks()
+        {
+            if (g_scaleIntegerMenuItem == null || g_scaleStretchMenuItem == null) return;
+            g_scaleIntegerMenuItem.Checked = g_scale_mode == GameScreenScaleMode.IntegerFit;
+            g_scaleStretchMenuItem.Checked = g_scale_mode == GameScreenScaleMode.Stretch;
+            if (g_fullscreenMenuItem != null) g_fullscreenMenuItem.Checked = g_fullscreen.IsFullscreen;
         }
         //----------------------------------------------------------------
         //Sub
