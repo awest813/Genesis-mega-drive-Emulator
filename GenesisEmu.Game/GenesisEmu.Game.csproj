@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>GenesisEmu.Game</RootNamespace>
+    <AssemblyName>GenesisEmu.Game</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
+    <ProjectReference Include="..\GenesisEmu.Frontend.Windows\GenesisEmu.Frontend.Windows.csproj" />
+    <ProjectReference Include="..\GenesisEmu.Platform.Windows\GenesisEmu.Platform.Windows.csproj" />
+  </ItemGroup>
+
+</Project>

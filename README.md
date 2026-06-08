@@ -6,7 +6,10 @@ A lightweight, focused Sega Genesis (Mega Drive) emulator written entirely in C#
 
 ## Current Status
 
-The emulator can boot and run a number of commercial Genesis/Mega Drive titles. The emulation core (`GenesisEmu.Core`) is a portable .NET 9 class library; the Windows desktop app (`MDTracer`) uses WinForms with optional Direct3D 12 GPU compositing via `GenesisEmu.Platform.Windows`.
+The emulator can boot and run a number of commercial Genesis/Mega Drive titles. The emulation core (`GenesisEmu.Core`) is a portable .NET 9 class library. Windows frontends use WinForms with optional Direct3D 12 GPU compositing via `GenesisEmu.Platform.Windows`:
+
+- **`GenesisEmu.Game`** — minimal game-playing app (no debug tools)
+- **`MDTracer`** — full developer frontend with tracer, disassembler, and VDP viewers
 
 **Emulated Hardware:**
 - Motorola MC68000 main CPU
@@ -25,6 +28,12 @@ The emulator can boot and run a number of commercial Genesis/Mega Drive titles. 
 
 ### Building
 
+**Windows (game-only app):**
+
+```bash
+dotnet build GenesisEmu.Game/GenesisEmu.Game.csproj
+```
+
 **Windows (full app + debug tools):**
 
 ```bash
@@ -42,11 +51,19 @@ Or open `MDTracer.sln` in Visual Studio 2022 and build from the IDE.
 
 ### Running
 
+**Game-only (recommended for play):**
+
+```bash
+dotnet run --project GenesisEmu.Game
+```
+
+**Developer tools (tracer, VDP viewers, settings):**
+
 ```bash
 dotnet run --project MDTracer
 ```
 
-Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .zip).
+Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .gen / .smd). You can also pass a ROM path on the command line with `GenesisEmu.Game`.
 
 ### Default Controls
 
@@ -131,10 +148,11 @@ GenesisEmu.Core/                # Portable emulation core (net9.0)
   md_m68k.cs, md_z80.cs, md_vdp.cs, md_music.cs, md_bus.cs, ...
   opc/                          # MC68000 opcode implementations
 GenesisEmu.Platform.Windows/    # Windows D3D12 GPU, NAudio, DirectInput
-MDTracer/                       # WinForms frontend + debug tools
+GenesisEmu.Frontend.Windows/    # Shared WinForms display helpers
+GenesisEmu.Game/                # Minimal game-playing WinExe
+MDTracer/                       # Full WinForms frontend + debug tools
   WinFormsDebugTools.cs         # Debug-tool registry and display wiring
   WinFormsVdpDebugBitmap.cs     # ARGB buffer → Bitmap for layer viewers
-  WinFormsGameScreenBitmap.cs   # Game framebuffer scaling for display
   Form_*.cs                     # UI windows
 opcode_make/                    # M68K opcode table generator (build-time)
 tests/GenesisEmu.Core.Tests/    # Core unit tests (net9.0)

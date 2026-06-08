@@ -22,7 +22,9 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 ```
 GenesisEmu.Core/              # Emulation core class library (net9.0)
 GenesisEmu.Platform.Windows/  # Windows audio/input/GPU backends (NAudio, DirectInput, D3D12)
-MDTracer/                     # WinForms frontend
+GenesisEmu.Frontend.Windows/  # Shared WinForms display helpers (game framebuffer scaling)
+GenesisEmu.Game/              # Minimal game-playing WinExe (no debug tools)
+MDTracer/                     # Full WinForms frontend with debug tools
 opcode_make/                  # MC68000 opcode table generator (build-time tool)
 tests/GenesisEmu.Core.Tests/
 ```
@@ -94,7 +96,23 @@ production implementations live in `MDTracer/`.
 | `md_main_input_capture.cs` | Input recording storage |
 | `md_main_input_capture_request.cs` | Input recording request handling |
 
-### Frontend (`MDTracer/`)
+### Shared WinForms helpers (`GenesisEmu.Frontend.Windows/`)
+
+| File | Purpose |
+|------|---------|
+| `WinFormsGameScreenBitmap.cs` | Scales core `uint[]` game framebuffer to a WinForms `Bitmap` |
+
+### Game-only frontend (`GenesisEmu.Game/`)
+
+| File | Purpose |
+|------|---------|
+| `GameForm.cs` | Minimal main window: ROM open, pause, frame advance, reset, save state |
+| `GameMainLoopUiHooks.cs` | `IMainLoopUiHooks` with only `UpdateGameScreen` wired; debug calls are no-ops |
+| `Program.cs` | WinExe entry point; optional ROM path CLI argument |
+
+`GenesisEmu.Game` does not call `WinFormsDebugTools.Initialize()` — no tracer, disassembler, VDP viewers, or settings dialog.
+
+### Debug frontend (`MDTracer/`)
 
 | File | Purpose |
 |------|---------|
@@ -275,7 +293,7 @@ The following coupling points are being untangled before extracting a standalone
 - Extract emulation core into a standalone library (no UI dependencies)
 - Define clean interfaces between subsystems (CPU, bus, VDP, audio, I/O)
 - Make tracer/debugger/disassembler optional modules that attach to the core
-- Create a minimal game-playing frontend separate from the debug tools
+- **Done:** minimal game-playing frontend (`GenesisEmu.Game`) separate from debug tools
 - **Done:** `M68kStackEntryType` moved to core interfaces; `IBusMonitor` injected into `md_bus`
 - **Done:** `md_main` emulation-loop UI calls moved behind `IMainLoopUiHooks`
 - **Done:** debug-tool `Form_*` ownership moved to `WinFormsDebugTools`
@@ -290,6 +308,7 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** CPU tracer wired through `WinFormsDebugTools.g_cpuTracer`
 - **Done:** VDP debug layers composited into ARGB buffers (no System.Drawing in core)
 - **Done:** `GenesisEmu.Core` retargeted to portable `net9.0`
+- **Done:** shared `GenesisEmu.Frontend.Windows` library for game-screen bitmap scaling
 
 ### Phase 4 — Platform Expansion (In Progress)
 - **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends

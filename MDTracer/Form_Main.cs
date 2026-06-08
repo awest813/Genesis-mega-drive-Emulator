@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
+using GenesisEmu.Frontend.Windows;
 namespace MDTracer
 {
     public partial class Form_Main : Form

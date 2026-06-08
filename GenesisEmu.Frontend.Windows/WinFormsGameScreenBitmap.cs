@@ -1,12 +1,12 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 
-namespace MDTracer
+namespace GenesisEmu.Frontend.Windows
 {
     //----------------------------------------------------------------
     // Scales the core game framebuffer (uint[] ARGB) for WinForms display.
     //----------------------------------------------------------------
-    internal static class WinFormsGameScreenBitmap
+    public static class WinFormsGameScreenBitmap
     {
         public static Bitmap CreateScaledBitmap(
             uint[] in_gameScreen,
