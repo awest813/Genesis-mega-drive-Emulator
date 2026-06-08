@@ -56,7 +56,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a detailed overview of the 
 
 - **Compatibility:** Testing with additional ROM titles and reporting issues
 - **Correctness:** Improving timing accuracy, VDP edge cases, DMA behavior
-- **Missing features:** Interlace mode, PAL video timing, automated ROM regression harness
+- **Missing features:** Interlace rendering, automated ROM regression harness
 - **Testing:** Adding unit tests for CPU instructions, bus routing, VDP register handling
 - **Documentation:** Improving hardware behavior documentation and code comments
 - **Cross-platform:** Investigating platform-independent rendering/audio backends
@@ -68,7 +68,7 @@ This project focuses on stock Genesis/Mega Drive emulation. The following are ex
 - Sega 32X
 - Sega CD
 - Game Gear / Master System
-- PAL-specific timing (deferred, not rejected)
+- Interlace double-field rendering (deferred, not rejected)
 
 ## License
 

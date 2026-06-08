@@ -25,6 +25,7 @@ namespace MDTracer
     {
         public const int BANK_SIZE = 0x80000;   // 512 KB per bank
         public const int BANK_COUNT = 8;
+        public const byte PAGE_MASK = 0x3F;   // 6-bit physical page (Sandopolis / SSF2 hardware)
         public const uint CONTROL_START = 0xa130f3;
         public const uint CONTROL_END = 0xa130ff;
 
@@ -55,9 +56,10 @@ namespace MDTracer
 
             int w_bank = (int)((in_address - 0xa130f1) >> 1);   // F3->1 .. FF->7
             if (w_bank < 1 || w_bank >= BANK_COUNT) return;
-            g_bank_pages[w_bank] = in_data;
+            byte w_page = (byte)(in_data & PAGE_MASK);
+            g_bank_pages[w_bank] = w_page;
 
-            map_bank(md_main.g_md_cartridge.g_file, md_main.g_md_m68k.g_memory, w_bank, in_data);
+            map_bank(md_main.g_md_cartridge.g_file, md_main.g_md_m68k.g_memory, w_bank, w_page);
         }
 
         public static bool is_control_register(uint in_address)

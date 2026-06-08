@@ -41,6 +41,7 @@ namespace GenesisEmu.Core.Tests
         private static void TriggerMemoryDma(md_vdp in_vdp, uint in_srcByteAddress, uint in_vramDest, int in_wordCount)
         {
             in_vdp.g_vdp_reg_1_4_dma = 1;
+            in_vdp.g_vdp_reg_15_autoinc = 2;
             in_vdp.g_vdp_reg_23_dma_mode = 0;
             uint w_srcWord = in_srcByteAddress >> 1;
             in_vdp.g_vdp_reg_21_dma_source_low = (byte)(w_srcWord & 0xff);
@@ -94,6 +95,23 @@ namespace GenesisEmu.Core.Tests
             TriggerMemoryDma(w_vdp, w_sramAddr, 0x0100, 1);
 
             Assert.Equal((ushort)0xAABB, ReadVramWord(w_vdp, 0x0100));
+        }
+
+        [Fact]
+        public void MemoryDma_WrapsSourceWithin128KWindow()
+        {
+            SetupBusMachine();
+            const uint w_near_end = 0x1FFFE;
+            md_main.g_md_m68k.g_memory[w_near_end] = 0xBE;
+            md_main.g_md_m68k.g_memory[w_near_end + 1] = 0xEF;
+            md_main.g_md_m68k.g_memory[0] = 0xCA;
+            md_main.g_md_m68k.g_memory[1] = 0xFE;
+
+            var w_vdp = new md_vdp();
+            TriggerMemoryDma(w_vdp, w_near_end, 0x0000, 2);
+
+            Assert.Equal((ushort)0xBEEF, ReadVramWord(w_vdp, 0x0000));
+            Assert.Equal((ushort)0xCAFE, ReadVramWord(w_vdp, 0x0002));
         }
 
         [Fact]

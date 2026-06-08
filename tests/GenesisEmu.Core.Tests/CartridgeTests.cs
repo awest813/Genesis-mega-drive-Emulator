@@ -116,6 +116,35 @@ namespace GenesisEmu.Core.Tests
         }
 
         [Fact]
+        public void Load_DeinterleavesSmdPayloadWithHeader()
+        {
+            var cart = new MDTracer.md_cartridge();
+            const int w_block = 16 * 1024;
+            byte[] w_payload = new byte[w_block];
+            byte[] w_system = System.Text.Encoding.ASCII.GetBytes("SEGA MEGA DRIVE ");
+            for (int k = 0; k < w_system.Length; k++)
+            {
+                if ((k & 1) == 0) w_payload[128 + (k / 2)] = w_system[k];
+                else w_payload[8320 + (k / 2)] = w_system[k];
+            }
+
+            byte[] w_smd = new byte[512 + w_block];
+            Array.Copy(w_payload, 0, w_smd, 512, w_payload.Length);
+
+            string tmpFile = Path.Combine(Path.GetTempPath(), "test_smd.bin");
+            try
+            {
+                File.WriteAllBytes(tmpFile, w_smd);
+                Assert.True(cart.load(tmpFile));
+                Assert.Equal("SEGA", System.Text.Encoding.ASCII.GetString(cart.g_file, 0x100, 4));
+            }
+            finally
+            {
+                if (File.Exists(tmpFile)) File.Delete(tmpFile);
+            }
+        }
+
+        [Fact]
         public void GetUint_ReadsBigEndian()
         {
             var cart = new MDTracer.md_cartridge();

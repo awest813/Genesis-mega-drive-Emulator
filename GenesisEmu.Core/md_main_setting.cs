@@ -133,7 +133,7 @@ namespace MDTracer
                         break;
                     case "vdp_tvmode":
                         g_tvmode_req = int.Parse(w_val[0]);
-                        g_md_vdp.g_vdp_status_0_tvmode = (byte)g_tvmode_req;
+                        g_md_vdp.ApplyTimingMode(g_tvmode_req != 0);
                         break;
                     case "vdp_gpu":
                         g_gpu_req = int.Parse(w_val[0]);

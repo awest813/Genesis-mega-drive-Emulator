@@ -44,6 +44,16 @@ namespace GenesisEmu.Core.Tests
         }
 
         [Fact]
+        public void MapperBankRegister_MasksToSixBitPage()
+        {
+            SetupMachine(PagedRom(64));
+            md_main.g_md_control.write8(0xA130F3, 0xC9); // page 9 with high bits set
+
+            Assert.Equal(9, md_main.g_md_mapper.g_bank_pages[1]);
+            Assert.Equal(9, md_main.g_md_bus.read8(0x080000));
+        }
+
+        [Fact]
         public void Read8_MapperBankSwitch_ReturnsMappedPageThroughBus()
         {
             SetupMachine(PagedRom(10));
