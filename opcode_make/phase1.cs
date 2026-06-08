@@ -221,7 +221,7 @@ namespace opcode_make
                 {
                     outtext("            uint w_start_address = (uint)(g_reg_PC + (short)md_main.g_md_bus.read16(g_reg_PC));");
                     outtext("            stack_push32(g_reg_PC + 2);");
-                    outtext("            md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.BSR, w_pc, w_start_address, g_reg_PC + 2, g_reg_addr[7].l);");
+                    outtext("            g_tracer.CPU_Trace_push(M68kStackEntryType.BSR, w_pc, w_start_address, g_reg_PC + 2, g_reg_addr[7].l);");
                     outtext("            g_reg_PC = w_start_address;");
                 }
                 else
@@ -229,7 +229,7 @@ namespace opcode_make
                     outtext("            g_work_data.b0 = (byte)(g_opcode & 0x00ff);");
                     outtext("            uint w_start_address = (uint)(g_reg_PC + (sbyte)g_work_data.b0);");
                     outtext("            stack_push32(g_reg_PC);");
-                    outtext("            md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.BSR, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);");
+                    outtext("            g_tracer.CPU_Trace_push(M68kStackEntryType.BSR, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);");
                     outtext("            g_reg_PC = w_start_address;");
                 }
                 outtext("        }");
@@ -513,7 +513,7 @@ namespace opcode_make
                 outtext("            g_reg_PC += 2;");
                 outtext("            adressing_func_address(g_op3, g_op4, 2);");
                 outtext("            stack_push32(g_reg_PC);");
-                outtext("            md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.JSR, w_pc, g_analyze_address, g_reg_PC, g_reg_addr[7].l);");
+                outtext("            g_tracer.CPU_Trace_push(M68kStackEntryType.JSR, w_pc, g_analyze_address, g_reg_PC, g_reg_addr[7].l);");
                 outtext("            g_reg_PC = g_analyze_address;");
                 outtext("        }");
             }
@@ -1131,7 +1131,7 @@ namespace opcode_make
                 outtext("            else md_main.g_md_m68k.g_interrupt_EXT_act = false;");
                 outtext("            g_reg_SR = stack_pop16();");
                 outtext("            g_reg_PC = stack_pop32();");
-                outtext("            md_main.g_form_code_trace.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
+                outtext("            g_tracer.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
                 outtext("        }");
             }
             out_tail();
@@ -1147,7 +1147,7 @@ namespace opcode_make
                 outtext("            uint w_pc = g_reg_PC;");
                 outtext("            g_reg_SR = stack_pop16();");
                 outtext("            g_reg_PC = stack_pop32();");
-                outtext("            md_main.g_form_code_trace.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
+                outtext("            g_tracer.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
                 outtext("        }");
             }
             out_tail();
@@ -1162,7 +1162,7 @@ namespace opcode_make
                 outtext("            g_clock += 16;");
                 outtext("            uint w_pc = g_reg_PC;");
                 outtext("            g_reg_PC = stack_pop32();");
-                outtext("            md_main.g_form_code_trace.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
+                outtext("            g_tracer.CPU_Trace_pop(g_reg_PC, w_pc, g_reg_addr[7].l);");
                 outtext("        }");
             }
             out_tail();
@@ -1358,7 +1358,7 @@ namespace opcode_make
                 outtext("            g_reg_PC += 2;");
                 outtext("            uint w_start_address = md_main.g_md_bus.read32((uint)(0x0080 + ((g_opcode & 0x0f) << 2)));");
                 outtext("            stack_push32(g_reg_PC);");
-                outtext("            md_main.g_form_code_trace.CPU_Trace_push(Form_Code_Trace.STACK_LIST_TYPE.TRAP, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);");
+                outtext("            g_tracer.CPU_Trace_push(M68kStackEntryType.TRAP, w_pc, w_start_address, g_reg_PC, g_reg_addr[7].l);");
                 outtext("            stack_push16(g_reg_SR);");
                 outtext("            g_reg_PC = w_start_address;");
                 outtext("        }");

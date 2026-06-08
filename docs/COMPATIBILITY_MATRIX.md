@@ -16,12 +16,13 @@ Use this matrix after core changes (mapper, bus routing, timing, CPU/VDP/audio s
 
 | Title | Feature Focus | Last Check | Status | Notes |
 |---|---|---|---|---|
-| Super Street Fighter II | Sega mapper banks (`0xA130F3-0xA130FF`) | pending | Pending | Validate bank switching paths after mapper changes |
-| Any SRAM-enabled title | SRAM gate (`0xA130F1`) + persistence | pending | Pending | Confirm SRAM/ROM window toggling and `.srm` persistence |
+| Super Street Fighter II | Sega mapper banks (`0xA130F3-0xA130FF`) | pending | Pending manual | Unit/integration tests cover bank switching; needs ROM boot verification |
+| Any SRAM-enabled title | SRAM gate (`0xA130F1`) + persistence | 2026-06-08 | Automated | `SramTests`, `BusRoutingTests`, `DmaTests`; periodic `.srm` autosave |
 
 ## Known Issues
 
 | Area | Issue | Status |
 |---|---|---|
-| Mapper coverage | Mapper-heavy titles are not yet fully tracked in automated ROM-based regression runs | Open |
+| Mapper coverage | Mapper bank switching covered by unit/bus tests; ROM boot matrix still pending for SSF2 | Open |
+| Save states | v6 round-trip covered by `SaveStateTests`; manual in-game verify still recommended | Partial |
 | Timing | Baseline constants are covered, but deeper per-subsystem timing conformance remains in progress | Open |
