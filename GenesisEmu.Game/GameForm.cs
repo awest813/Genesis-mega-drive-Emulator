@@ -106,7 +106,7 @@ namespace GenesisEmu.Game
             w_viewMenu.DropDownItems.Add(g_fullscreenItem);
 
             var w_optionsMenu = new ToolStripMenuItem("&Options");
-            var w_controlsItem = new ToolStripMenuItem("&Controller Settings...", null, (_, _) => OpenControlsDialog());
+            var w_controlsItem = new ToolStripMenuItem("&Controller Settings (P1 / P2)...", null, (_, _) => OpenControlsDialog());
             w_optionsMenu.DropDownItems.Add(w_controlsItem);
 
             w_menu.Items.Add(w_fileMenu);
