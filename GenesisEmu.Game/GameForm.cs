@@ -81,6 +81,10 @@ namespace GenesisEmu.Game
             w_loadItem.ShortcutKeys = Keys.F4;
             var w_stateListItem = new ToolStripMenuItem("State &List...", null, (_, _) => OpenStateList());
             w_stateListItem.ShortcutKeys = Keys.Control | Keys.F4;
+            var w_openStateFolderItem = new ToolStripMenuItem(
+                "Open Save States &Folder",
+                null,
+                (_, _) => OpenStateFolder());
             w_emulationMenu.DropDownItems.Add(w_pauseItem);
             w_emulationMenu.DropDownItems.Add(w_frameItem);
             w_emulationMenu.DropDownItems.Add(w_resetItem);
@@ -88,6 +92,7 @@ namespace GenesisEmu.Game
             w_emulationMenu.DropDownItems.Add(w_saveItem);
             w_emulationMenu.DropDownItems.Add(w_loadItem);
             w_emulationMenu.DropDownItems.Add(w_stateListItem);
+            w_emulationMenu.DropDownItems.Add(w_openStateFolderItem);
 
             var w_viewMenu = new ToolStripMenuItem("&View");
             g_scaleIntegerItem = new ToolStripMenuItem(
@@ -110,12 +115,19 @@ namespace GenesisEmu.Game
 
             var w_optionsMenu = new ToolStripMenuItem("&Options");
             var w_controlsItem = new ToolStripMenuItem("&Controller Settings (P1 / P2)...", null, (_, _) => OpenControlsDialog());
+            var w_gamepadItem = new ToolStripMenuItem("&Gamepad Device...", null, (_, _) => OpenGamepadDialog());
             w_optionsMenu.DropDownItems.Add(w_controlsItem);
+            w_optionsMenu.DropDownItems.Add(w_gamepadItem);
+
+            var w_helpMenu = new ToolStripMenuItem("&Help");
+            var w_aboutItem = new ToolStripMenuItem("&About GenesisEmu...", null, (_, _) => WinFormsAboutDialog.Show(this));
+            w_helpMenu.DropDownItems.Add(w_aboutItem);
 
             w_menu.Items.Add(w_fileMenu);
             w_menu.Items.Add(w_emulationMenu);
             w_menu.Items.Add(w_viewMenu);
             w_menu.Items.Add(w_optionsMenu);
+            w_menu.Items.Add(w_helpMenu);
             g_menuStrip = w_menu;
             MainMenuStrip = w_menu;
             Controls.Add(w_menu);
@@ -131,8 +143,13 @@ namespace GenesisEmu.Game
                 SizeMode = PictureBoxSizeMode.Normal,
                 BackColor = Color.Black,
             };
+            g_pictureBox.Paint += GamePictureBox_Paint;
             g_gamePanel.Controls.Add(g_pictureBox);
             Controls.Add(g_gamePanel);
+            g_gamePanel.Resize += (_, _) =>
+            {
+                if (g_romLoaded == false) g_pictureBox.Invalidate();
+            };
 
             g_statusStrip = new StatusStrip();
             g_statusCpu = new ToolStripStatusLabel("Ready");
@@ -194,6 +211,20 @@ namespace GenesisEmu.Game
             }
 
             RebuildRecentRomMenu();
+            if (g_romLoaded == false) g_pictureBox.Invalidate();
+        }
+
+        private void GamePictureBox_Paint(object? sender, PaintEventArgs e)
+        {
+            if (g_romLoaded == true) return;
+
+            e.Graphics.Clear(Color.Black);
+            using Font w_font = new Font(SystemFonts.MessageBoxFont.FontFamily, 10);
+            using Brush w_brush = new SolidBrush(Color.FromArgb(220, 220, 220));
+            e.Graphics.DrawString("GenesisEmu", new Font(w_font.FontFamily, 14, FontStyle.Bold), w_brush, new PointF(24, 24));
+            e.Graphics.DrawString("Open a ROM (Ctrl+O) or drag a file here", w_font, w_brush, new PointF(24, 52));
+            e.Graphics.DrawString("Recent ROMs appear under File after you load a game", w_font, w_brush, new PointF(24, 72));
+            e.Graphics.DrawString("Esc pause  ·  F1 save  ·  F4 load  ·  Ctrl+F4 state list  ·  F10 screenshot", w_font, w_brush, new PointF(24, 100));
         }
 
         private void GameForm_FormClosing(object? sender, FormClosingEventArgs e)
@@ -296,6 +327,7 @@ namespace GenesisEmu.Game
             }
 
             g_romLoaded = true;
+            g_pictureBox.Invalidate();
             UpdateRecentRomList(in_path);
             g_statusRom.Text = Path.GetFileName(in_path);
             g_statusCpu.Text = "Running";
@@ -426,6 +458,24 @@ namespace GenesisEmu.Game
         {
             using var w_dialog = new GameControlsDialog();
             w_dialog.ShowDialog(this);
+        }
+
+        private void OpenGamepadDialog()
+        {
+            using var w_dialog = new GameGamepadDialog();
+            w_dialog.ShowDialog(this);
+        }
+
+        private void OpenStateFolder()
+        {
+            try
+            {
+                WinFormsStateFolder.OpenCurrentRomStateDirectory();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Save States", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void UpdateScaleMenuChecks()

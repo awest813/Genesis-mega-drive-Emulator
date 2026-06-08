@@ -65,7 +65,7 @@ dotnet run --project MDTracer
 
 Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .gen / .smd). You can also pass a ROM path on the command line with `GenesisEmu.Game`.
 
-### Default Controls
+### Default Controls (Player 1)
 
 | Button | Key |
 |--------|-----|
@@ -82,21 +82,35 @@ Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .gen / .smd). 
 | Z      | K |
 | Mode   | Return |
 
-### Keyboard Shortcuts
+Remap keys and gamepad buttons (including player 2) via **Options → Controller Settings** in `GenesisEmu.Game`.
+
+### Keyboard Shortcuts — GenesisEmu.Game
 
 | Key | Action |
 |-----|--------|
-| Esc | Pause / Resume |
-| F1  | Save State |
-| F2  | Input Recording Start/Stop |
-| F3  | Save State + Input Recording Start/Stop |
-| F4  | Restore Latest State + Input |
-| Ctrl+F4 | Capture History |
-| F5  | Frame Advance |
-| F9  | Settings |
+| Ctrl+O | Open ROM |
+| Esc | Pause / Resume (exit fullscreen first if active) |
+| F1 | Save State |
+| F4 | Load Latest State |
+| Ctrl+F4 | Save State List |
+| F5 | Frame Advance |
 | F10 | Screenshot |
-| F11 | Video Recording Start/Stop |
+| F11 | Fullscreen |
+| Alt+Enter | Fullscreen |
 | F12 | Reset |
+
+### Keyboard Shortcuts — MDTracer (developer frontend)
+
+Includes all game shortcuts above, plus:
+
+| Key | Action |
+|-----|--------|
+| F2 | Input Recording Start/Stop |
+| F3 | Save State + Input Recording Start/Stop |
+| F4 | Restore Latest State + matching Input replay |
+| Ctrl+F4 | Capture History (state + input) |
+| F9 | Settings |
+| F11 | Video Recording Start/Stop |
 
 ## Compatibility
 

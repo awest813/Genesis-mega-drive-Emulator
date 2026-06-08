@@ -58,6 +58,7 @@ namespace GenesisEmu.Game
             Controls.Add(w_tabs);
             Controls.Add(w_closePanel);
             Controls.Add(w_hint);
+            WinFormsDebugTheme.Apply(this);
         }
 
         private TabPage BuildPlayerTab(string in_title, int[] in_keyAllocation, int[] in_joyAllocation)

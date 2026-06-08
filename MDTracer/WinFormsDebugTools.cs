@@ -62,7 +62,8 @@ namespace MDTracer
                 g_form_io,
                 g_form_registry,
                 g_form_flow,
-                g_form_code);
+                g_form_code,
+                g_form_music);
 
             g_coordinator = new WinFormsDebugToolsCoordinator();
             md_main.g_mainLoopUI = new WinFormsMainLoopUiHooks();

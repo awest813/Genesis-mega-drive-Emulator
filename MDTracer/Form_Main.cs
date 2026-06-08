@@ -350,8 +350,7 @@ namespace MDTracer
         }
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var newForm = new Form_About();
-            newForm.ShowDialog();
+            WinFormsAboutDialog.Show(this);
         }
         private static void openSaveFolder(string in_folderName)
         {

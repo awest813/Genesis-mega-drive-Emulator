@@ -187,6 +187,8 @@ namespace MDTracer
                     && (string.IsNullOrEmpty(g_state_capture_rom_file_name) == false);
             }
 
+            public static string? CurrentRomDirectoryPath => GetCurrentRomDirectoryPath();
+
             private static string SanitizeFilePrefix(string in_filePrefix)
             {
                 string w_filePrefix = in_filePrefix;

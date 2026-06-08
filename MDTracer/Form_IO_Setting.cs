@@ -15,6 +15,7 @@ namespace MDTracer
             InitializeComponent();
             backgroundWorker1.WorkerSupportsCancellation = true;
             FormClosing += Form_IO_Setting_FormClosing;
+            GenesisEmu.Frontend.Windows.WinFormsDebugTheme.Apply(this);
         }
 
         private void Form_IO_Setting_Shown(object sender, EventArgs e)
