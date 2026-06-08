@@ -97,12 +97,12 @@ The following commercially released titles have been verified to run:
 
 ## Unimplemented Features
 
-- Memory mapper controller (address 0xA13000+)
 - Interlace mode
+- PAL video timing (NTSC frame loop only; settings TV-mode bit is cosmetic)
 - Sega 32X
 - Sega CD
-- PAL timing
-- SRAM / battery-backed save
+
+**Recently implemented:** SRAM / battery-backed save (`.srm` persistence), Sega mapper controller (`0xA13000+`, SSF2-style bank switching)
 
 ## Roadmap
 

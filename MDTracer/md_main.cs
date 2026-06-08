@@ -38,6 +38,8 @@ namespace MDTracer
         internal static IFrontendSettingsHooks g_frontendSettings = new NullFrontendSettingsHooks();
 
         private static int g_task_usage;
+        private const int SRAM_AUTOSAVE_FRAME_INTERVAL = 180;
+        private static int g_sram_autosave_frame_counter;
         //----------------------------------------------------------------
         public static bool run(string in_romname)
         {
@@ -51,6 +53,7 @@ namespace MDTracer
             g_md_sram.load();
             g_md_mapper.configure(g_md_cartridge);
             g_state_capture_status = "";
+            g_sram_autosave_frame_counter = 0;
             g_md_m68k.reset();
             g_mainLoopUI.UpdateCodeTrace();
             g_mainLoopUI.PushTopTraceEntry(g_md_m68k.g_reg_PC, g_md_m68k.g_reg_addr[7].l);
@@ -122,6 +125,7 @@ namespace MDTracer
                 }
                 g_md_io.input_update_frame();
                 process_state_capture_request();
+                maybe_autosave_sram();
                 for (int w_vline = 0; w_vline < g_md_vdp.g_vertical_line_max; w_vline++)
                 {
                     g_md_vdp.run(w_vline);
@@ -160,10 +164,20 @@ namespace MDTracer
                 w_stopwatch.Restart();
             }
         }
+        private static void maybe_autosave_sram()
+        {
+            if (g_md_sram.g_dirty == false) return;
+            g_sram_autosave_frame_counter++;
+            if (g_sram_autosave_frame_counter < SRAM_AUTOSAVE_FRAME_INTERVAL) return;
+            g_sram_autosave_frame_counter = 0;
+            g_md_sram.save();
+        }
+
         private static void hard_reset()
         {
             g_trace_nextframe = false;
             g_state_capture_status = "";
+            g_md_sram.save();
             g_md_m68k.reset();
             g_md_mapper.reset();
             g_md_z80.reset();
