@@ -36,7 +36,7 @@ namespace MDTracer
             g_work_bitmap = new Bitmap(512, 512);
             pictureBox_flow.Image = g_work_bitmap;
             pictureBox_flow.BackColor = Color.White;
-            g_font = new Font("ＭＳ ゴシック", 10);
+            g_font = new Font(FontFamily.GenericMonospace, 10);
             g_list_chk = new List<STACK_LIST>();
         }
         //----------------------------------------------------------------

@@ -55,7 +55,6 @@ namespace MDTracer
                 g_screen_size_y = 448;
             }
             md_main.g_frontendSettings.NotifyDebugWindowLayoutChanged();
-            WinFormsDebugTools.g_form_setting.show_window();
             WinFormsDebugTools.g_form_screenA.initialize("A", 256, 256, "screen A");
             WinFormsDebugTools.g_form_screenB.initialize("B", 256, 256, "screen B");
             WinFormsDebugTools.g_form_screenW.initialize("W", 256, 256, "screen W");
@@ -111,14 +110,43 @@ namespace MDTracer
             }
         }
 
+        private void Form_Main_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetDataPresent(DataFormats.FileDrop) == true)
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void Form_Main_DragDrop(object? sender, DragEventArgs e)
+        {
+            if (e.Data?.GetData(DataFormats.FileDrop) is not string[] w_files || w_files.Length == 0) return;
+            StartGameWithRom(w_files[0]);
+        }
+
+        private void StartGameWithRom(string in_path)
+        {
+            if (string.IsNullOrEmpty(in_path) == true) return;
+            if (md_main.run(in_path) == false) return;
+
+            file_list_update(in_path);
+            this.MaximumSize = new Size(0, 0);
+            this.MinimumSize = new Size(0, 0);
+            this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
+            this.Width = g_screen_size_x + 16;
+            this.Height = g_screen_size_y + 85;
+            g_filelist_view = false;
+            WinFormsDebugTools.g_form_setting.show_window();
+        }
+
         private void pictureBox_game_Paint(object sender, PaintEventArgs e)
         {
             if (g_filelist_view == true)
             {
-                using Font wfont = new Font("�l�r �S�V�b�N", 10);
+                using Font wfont = new Font(SystemFonts.MessageBoxFont.FontFamily, 10);
                 Brush wbrush = Brushes.White;
-                e.Graphics.DrawString("file select", wfont, wbrush, new PointF(20, 20));
-                e.Graphics.DrawString("(F key: Select in File Explorer)", wfont, wbrush, new PointF(30, 40));
+                e.Graphics.DrawString("ROM Select", wfont, wbrush, new PointF(20, 20));
+                e.Graphics.DrawString("(F: browse, 1-9: recent, or drag a ROM file here)", wfont, wbrush, new PointF(30, 40));
                 for (int i = 0; i < 9; i++)
                 {
                     string w_filename = Path.GetFileName(g_file_name[i]);
@@ -199,16 +227,7 @@ namespace MDTracer
             }
             if ((g_filelist_view == true) && (w_filename != null) && (w_filename != ""))
             {
-                if (true == md_main.run(w_filename))
-                {
-                    file_list_update(w_filename);
-                    this.MaximumSize = new Size(0, 0);
-                    this.MinimumSize = new Size(0, 0);
-                    this.Location = new System.Drawing.Point(g_screen_xpos, g_screen_ypos);
-                    this.Width = g_screen_size_x + 16;
-                    this.Height = g_screen_size_y + 85;
-                    g_filelist_view = false;
-                }
+                StartGameWithRom(w_filename);
             }
         }
 
@@ -422,29 +441,11 @@ namespace MDTracer
                     return;
                 }
 
-                string w_basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string w_directoryPath = Path.Combine(w_basePath, "MDTracer", "Screenshot");
-                Directory.CreateDirectory(w_directoryPath);
-
-                string w_romName = md_main.g_state_capture_rom_file_name;
-                if (string.IsNullOrEmpty(w_romName) == true) w_romName = "screenshot";
-                foreach (char w_char in Path.GetInvalidFileNameChars())
-                {
-                    w_romName = w_romName.Replace(w_char, '_');
-                }
-
                 string w_timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
-                string w_filePrefix = w_romName + "_screenshot_" + w_timeStamp + "_screen";
-                string w_filePath = Path.Combine(w_directoryPath, w_filePrefix + ".png");
-                int w_suffix = 1;
-                while (File.Exists(w_filePath) == true)
-                {
-                    w_filePath = Path.Combine(w_directoryPath, w_filePrefix + "_" + w_suffix + ".png");
-                    w_suffix++;
-                }
-
-                using Bitmap w_bitmap = new Bitmap(w_image);
-                w_bitmap.Save(w_filePath, ImageFormat.Png);
+                string w_filePath = GenesisEmu.Frontend.Windows.WinFormsGameScreenshot.SavePng(
+                    w_image,
+                    "MDTracer",
+                    md_main.g_state_capture_rom_file_name);
                 vdpScreensScreenshot(w_timeStamp);
                 toolStripStatusLabel1.Text = "screenshot saved: " + Path.GetFileName(w_filePath);
             }
