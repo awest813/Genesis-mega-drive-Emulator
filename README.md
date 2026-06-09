@@ -1,204 +1,253 @@
-# Genesis / Mega Drive Emulator
+# 🎮 GenesisEmu (and MDTracer)
 
-A lightweight, focused Sega Genesis (Mega Drive) emulator written entirely in C# and .NET. Originally based on [MDTracer](https://github.com/sasayaki-japan/MDTracer) by sasayaki-japan, this project is being developed into a robust, standalone open-source emulator.
+A high-performance, modular, and portable Sega Genesis (Mega Drive) emulator written entirely in C# and .NET 9.
 
-> **Note:** This program is not intended for playing games illegally. Its purpose is to help users understand and appreciate the ingenuity of the engineers who created this remarkable technology.
+Originally based on [MDTracer](https://github.com/sasayaki-japan/MDTracer) by sasayaki-japan, this project has been heavily re-architected into a decoupled, robust, open-source emulator. It separates a platform-independent emulation core from multiple tailored frontends, serving both general players and retro-engineering developers.
 
-## Current Status
+> ⚠️ **Disclaimer:** This emulator is developed for educational, historical preservation, and development purposes. It is not intended to promote or facilitate copyright infringement.
 
-The emulator can boot and run a number of commercial Genesis/Mega Drive titles. The emulation core (`GenesisEmu.Core`) is a portable .NET 9 class library. Windows frontends use WinForms with optional Direct3D 12 GPU compositing via `GenesisEmu.Platform.Windows`:
+---
 
-- **`GenesisEmu.Game`** — minimal game-playing app (no debug tools)
-- **`MDTracer`** — full developer frontend with tracer, disassembler, and VDP viewers
+## 🏗️ System Architecture & Frontends
 
-**Emulated Hardware:**
-- Motorola MC68000 main CPU
-- Zilog Z80 secondary CPU
-- VDP (Video Display Processor) — scrolling planes, sprites, palette, DMA
-- YM2612 FM synthesis sound chip
-- SN76489 PSG (Programmable Sound Generator)
-- Controller I/O (keyboard and gamepad input)
+GenesisEmu features a clean architectural separation between the core emulation logic and the audio/video/input presentation layer. This decoupling allows us to target multiple platforms and run different frontends seamlessly:
 
-## Getting Started
+### 1. ⚡ Emulation Core (`GenesisEmu.Core`)
+A fully portable .NET 9 class library containing the system-bus coordinator (`md_bus`) and all core chip-level emulators (MC68000, Z80, VDP, YM2612, SN76489). It is entirely self-contained and cross-platform.
+
+### 2. 📺 `GenesisEmu.Game` (Windows Frontend)
+A lightweight, fast, player-focused desktop app written with WinForms, targeting Windows. It supports Direct3D 12 GPU compositing, low-latency audio via NAudio, custom controller mapping, and fullscreen play.
+
+### 3. 🗺️ `MDTracer` (Windows Developer Frontend)
+An advanced, diagnostic-rich desktop environment for developers and retro-engineering enthusiasts. It extends the Windows frontend with powerful debug views:
+- **Instruction Tracer & Disassembler**: Real-time assembly execution log and program counter tracking.
+- **VDP Layer Viewers**: Visual inspectors for VRAM tiles, active color palettes, sprites, and background scroll planes.
+- **History Capture**: Combined save states and input recording/replay for deterministic debugging.
+
+### 4. 🐧 `GenesisEmu.Game.Portable` (Cross-Platform SDL2 Frontend)
+A fully portable game shell designed for **Linux, macOS, and Windows**. It leverages cross-platform backends in `GenesisEmu.Platform.Portable`:
+- **Audio**: OpenAL Soft integration via Silk.NET.
+- **Video**: CPU rendering, Vulkan, and Apple Metal VDP compositing via Silk.NET.
+- **Input**: Unified SDL2 controller and keyboard bindings.
+
+---
+
+## 🚀 Key Features & Emulated Hardware
+
+- **Motorola MC68000**: Main system CPU, fully emulated with custom instruction decoder tables.
+- **Zilog Z80**: Secondary CPU managing audio co-processing and sub-bus communications.
+- **VDP (Video Display Processor)**: High-fidelity graphics engine supporting scrolling background planes (A & B), Window layer, sprite rendering (with priorities and collisions), palette management (CRAM), vertical/horizontal scroll RAM (VSRAM), and high-speed DMA transfers.
+- **VDP DMA Mechanics**: Includes correct 128 KB source-window wrapping and timing characteristics.
+- **YM2612 & SN76489**: Complete FM and PSG sound generators with stereo panning, multi-channel sound mixing, and DAC support.
+- **SRAM Persistence**: Battery-backed save file (`.srm`) support featuring periodic auto-saves for non-volatile cartridge memory.
+- **Bank-Switching Mappers**: Sega mapper support (e.g. `0xA13000+` address space, supporting massive ROMs like *Super Street Fighter II*).
+- **PAL/NTSC Support**: Dynamic video timing supporting 60 Hz NTSC and 50 Hz PAL frame loops.
+- **SMD Support**: In-memory deinterleaving loader for standard interleaved ROMs.
+
+---
+
+## 🛠️ Getting Started
 
 ### Prerequisites
+- **All Platforms**: [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) (or Visual Studio 2022 17.8+)
+- **Windows Frontends**: Windows 10/11
+- **Portable Frontend (Linux/macOS)**: Native SDL2 and OpenAL Soft libraries (often pre-installed, or installable via package managers like `apt` or `brew`).
 
-- Windows 10 or later
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) (or Visual Studio 2022 17.8+)
+### 📦 Building the Solution
 
-### Building
-
-**Windows (game-only app):**
-
+You can build the entire solution using the root solution file:
 ```bash
-dotnet build GenesisEmu.Game/GenesisEmu.Game.csproj
+dotnet build MDTracer.sln
 ```
 
-**Windows (full app + debug tools):**
+Or build specific components:
 
+* **Portable Game Shell (Linux, macOS, Windows)**:
+  ```bash
+  dotnet build GenesisEmu.Game.Portable/GenesisEmu.Game.Portable.csproj
+  ```
+
+* **Standard Game Client (Windows Only)**:
+  ```bash
+  dotnet build GenesisEmu.Game/GenesisEmu.Game.csproj
+  ```
+
+* **Developer & Diagnostics Tool (Windows Only)**:
+  ```bash
+  dotnet build MDTracer/MDTracer.csproj
+  ```
+
+* **Core Unit Tests**:
+  ```bash
+  dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
+  ```
+
+---
+
+## 🎮 Running the Emulator
+
+### 1. Portable SDL2 Shell (Recommended for Linux & macOS)
 ```bash
-dotnet build MDTracer/MDTracer.csproj
+dotnet run --project GenesisEmu.Game.Portable -- [rom-path]
 ```
+You can also drag and drop ROM files (.bin, .md, .gen, .smd) directly onto the running window.
 
-**Portable core + tests (Linux/macOS/Windows):**
-
-```bash
-dotnet build GenesisEmu.Core/GenesisEmu.Core.csproj
-dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
-```
-
-Or open `MDTracer.sln` in Visual Studio 2022 and build from the IDE.
-
-### Running
-
-**Game-only (recommended for play):**
-
+### 2. Standard Game App (Recommended for Windows Play)
 ```bash
 dotnet run --project GenesisEmu.Game
 ```
 
-**Developer tools (tracer, VDP viewers, settings):**
-
+### 3. Developer App (Tracer & Diagnostics for Windows)
 ```bash
 dotnet run --project MDTracer
 ```
 
-Press **Ctrl+O** or use the menu to open a ROM file (.bin / .md / .gen / .smd). You can also pass a ROM path on the command line with `GenesisEmu.Game`.
+---
 
-### Default Controls (Player 1)
+## ⌨️ Controls & Shortcuts
 
-| Button | Key |
-|--------|-----|
-| Start  | Space |
-| A      | N |
-| B      | M |
-| C      | , |
-| Up     | W |
-| Down   | S |
-| Left   | A |
-| Right  | D |
-| X      | H |
-| Y      | J |
-| Z      | K |
-| Mode   | Return |
+### Default Gameplay Controls (Player 1)
 
-Remap keys and gamepad buttons (including player 2) via **Options → Controller Settings** in `GenesisEmu.Game`.
+| Genesis Button | Keyboard Key |
+|:---|:---|
+| **Up / Down / Left / Right** | `W` / `S` / `A` / `D` |
+| **A / B / C** | `N` / `M` / `,` (Comma) |
+| **X / Y / Z** | `H` / `J` / `K` |
+| **Start** | `Space` |
+| **Mode** | `Return` (Enter) |
 
-### Keyboard Shortcuts — GenesisEmu.Game
+*For `GenesisEmu.Game` (Windows), you can remap both Player 1 and Player 2 keyboard/gamepad keys via **Options ➔ Controller Settings**.*
 
-| Key | Action |
-|-----|--------|
-| Ctrl+O | Open ROM |
-| Esc | Pause / Resume (exit fullscreen first if active) |
-| F1 | Save State |
-| F4 | Load Latest State |
-| Ctrl+F4 | Save State List |
-| F5 | Frame Advance |
-| F10 | Screenshot |
-| F11 | Fullscreen |
-| Alt+Enter | Fullscreen |
-| F12 | Reset |
+---
 
-### Keyboard Shortcuts — MDTracer (developer frontend)
+### Shortcuts: `GenesisEmu.Game.Portable` (SDL2 Frontend)
 
-Includes all game shortcuts above, plus:
+| Shortcut | Action |
+|:---|:---|
+| **Esc** | Pause / Resume gameplay |
+| **F1** | Save state |
+| **F4** | Load latest state |
+| **Ctrl + F4** | Save state list |
+| **F5** | Frame advance (while paused) |
+| **F12** | Hard Reset |
+| **Ctrl + I** | Toggle integer-fit scaling |
+| **Ctrl + H** | Toggle on-screen help |
+| **Ctrl + G** | Open Gamepad picker |
+| **Ctrl + Q** | Quit |
 
-| Key | Action |
-|-----|--------|
-| F2 | Input Recording Start/Stop |
-| F3 | Save State + Input Recording Start/Stop |
-| F4 | Restore Latest State + matching Input replay |
-| Ctrl+F4 | Capture History (state + input) |
-| F9 | Settings |
-| F11 | Video Recording Start/Stop |
+---
 
-## Compatibility
+### Shortcuts: `GenesisEmu.Game` (Windows Frontend)
 
-The following commercially released titles have been verified to run:
+| Shortcut | Action |
+|:---|:---|
+| **Ctrl + O** | Open ROM selection dialog |
+| **Esc** | Pause / Resume gameplay (exit fullscreen first) |
+| **F1** | Quick Save State |
+| **F4** | Load Latest State |
+| **Ctrl + F4** | Save State List |
+| **F5** | Frame Advance |
+| **F10** | Take Screenshot |
+| **F11** or **Alt + Enter** | Toggle Fullscreen |
+| **F12** | Hard Reset |
 
-<details>
-<summary>Verified Titles (click to expand)</summary>
+---
 
-**Japan**
-- Space Harrier II, Super Thunder Blade, Altered Beast, Phantasy Star
-- Thunder Force II / III / IV, Ghouls'n Ghosts, Super Hang-On
-- Super Shinobi, Tatsujin, Vermilion, Golden Axe III, Sorcerian
-- After Burner II, Phantasy Star III, Phelios, Super Monaco GP
-- Hellfire, Strider Hiryuu, FZ Senki Axis, Burning Force, Granada
-- DARIUS (Sagaia), Musha Aleste, Sonic The Hedgehog, Bare Knuckle
-- Kuuga, Castlevania - Bloodlines, Super Fantasy Zone
-- Galaxy Force II, Panorama Cotton, Ex-Ranza, Dynamite Headdy
-- Battle Mania Daiginjou, OutRun, Gunstar Heroes
+### Shortcuts: `MDTracer` (Developer Diagnostics)
 
-**USA**
-- Vectorman
+Includes all of the `GenesisEmu.Game` shortcuts above, plus diagnostic utilities:
 
-</details>
+| Shortcut | Action |
+|:---|:---|
+| **F2** | Start / Stop Input Recording |
+| **F3** | Save State + Start/Stop Input Recording |
+| **F4** | Restore Latest State + replay recorded input |
+| **Ctrl + F4** | Capture execution history (state + input) |
+| **F9** | Open Settings Manager |
+| **F11** | Start / Stop Video Recording |
 
-## Unimplemented Features
+---
 
-- Interlace mode
-- Interlace rendering (HV counter paths exist; full double-field output is still deferred)
-- Sega 32X
-- Sega CD
+## 📂 Project Structure
 
-**Recently implemented:** SRAM / battery-backed save (`.srm` persistence + periodic autosave), Sega mapper controller (`0xA13000+`, SSF2-style bank switching), VDP DMA timing and bus-routing fixes, PAL video timing (50 Hz / 313-line frame loop), SMD ROM deinterleaving, DMA 128 KB source-window wrap
-
-## Roadmap
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture and development roadmap.
-
-**Phase 1 — Core Stability:** Boot and run commercial ROMs reliably with correct audio, video, and input.
-
-**Phase 2 — Feature Completeness:** Save states, SRAM, mapper support, timing accuracy, expanded compatibility.
-
-**Phase 3 — Developer Tools:** Optional tracer, debugger, disassembler, and VDP inspection as separate modules.
-
-**Phase 4 — Platform Expansion:** `GenesisEmu.Platform.Portable` (OpenAL + SDL2 + CPU VDP) and `GenesisEmu.Game.Portable` SDL shell for Linux/macOS; Windows uses NAudio/DirectInput/D3D12 via `GenesisEmu.Game`.
-
-## Project Structure
-
-```
-MDTracer.sln                    # Solution file
-GenesisEmu.Core/                # Portable emulation core (net9.0)
-  md_m68k.cs, md_z80.cs, md_vdp.cs, md_music.cs, md_bus.cs, ...
-  opc/                          # MC68000 opcode implementations
-GenesisEmu.Platform.Windows/    # Windows D3D12 GPU, NAudio, DirectInput
-GenesisEmu.Frontend.Windows/    # Shared WinForms display helpers
-GenesisEmu.Game/                # Minimal game-playing WinExe
-MDTracer/                       # Full WinForms frontend + debug tools
-  WinFormsDebugTools.cs         # Debug-tool registry and display wiring
-  WinFormsVdpDebugBitmap.cs     # ARGB buffer → Bitmap for layer viewers
-  Form_*.cs                     # UI windows
-opcode_make/                    # M68K opcode table generator (build-time)
-tests/GenesisEmu.Core.Tests/    # Core unit tests (net9.0)
-docs/                           # Architecture and compatibility docs
+```text
+MDTracer.sln                    # Root MSBuild Solution
+├── docs/                       # Technical architecture & compatibility logs
+├── tests/
+│   └── GenesisEmu.Core.Tests/  # Extensive unit testing suite (xUnit)
+│
+├── GenesisEmu.Core/            # 📦 Portable Emulation Core
+│   ├── opc/                    # MC68000 instruction-set micro-opcodes
+│   ├── md_bus.cs               # System bus coordinator
+│   ├── md_m68k.cs              # Motorola 68000 CPU emulator
+│   ├── md_z80.cs               # Zilog Z80 audio-co-processor
+│   ├── md_vdp.cs               # Video Display Processor (VRAM/rendering)
+│   ├── md_music.cs             # Audio coordinator
+│   └── ...                     # Cartridge, IO, SRAM, and save state APIs
+│
+├── GenesisEmu.Platform.Portable/ # 🌀 Cross-Platform Backends
+│   ├── CpuVdpGpuRenderer.cs    # Software fall-back rasterizer
+│   ├── VulkanVdpGpuRenderer.cs # Vulkan GPU compositor (Silk.NET)
+│   ├── MetalVdpGpuRenderer.cs  # Metal GPU compositor (Silk.NET)
+│   ├── OpenAlAudioOutputBackend.cs # OpenAL-Soft native sound driver
+│   └── ...
+│
+├── GenesisEmu.Game.Portable/   # 🐧 Cross-Platform SDL2 Shell App
+│
+├── GenesisEmu.Platform.Windows/ # 🖥️ Windows-Specific Backends (DirectX 12 / NAudio)
+├── GenesisEmu.Frontend.Windows/ # Shared WinForms drawing & scaling mechanics
+├── GenesisEmu.Game/            # 🎮 Standard WinForms Desktop Player App
+├── MDTracer/                   # 🗺️ Dev Debugger App (Trace/Disassembler/VDP Inspectors)
+└── opcode_make/                # MC68000 Build-time instruction map generator
 ```
 
-## References
+---
 
-- Sega Genesis Manual: Genesis Technical Overview v1.00 (1991, Sega, US)
-- YM2608 OPNA Application Manual
-- SN76489 User Manual (Texas Instruments)
-- MC68000 16-Bit Microprocessor User's Manual (Motorola, 1981)
-- Z80 CPU User Manual (Zilog)
+## 📈 Compatibility Status
 
-### Acknowledgments
+The emulation core runs many commercial classic titles. For continuous regression checks and detailed performance tracking, consult the **[Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md)**.
 
-The following open-source projects and documentation were referenced during development:
+### Emulated Hardware Coverage:
+- [x] Motorola MC68000 / Zilog Z80
+- [x] Full VDP Plane & Sprite Rendering
+- [x] VDP DMA (including wrapping and timing constraints)
+- [x] High-Fidelity YM2612 FM / SN76489 PSG Synthesis
+- [x] Battery SRAM / Save Files (.srm) with periodic autosave
+- [x] Sega Mapper Support (Super Street Fighter II, etc.)
+- [x] SMD ROM Deinterleaving Loader
+- [x] Decoupled Front-end UI interfaces
+- [ ] Interlace double-field rendering (partially implemented; full output deferred)
+- [ ] Sega CD & Sega 32X expansion support (planned roadmap)
 
-- [Gens](http://www.gens.me/) — Genesis emulator
-- [BlastEm](https://www.retrodev.com/blastem/) — Genesis emulator
-- [Sandopolis](https://github.com/pixel-clover/sandopolis) — MIT-licensed Genesis emulator (PAL timing, DMA source wrap, SMD loader, mapper page mask)
-- MDSound — Sound emulation reference
-- Sega Genesis VDP Documentation by Charles MacDonald
+---
 
-## License
+## 📜 References & Acknowledgments
 
-This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
+This emulator was made possible thanks to the documentation and work of the retro-computing community:
 
-The file [license.txt](license.txt) contains the license for referenced code from the Gens emulator (MIT, Copyright © 2019 Stephane Dallongeville).
+### Reference Specifications:
+- *Sega Genesis Technical Overview v1.00* (1991, Sega US)
+- *YM2608 OPNA Application Manual*
+- *SN76489 User Manual* (Texas Instruments)
+- *MC68000 16-Bit Microprocessor User's Manual* (Motorola)
+- *Z80 CPU User Manual* (Zilog)
+- *Sega Genesis VDP Documentation* by Charles MacDonald
 
-## Contributing
+### Open-Source Inspiration:
+- [Gens](http://www.gens.me/) by Stephane Dallongeville (referenced code licensed in [license.txt](license.txt))
+- [BlastEm](https://www.retrodev.com/blastem/) - High accuracy emulator
+- [Sandopolis](https://github.com/pixel-clover/sandopolis) - Helpful reference for PAL loop timing, DMA source wraps, SMD loaders, and mapper masking.
+
+---
+
+## ⚖️ License
+
+This project is open-source software licensed under the **[MIT License](LICENSE)**.
+
+Portions of code referenced from the *Gens* emulator are licensed under the MIT License by Stephane Dallongeville (see [license.txt](license.txt) for full credit).
+
+---
+
+## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
