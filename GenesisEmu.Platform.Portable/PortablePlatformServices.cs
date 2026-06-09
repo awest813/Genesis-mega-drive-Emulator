@@ -14,7 +14,7 @@ namespace MDTracer.Platform.Portable
     {
       md_main.g_audioBackend = CreateAudioBackend();
       md_io.g_inputBackend = CreateInputBackend();
-      md_vdp.g_gpuRenderer = new CpuVdpGpuRenderer();
+      md_vdp.g_gpuRenderer = VdpGpuRendererFactory.Create();
     }
 
     public static void RegisterForSdlGame(Sdl in_sdl)
@@ -22,7 +22,19 @@ namespace MDTracer.Platform.Portable
       EnsureSdlSubsystems(in_sdl, Sdl.InitVideo | Sdl.InitJoystick | Sdl.InitGamecontroller | Sdl.InitEvents);
       md_main.g_audioBackend = CreateAudioBackend();
       md_io.g_inputBackend = new SdlInputDeviceBackend(in_sdl, in_ownSdlLifetime: false);
-      md_vdp.g_gpuRenderer = new CpuVdpGpuRenderer();
+      md_vdp.g_gpuRenderer = CreateGpuRendererForHost();
+    }
+
+    private static IVdpGpuRenderer CreateGpuRendererForHost()
+    {
+      if (OperatingSystem.IsMacOS()
+          && MetalVdpGpuRenderer.TryCreate(out IVdpGpuRenderer? w_metal)
+          && w_metal != null)
+      {
+        return w_metal;
+      }
+
+      return VdpGpuRendererFactory.Create();
     }
 
     public static bool TryRegister()

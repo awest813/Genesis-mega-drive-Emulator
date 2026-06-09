@@ -29,11 +29,13 @@ namespace GenesisEmu.Game.Portable
     private string g_statusText = "GenesisEmu";
     private int g_framePresentPending;
     private readonly object g_presentLock = new();
+    private readonly SdlPortableOverlay g_overlay;
 
     public SdlGameApp()
     {
       g_sdl = Sdl.GetApi();
       PortablePlatformServices.RegisterForSdlGame(g_sdl);
+      g_overlay = new SdlPortableOverlay(g_sdl);
       md_main.g_frontendSettings = new SdlGameFrontendSettingsHooks();
       md_main.initialize();
       md_main.read_setting();
@@ -117,6 +119,7 @@ namespace GenesisEmu.Game.Portable
         }
       }
 
+      g_overlay.Dispose();
       g_sdl.Quit();
       g_sdl.Dispose();
     }
@@ -202,6 +205,12 @@ namespace GenesisEmu.Game.Portable
         return;
       }
 
+      if (g_overlay.HandleKey(in_event.Key.Keysym.Scancode, in_event.Key.Keysym.Mod, ref g_statusText))
+      {
+        Interlocked.Exchange(ref g_framePresentPending, 1);
+        return;
+      }
+
       if (g_romLoaded == false) return;
 
       switch (in_event.Key.Keysym.Scancode)
@@ -281,16 +290,31 @@ namespace GenesisEmu.Game.Portable
           }
         }
 
+        g_sdl.SetRenderDrawColor(g_renderer, 0, 0, 0, 255);
         g_sdl.RenderClear(g_renderer);
         g_sdl.RenderCopy(g_renderer, g_texture, null, null);
+        g_overlay.Draw(g_renderer, w_width, w_height);
         g_sdl.RenderPresent(g_renderer);
+        UpdateWindowTitle();
       }
     }
 
     private unsafe void PresentStatusOnly()
     {
+      int w_width = 0;
+      int w_height = 0;
+      g_sdl.GetRendererOutputSize(g_renderer, ref w_width, ref w_height);
+      g_sdl.SetRenderDrawColor(g_renderer, 0, 0, 0, 255);
       g_sdl.RenderClear(g_renderer);
+      g_overlay.Draw(g_renderer, w_width, w_height);
       g_sdl.RenderPresent(g_renderer);
+      UpdateWindowTitle();
+    }
+
+    private unsafe void UpdateWindowTitle()
+    {
+      if (g_window == null) return;
+      g_sdl.SetWindowTitle(g_window, g_statusText);
     }
 
     private unsafe void EnsureTexture(int in_width, int in_height)

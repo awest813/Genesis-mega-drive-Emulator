@@ -335,7 +335,10 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** SDL scancode → DirectInput key mapping for shared saved key bindings
 - Non-Windows accelerated VDP GPU backends (Vulkan/Metal)
 - **Done:** `GenesisEmu.Game.Portable` SDL2 game shell with drag-and-drop ROM loading
-- Cross-platform game frontend polish (menus, save-state list, gamepad config UI)
+- **Done:** portable overlays for help, gamepad picker, and save-state list (SDL2_ttf)
+- **Done:** `VulkanVdpGpuRenderer` / `MetalVdpGpuRenderer` (MoltenVK) with CPU compositor fallback until SPIR-V compute port
+- **Done:** macOS CI builds portable platform + game shell
+- Cross-platform Vulkan compute shader port (full GPU compositor on non-Windows)
 
 ### Deferred (Out of Scope for Now)
 - Sega 32X

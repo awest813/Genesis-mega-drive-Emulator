@@ -41,7 +41,9 @@ namespace GenesisEmu.Core.Tests
 
                 Assert.IsType<OpenAlAudioOutputBackend>(md_main.g_audioBackend);
                 Assert.IsType<SdlInputDeviceBackend>(md_io.g_inputBackend);
-                Assert.IsType<CpuVdpGpuRenderer>(md_vdp.g_gpuRenderer);
+                Assert.True(
+                    md_vdp.g_gpuRenderer is CpuVdpGpuRenderer or VulkanVdpGpuRenderer,
+                    $"Unexpected GPU renderer: {md_vdp.g_gpuRenderer.GetType().Name}");
             }
             finally
             {

@@ -28,6 +28,9 @@ namespace GenesisEmu.Game.Portable
       Console.WriteLine("  F5      Frame advance (while paused)");
       Console.WriteLine("  F12     Hard reset");
       Console.WriteLine("  Ctrl+I  Toggle integer-fit scaling");
+      Console.WriteLine("  Ctrl+H  On-screen help");
+      Console.WriteLine("  Ctrl+G  Gamepad picker");
+      Console.WriteLine("  Ctrl+F4 Save state list");
       Console.WriteLine("  Ctrl+Q  Quit");
       Console.WriteLine();
       Console.WriteLine("Drag and drop a ROM file onto the window to load it.");
