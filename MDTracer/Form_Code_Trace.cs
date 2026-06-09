@@ -10,7 +10,7 @@ namespace MDTracer
 
         private M68kExecutionTracer? g_executionTracer;
 
-        public M68kExecutionTracer ExecutionTracer => g_executionTracer!;
+        internal M68kExecutionTracer ExecutionTracer => g_executionTracer!;
 
         public Form_Code_Trace()
         {
