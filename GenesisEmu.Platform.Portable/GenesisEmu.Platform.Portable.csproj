@@ -15,6 +15,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="GenesisEmu.Core.Tests" />
     <InternalsVisibleTo Include="GenesisEmu.Game.Portable" />
+    <InternalsVisibleTo Include="GenesisEmu.Platform.Windows" />
   </ItemGroup>
 
   <ItemGroup>
