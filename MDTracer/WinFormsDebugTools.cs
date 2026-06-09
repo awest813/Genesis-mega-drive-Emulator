@@ -27,7 +27,6 @@ namespace MDTracer
         public static Form_Pallete g_form_pallete;
 
         public static Form_Code g_form_code;
-        public static Form_Code_Trace g_form_code_trace;
         public static Form_IO g_form_io;
         public static Form_MUSIC g_form_music;
         public static Form_Registry g_form_registry;
@@ -42,9 +41,9 @@ namespace MDTracer
             g_form_screenS = new Form_VDP_Screen();
             g_form_pattern = new Form_Pattern();
             g_form_pallete = new Form_Pallete();
-            g_form_code_trace = new Form_Code_Trace();
-            g_codeAnalysis = g_form_code_trace;
-            g_cpuTracer = g_form_code_trace;
+            Form_Code_Trace w_codeTrace = new Form_Code_Trace();
+            g_codeAnalysis = w_codeTrace;
+            g_cpuTracer = w_codeTrace.ExecutionTracer;
             g_form_code = new Form_Code();
             g_form_io = new Form_IO();
             g_form_music = new Form_MUSIC();

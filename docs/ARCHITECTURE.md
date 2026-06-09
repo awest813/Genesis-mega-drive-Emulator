@@ -183,7 +183,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 ## Current Limitations
 
 - **Residual platform coupling:** WinForms debug viewers convert core ARGB buffers to bitmaps in `MDTracer`; audio, input, and accelerated VDP GPU rendering use injectable backends with Windows implementations in `GenesisEmu.Platform.Windows`
-- **Residual frontend coupling:** VDP GPU rendering still lives in core; trace execution still wires `Form_Code_Trace` as `IM68kTracer`
+- **Residual frontend coupling:** none for CPU tracing or software VDP GPU fallback; core defaults to `NullVdpGpuRenderer` and `NullM68kTracer` until a frontend registers production backends
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -255,6 +255,8 @@ The following coupling points are being untangled before extracting a standalone
 8. **Debug-tool analysis state no longer cross-references `Form_Code_Trace` directly** —
    `ICodeAnalysisSession` / `NullCodeAnalysisSession` expose disassembly buffers, trace
    controls, and call-stack display through `WinFormsDebugTools.g_codeAnalysis`.
+   Shared `CodeAnalysisTraceCode` / `CodeAnalysisStackEntry` types now live in
+   `code_analysis_types.cs` so the session seam has no `Form_*` type dependency.
 
 9. **Debug-window close no longer calls `Form_Setting` directly** —
    `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged()` refreshes the settings
@@ -262,11 +264,14 @@ The following coupling points are being untangled before extracting a standalone
 
 10. **VDP GPU compute rendering no longer lives in core** —
     `IVdpGpuRenderer` / `DirectX12VdpGpuRenderer` handle D3D12 frame compositing;
-    the core stages per-frame snapshots and downloads the finished screen buffer.
+    `CpuVdpGpuRenderer` provides the software snapshot fallback in
+    `GenesisEmu.Platform.Windows`; the core defaults to `NullVdpGpuRenderer`
+    until a frontend registers a backend.
 
 11. **CPU execution tracing no longer references `Form_Code_Trace` directly** —
-    `WinFormsDebugTools.g_cpuTracer` (`IM68kTracer`) is wired into `md_m68k.g_tracer`;
-    analysis viewing remains on `ICodeAnalysisSession`.
+    `M68kExecutionTracer` implements `IM68kTracer` and is wired through
+    `WinFormsDebugTools.g_cpuTracer` into `md_m68k.g_tracer`; analysis
+    viewing remains on `ICodeAnalysisSession`.
 
 12. **VDP debug-layer compositing no longer uses System.Drawing in core** —
     scroll/sprite/pattern viewers write flat `uint[]` ARGB buffers (`g_scrollA_pixels`, etc.);
@@ -312,8 +317,9 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** trace-break UI notifications routed through `IDebugToolsCoordinator`
 - **Done:** `opcode_make/` generator emits `g_tracer` wiring
 - **Done:** shared code-analysis state routed through `ICodeAnalysisSession`
+- **Done:** `CodeAnalysisTraceCode` / `CodeAnalysisStackEntry` extracted from `Form_Code_Trace`
 - **Done:** debug-window layout changes notify settings via `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged`
-- **Done:** CPU tracer wired through `WinFormsDebugTools.g_cpuTracer`
+- **Done:** CPU tracer wired through `WinFormsDebugTools.g_cpuTracer` (`M68kExecutionTracer`)
 - **Done:** VDP debug layers composited into ARGB buffers (no System.Drawing in core)
 - **Done:** `GenesisEmu.Core` retargeted to portable `net9.0`
 - **Done:** shared `GenesisEmu.Frontend.Windows` library for game-screen bitmap scaling
@@ -322,7 +328,7 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends
 - **Done:** `IAudioOutputBackend` / `IInputDeviceBackend` injected into core
 - **Done:** VDP GPU compute renderer extracted to `DirectX12VdpGpuRenderer` behind `IVdpGpuRenderer`; SharpDX removed from core
-- **Done:** `CpuVdpGpuRenderer` provides a software snapshot compositor fallback in core (default before Windows registers D3D12)
+- **Done:** `CpuVdpGpuRenderer` software snapshot compositor moved to `GenesisEmu.Platform.Windows` (D3D12 fallback)
 - Non-Windows accelerated VDP GPU backends (Vulkan/Metal)
 - Cross-platform audio/input backends beyond Windows
 - Linux and macOS support

@@ -11,12 +11,12 @@ namespace MDTracer
     internal interface ICodeAnalysisSession
     {
         int MemSize { get; }
-        Form_Code_Trace.TRACECODE[] AnalyseCode { get; }
+        CodeAnalysisTraceCode[] AnalyseCode { get; }
         int ArrowStartLine { get; set; }
         int ArrowEndLine { get; set; }
         bool CpuPause { get; }
         int StackCur { get; }
-        Form_Code_Trace.STACK_LIST[] StackList { get; }
+        CodeAnalysisStackEntry[] StackList { get; }
         string[] StackListTypeStr { get; }
 
         int GetCodeFromAddr(uint in_addr);
@@ -33,17 +33,17 @@ namespace MDTracer
 
     internal sealed class NullCodeAnalysisSession : ICodeAnalysisSession
     {
-        private static readonly Form_Code_Trace.TRACECODE[] EmptyAnalyseCode = Array.Empty<Form_Code_Trace.TRACECODE>();
-        private static readonly Form_Code_Trace.STACK_LIST[] EmptyStackList = Array.Empty<Form_Code_Trace.STACK_LIST>();
+        private static readonly CodeAnalysisTraceCode[] EmptyAnalyseCode = Array.Empty<CodeAnalysisTraceCode>();
+        private static readonly CodeAnalysisStackEntry[] EmptyStackList = Array.Empty<CodeAnalysisStackEntry>();
         private static readonly string[] EmptyStackListTypeStr = Array.Empty<string>();
 
         public int MemSize => 0;
-        public Form_Code_Trace.TRACECODE[] AnalyseCode => EmptyAnalyseCode;
+        public CodeAnalysisTraceCode[] AnalyseCode => EmptyAnalyseCode;
         public int ArrowStartLine { get; set; }
         public int ArrowEndLine { get; set; }
         public bool CpuPause => false;
         public int StackCur => 0;
-        public Form_Code_Trace.STACK_LIST[] StackList => EmptyStackList;
+        public CodeAnalysisStackEntry[] StackList => EmptyStackList;
         public string[] StackListTypeStr => EmptyStackListTypeStr;
 
         public int GetCodeFromAddr(uint in_addr) => -1;

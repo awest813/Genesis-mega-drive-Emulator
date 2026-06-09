@@ -5,8 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using static MDTracer.Form_Code_Trace;
-
 namespace MDTracer
 {
     public partial class Form_Code : Form, IBusMonitor
@@ -320,20 +318,20 @@ namespace MDTracer
             if (IsCodeLineInRange(in_line) == false) return 0;
 
             int w_line = in_line + Math.Max(1, WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line].leng2);
-            return Math.Min(w_line, Form_Code_Trace.MEMSIZE - 1);
+            return Math.Min(w_line, CodeAnalysisConstants.MemSize - 1);
         }
 
         private int GetPreviousCodeLine(int in_line)
         {
             if (in_line <= 0) return 0;
-            int w_line = Math.Min(in_line, Form_Code_Trace.MEMSIZE - 1) - 1;
+            int w_line = Math.Min(in_line, CodeAnalysisConstants.MemSize - 1) - 1;
             int w_front = Math.Max(0, WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line].front);
             return Math.Max(0, w_line - w_front);
         }
 
         private bool IsCodeLineInRange(int in_line)
         {
-            return (0 <= in_line) && (in_line < Form_Code_Trace.MEMSIZE);
+            return (0 <= in_line) && (in_line < CodeAnalysisConstants.MemSize);
         }
 
         private int GetCodeContentX(int in_x)
@@ -402,7 +400,7 @@ namespace MDTracer
         {
             if (IsCodeLineInRange(in_line) == false) return;
 
-            TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
+            CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
             w_code.break_static = w_code.break_static == false;
             WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line] = w_code;
             SaveCurrentGameBreakpointSettings();
@@ -468,9 +466,9 @@ namespace MDTracer
         private string GetBreakpointSettingText()
         {
             List<string> w_breakpoints = new List<string>();
-            for (int i = 0; i < Form_Code_Trace.MEMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.MemSize; i++)
             {
-                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
+                CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
                 if (w_code.break_static == false) continue;
 
                 w_breakpoints.Add((w_code.address & 0x00ffffff).ToString("X6", CultureInfo.InvariantCulture));
@@ -480,9 +478,9 @@ namespace MDTracer
 
         private void SetBreakpointSettingText(string in_text)
         {
-            for (int i = 0; i < Form_Code_Trace.MEMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.MemSize; i++)
             {
-                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
+                CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[i];
                 if (w_code.break_static == false) continue;
 
                 w_code.break_static = false;
@@ -496,7 +494,7 @@ namespace MDTracer
                 int w_line = WinFormsDebugTools.g_codeAnalysis.GetCodeFromAddr(w_addr);
                 if (IsCodeLineInRange(w_line) == false) continue;
 
-                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
+                CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
                 w_code.break_static = true;
                 WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line] = w_code;
             }
@@ -611,7 +609,7 @@ namespace MDTracer
             vScrollBar_code.Minimum = 0;
             vScrollBar_code.SmallChange = 1;
             vScrollBar_code.LargeChange = w_leng;
-            vScrollBar_code.Maximum = Form_Code_Trace.MEMSIZE - 1 + w_leng - 1;
+            vScrollBar_code.Maximum = CodeAnalysisConstants.MemSize - 1 + w_leng - 1;
             SetScrollBarValue(vScrollBar_code, g_top_line);
 
             int w_client_width = Math.Max(1, pictureBox_code.ClientSize.Width);
@@ -650,15 +648,15 @@ namespace MDTracer
             {
                 w_writer.WriteLine("addr,dump,mnemonic,comment1");
                 int w_cur_line = 0;
-                while (w_cur_line < Form_Code_Trace.MEMSIZE)
+                while (w_cur_line < CodeAnalysisConstants.MemSize)
                 {
-                    TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_cur_line];
+                    CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_cur_line];
                     int w_dump_len = GetTraceCodeDumpLength(w_cur_line);
                     if (w_dump_len <= 0) break;
 
                     string w_addr = w_code.address.ToString("X6");
                     string w_dump = GetTraceCodeDumpText(w_cur_line, w_dump_len);
-                    string w_mnemonic = (w_code.type == TRACECODE.TYPE.OPC) ? (w_code.operand ?? "") : "";
+                    string w_mnemonic = (w_code.type == CodeAnalysisTraceCode.Type.Opc) ? (w_code.operand ?? "") : "";
                     string w_comment1 = w_code.comment1 ?? "";
 
                     w_writer.WriteLine(
@@ -673,8 +671,8 @@ namespace MDTracer
         }
         private int GetTraceCodeDumpLength(int in_line)
         {
-            TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
-            if (w_code.type != TRACECODE.TYPE.NON)
+            CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line];
+            if (w_code.type != CodeAnalysisTraceCode.Type.Non)
             {
                 return Math.Max(1, w_code.leng2);
             }
@@ -682,8 +680,8 @@ namespace MDTracer
             int w_dump_len = 0;
             for (int i = 0; i < 8; i++)
             {
-                if (Form_Code_Trace.MEMSIZE <= in_line + i) break;
-                if (WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line + i].type != TRACECODE.TYPE.NON) break;
+                if (CodeAnalysisConstants.MemSize <= in_line + i) break;
+                if (WinFormsDebugTools.g_codeAnalysis.AnalyseCode[in_line + i].type != CodeAnalysisTraceCode.Type.Non) break;
                 w_dump_len += 1;
             }
             return w_dump_len;
@@ -761,10 +759,10 @@ namespace MDTracer
             try
             {
                 dataGridView_comment1.Rows.Clear();
-                for (int w_line = 0; w_line < Form_Code_Trace.MEMSIZE; w_line++)
+                for (int w_line = 0; w_line < CodeAnalysisConstants.MemSize; w_line++)
                 {
-                    Form_Code_Trace.TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
-                    if (w_code.type != Form_Code_Trace.TRACECODE.TYPE.OPC) continue;
+                    CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
+                    if (w_code.type != CodeAnalysisTraceCode.Type.Opc) continue;
 
                     string w_comment = (w_code.comment1 ?? "").Trim();
                     if (w_comment.Length == 0) continue;

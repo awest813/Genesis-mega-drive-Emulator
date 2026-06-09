@@ -14,35 +14,7 @@
         };
         private List<OP_COMMENT1> g_op_comment;
 
-        public struct TRACECODE
-        {
-            public enum TYPE : int
-            {
-                NON,
-                OPC,
-                OPR,
-                UNIQUE,
-                CHK
-            }
-            public TYPE type;
-            public int address;
-            public ushort val;
-            public string operand;
-            public int leng2;
-            public int front;
-            public string comment1;
-            public bool break_static;
-            public bool break_flash;
-            public int jmp_address;
-            public bool ret_line;
-            public uint func_address;
-            public bool operand_jsr;
-            public List<STACK_LIST> stack;
-        }
-        public const int ROMSIZE = 0x200000;
-        public const int RAMSIZE = 0x8000;
-        public const int MEMSIZE = ROMSIZE + RAMSIZE;
-        public TRACECODE[] g_analyse_code;
+        public CodeAnalysisTraceCode[] g_analyse_code;
 
         private string[] MOVEM_MTOA = { "A7","A6","A5","A4","A3","A2","A1","A0"
                                                 ,"D7","D6","D5","D4","D3","D2","D1","D0"};
@@ -51,56 +23,56 @@
 
         public void update()
         {
-            for (int i = 0; i < ROMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.RomSize; i++)
             {
-                g_analyse_code[i] = new TRACECODE();
-                g_analyse_code[i].type = TRACECODE.TYPE.NON;
+                g_analyse_code[i] = new CodeAnalysisTraceCode();
+                g_analyse_code[i].type = CodeAnalysisTraceCode.Type.Non;
                 g_analyse_code[i].leng2 = 1;
                 g_analyse_code[i].address = i * 2;
                 g_analyse_code[i].val = md_main.g_md_m68k.read16((uint)i * 2);
-                g_analyse_code[i].stack = new List<STACK_LIST>();
+                g_analyse_code[i].stack = new List<CodeAnalysisStackEntry>();
             }
-            for (int i = 0; i < RAMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.RamSize; i++)
             {
-                g_analyse_code[ROMSIZE + i] = new TRACECODE();
-                g_analyse_code[ROMSIZE + i].leng2 = 1;
-                g_analyse_code[ROMSIZE + i].address = 0xff0000 + (i * 2);
-                g_analyse_code[ROMSIZE + i].type = TRACECODE.TYPE.NON;
-                g_analyse_code[ROMSIZE + i].stack = new List<STACK_LIST>();
+                g_analyse_code[CodeAnalysisConstants.RomSize + i] = new CodeAnalysisTraceCode();
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].leng2 = 1;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].address = 0xff0000 + (i * 2);
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].type = CodeAnalysisTraceCode.Type.Non;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].stack = new List<CodeAnalysisStackEntry>();
             }
-            g_analyse_code[0].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[0].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[0].leng2 = 2;
             g_analyse_code[0].comment1 = "Vector:Reset: Initial SSP";
             g_analyse_code[1].leng2 = 1;
             g_analyse_code[1].front = 1;
-            g_analyse_code[2].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[2].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[2].leng2 = 2;
             g_analyse_code[2].comment1 = "Vector:Reset: Initial PC";
             g_analyse_code[3].leng2 = 1;
             g_analyse_code[3].front = 1;
-            g_analyse_code[28].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[28].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[28].leng2 = 2;
             g_analyse_code[28].comment1 = "Vector:TRAPV lnstruction";
             g_analyse_code[29].leng2 = 1;
             g_analyse_code[29].front = 1;
-            g_analyse_code[52].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[52].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[52].leng2 = 2;
             g_analyse_code[52].comment1 = "Vector:Leve1 2 Interrupt Autovector";
             g_analyse_code[53].leng2 = 1;
             g_analyse_code[53].front = 1;
-            g_analyse_code[56].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[56].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[56].leng2 = 2;
             g_analyse_code[56].comment1 = "Vector:Leve1 4 Interrupt Autovector";
             g_analyse_code[57].leng2 = 1;
             g_analyse_code[57].front = 1;
-            g_analyse_code[60].type = TRACECODE.TYPE.UNIQUE;
+            g_analyse_code[60].type = CodeAnalysisTraceCode.Type.Unique;
             g_analyse_code[60].leng2 = 2;
             g_analyse_code[60].comment1 = "Vector:Leve1 6 Interrupt Autovector";
             g_analyse_code[61].leng2 = 1;
             g_analyse_code[61].front = 1;
             for (int i = 0; i < 16;i++)
             {
-                g_analyse_code[128 + (i * 2)].type = TRACECODE.TYPE.UNIQUE;
+                g_analyse_code[128 + (i * 2)].type = CodeAnalysisTraceCode.Type.Unique;
                 g_analyse_code[128 + (i * 2)].leng2 = 2;
                 g_analyse_code[128 + (i * 2)].comment1 = "Vector:TRAP lnstruction vectors " + i;
                 g_analyse_code[129 + (i * 2)].leng2 = 1;
@@ -109,7 +81,7 @@
             int w_initialPcLine = get_code_from_addr((uint)((g_analyse_code[2].val << 16) + g_analyse_code[3].val));
             if (w_initialPcLine >= 0)
             {
-                g_analyse_code[w_initialPcLine].type = TRACECODE.TYPE.CHK;
+                g_analyse_code[w_initialPcLine].type = CodeAnalysisTraceCode.Type.Chk;
             }
 
 
@@ -159,36 +131,36 @@
         //-------------------------------------------------
         public void analyses_reset()
         {
-            for (int i = 0; i < RAMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.RamSize; i++)
             {
-                g_analyse_code[ROMSIZE + i].type = TRACECODE.TYPE.NON;
-                g_analyse_code[ROMSIZE + i].val = 0;
-                g_analyse_code[ROMSIZE + i].operand = "";
-                g_analyse_code[ROMSIZE + i].leng2 = 1;
-                g_analyse_code[ROMSIZE + i].front = 0;
-                g_analyse_code[ROMSIZE + i].comment1 = "";
-                g_analyse_code[ROMSIZE + i].break_static = false;
-                g_analyse_code[ROMSIZE + i].break_flash = false;
-                g_analyse_code[ROMSIZE + i].jmp_address = 0;
-                g_analyse_code[ROMSIZE + i].ret_line = false;
-                g_analyse_code[ROMSIZE + i].func_address = 0;
-                g_analyse_code[ROMSIZE + i].operand_jsr = false;
-                g_analyse_code[ROMSIZE + i].stack.Clear();
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].type = CodeAnalysisTraceCode.Type.Non;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].val = 0;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].operand = "";
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].leng2 = 1;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].front = 0;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].comment1 = "";
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].break_static = false;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].break_flash = false;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].jmp_address = 0;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].ret_line = false;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].func_address = 0;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].operand_jsr = false;
+                g_analyse_code[CodeAnalysisConstants.RomSize + i].stack.Clear();
             }
         }
         public void analyses()
         {
-            for (int i = 0; i < RAMSIZE; i++)
+            for (int i = 0; i < CodeAnalysisConstants.RamSize; i++)
             {
                 ushort w_val = md_main.g_md_m68k.read16((uint)(0xff0000 + (i * 2)));
-                if (g_analyse_code[ROMSIZE + i].val != w_val)
+                if (g_analyse_code[CodeAnalysisConstants.RomSize + i].val != w_val)
                 {
-                    g_analyse_code[ROMSIZE + i].type = TRACECODE.TYPE.NON;
-                    g_analyse_code[ROMSIZE + i].leng2 = 1;
-                    g_analyse_code[ROMSIZE + i].front = 0;
-                    g_analyse_code[ROMSIZE + i].val = md_main.g_md_m68k.read16((uint)(0xff0000 + (i * 2)));
-                    g_analyse_code[ROMSIZE + i].comment1 = "";
-                    g_analyse_code[ROMSIZE + i].ret_line = false;
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].type = CodeAnalysisTraceCode.Type.Non;
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].leng2 = 1;
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].front = 0;
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].val = md_main.g_md_m68k.read16((uint)(0xff0000 + (i * 2)));
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].comment1 = "";
+                    g_analyse_code[CodeAnalysisConstants.RomSize + i].ret_line = false;
                 }
             }
             int wchange = 0;
@@ -199,8 +171,8 @@
                 do
                 {
                     int w_next = 0;
-                    TRACECODE w_code = g_analyse_code[w_line];
-                    if (w_code.type == TRACECODE.TYPE.CHK)
+                    CodeAnalysisTraceCode w_code = g_analyse_code[w_line];
+                    if (w_code.type == CodeAnalysisTraceCode.Type.Chk)
                     {
                         ushort w_op1 = w_code.val;
                         ushort w_op2 = 0;
@@ -211,39 +183,39 @@
                         w_next = w_line + w_leng;
                         if (w_leng == 0)
                         {
-                            g_analyse_code[w_line].type = TRACECODE.TYPE.NON;
+                            g_analyse_code[w_line].type = CodeAnalysisTraceCode.Type.Non;
                             w_next = w_line + 1;
                         }
                         else
                         {
-                            g_analyse_code[w_line].type = TRACECODE.TYPE.OPC;
+                            g_analyse_code[w_line].type = CodeAnalysisTraceCode.Type.Opc;
                             g_analyse_code[w_line].leng2 = w_leng;
                             g_analyse_code[w_line].front = 0;
-                            if ((w_leng >= 2) && (w_line + 1 < MEMSIZE))
+                            if ((w_leng >= 2) && (w_line + 1 < CodeAnalysisConstants.MemSize))
                             {
                                 w_op2 = g_analyse_code[w_line + 1].val;
-                                g_analyse_code[w_line + 1].type = TRACECODE.TYPE.OPR;
+                                g_analyse_code[w_line + 1].type = CodeAnalysisTraceCode.Type.Opr;
                                 g_analyse_code[w_line + 1].leng2 = w_leng - 1;
                                 g_analyse_code[w_line + 1].front = 1;
                                                             }
-                            if ((w_leng >= 3) && (w_line + 2 < MEMSIZE))
+                            if ((w_leng >= 3) && (w_line + 2 < CodeAnalysisConstants.MemSize))
                             {
                                 w_op3 = g_analyse_code[w_line + 2].val;
-                                g_analyse_code[w_line + 2].type = TRACECODE.TYPE.OPR;
+                                g_analyse_code[w_line + 2].type = CodeAnalysisTraceCode.Type.Opr;
                                 g_analyse_code[w_line + 2].leng2 = w_leng - 2;
                                 g_analyse_code[w_line + 2].front = 2;
                             }
-                            if ((w_leng >= 4) && (w_line + 3 < MEMSIZE))
+                            if ((w_leng >= 4) && (w_line + 3 < CodeAnalysisConstants.MemSize))
                             {
                                 w_op4 = g_analyse_code[w_line + 3].val;
-                                g_analyse_code[w_line + 3].type = TRACECODE.TYPE.OPR;
+                                g_analyse_code[w_line + 3].type = CodeAnalysisTraceCode.Type.Opr;
                                 g_analyse_code[w_line + 3].leng2 = w_leng - 3;
                                 g_analyse_code[w_line + 3].front = 3;
                             }
-                            if ((w_leng >= 5) && (w_line + 4 < MEMSIZE))
+                            if ((w_leng >= 5) && (w_line + 4 < CodeAnalysisConstants.MemSize))
                             {
                                 w_op5 = g_analyse_code[w_line + 4].val;
-                                g_analyse_code[w_line + 4].type = TRACECODE.TYPE.OPR;
+                                g_analyse_code[w_line + 4].type = CodeAnalysisTraceCode.Type.Opr;
                                 g_analyse_code[w_line + 4].leng2 = w_leng - 4;
                                 g_analyse_code[w_line + 4].front = 4;
                             }
@@ -271,22 +243,22 @@
                         }
                     }
                     else
-                    if (w_code.type == TRACECODE.TYPE.NON)
+                    if (w_code.type == CodeAnalysisTraceCode.Type.Non)
                     {
                         for (int i = 0; i < 8; i++)
                         {
                             w_next = w_line + i + 1;
-                            if (w_next >= MEMSIZE) break;
-                            if (g_analyse_code[w_next].type != TRACECODE.TYPE.NON) break;
+                            if (w_next >= CodeAnalysisConstants.MemSize) break;
+                            if (g_analyse_code[w_next].type != CodeAnalysisTraceCode.Type.Non) break;
                         }
 
 
                         int w_leng = 0;
                         for (int i = 0; i < 8; i++)
                         {
-                            if (w_line + i >= MEMSIZE) break;
-                            TRACECODE w_cur = g_analyse_code[w_line + i];
-                            if (w_cur.type != TRACECODE.TYPE.NON) break;
+                            if (w_line + i >= CodeAnalysisConstants.MemSize) break;
+                            CodeAnalysisTraceCode w_cur = g_analyse_code[w_line + i];
+                            if (w_cur.type != CodeAnalysisTraceCode.Type.Non) break;
                             w_leng = i + 1;
                         }
                         for (int i = 0; i < w_leng; i++)
@@ -300,12 +272,12 @@
                         w_next = w_line + w_code.leng2;
                     }
                     w_line = w_next;
-                } while (w_line < MEMSIZE);
+                } while (w_line < CodeAnalysisConstants.MemSize);
             } while (wchange > 0);
         }
         public void analyses_next(int in_line, int in_next, int in_addr, int in_jmpaddr, int in_op1 ,int in_op2)
         {
-            if ((MEMSIZE <= in_line) || (MEMSIZE <= in_next)) return;
+            if ((CodeAnalysisConstants.MemSize <= in_line) || (CodeAnalysisConstants.MemSize <= in_next)) return;
 
             string w_opname_org = md_main.g_md_m68k.g_opcode_info[in_op1].opname_org;
             if ((w_opname_org != "BRA")
@@ -314,9 +286,9 @@
                 && (w_opname_org != "RTR")
                 && (w_opname_org != "RTS"))
             {
-                if (g_analyse_code[in_next].type == TRACECODE.TYPE.NON)
+                if (g_analyse_code[in_next].type == CodeAnalysisTraceCode.Type.Non)
                 {
-                    g_analyse_code[in_next].type = TRACECODE.TYPE.CHK;
+                    g_analyse_code[in_next].type = CodeAnalysisTraceCode.Type.Chk;
                 }
             }
             else
@@ -333,9 +305,9 @@
                 int w_jmp_cur = in_line + 1 + (w_jmp_offset / 2);
                 int w_jmp_addr = in_addr + 2 + w_jmp_offset;
                 g_analyse_code[in_line].jmp_address = w_jmp_addr;
-                if ((0 <= w_jmp_cur) && (w_jmp_cur < MEMSIZE) && (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON))
+                if ((0 <= w_jmp_cur) && (w_jmp_cur < CodeAnalysisConstants.MemSize) && (g_analyse_code[w_jmp_cur].type == CodeAnalysisTraceCode.Type.Non))
                 {
-                    g_analyse_code[w_jmp_cur].type = TRACECODE.TYPE.CHK;
+                    g_analyse_code[w_jmp_cur].type = CodeAnalysisTraceCode.Type.Chk;
                 }
             }
             if (w_opname_org == "DBCC")
@@ -344,9 +316,9 @@
                 int w_jmp_cur = in_line + 1 + (w_jmp_offset / 2);
                 int w_jmp_addr = in_addr + 2 + w_jmp_offset;
                 g_analyse_code[in_line].jmp_address = w_jmp_addr;
-                if ((0 <= w_jmp_cur) && (w_jmp_cur < MEMSIZE) && (g_analyse_code[w_jmp_cur].type == TRACECODE.TYPE.NON))
+                if ((0 <= w_jmp_cur) && (w_jmp_cur < CodeAnalysisConstants.MemSize) && (g_analyse_code[w_jmp_cur].type == CodeAnalysisTraceCode.Type.Non))
                 {
-                    g_analyse_code[w_jmp_cur].type = TRACECODE.TYPE.CHK;
+                    g_analyse_code[w_jmp_cur].type = CodeAnalysisTraceCode.Type.Chk;
                 }
             }
             if ((w_opname_org == "JMP") || (w_opname_org == "JSR"))
@@ -356,9 +328,9 @@
                     int w_jmp_cur = in_jmpaddr & 0x00ffffff;
                     g_analyse_code[in_line].jmp_address = w_jmp_cur;
                     int w_jmp_line = get_code_from_addr((uint)w_jmp_cur);
-                    if ((0 <= w_jmp_line) && (g_analyse_code[w_jmp_line].type == TRACECODE.TYPE.NON))
+                    if ((0 <= w_jmp_line) && (g_analyse_code[w_jmp_line].type == CodeAnalysisTraceCode.Type.Non))
                     {
-                        g_analyse_code[w_jmp_line].type = TRACECODE.TYPE.CHK;
+                        g_analyse_code[w_jmp_line].type = CodeAnalysisTraceCode.Type.Chk;
                     }
                 }
             }
@@ -389,7 +361,7 @@
             }
             return out_comaddr;
         }
-        public string analyses_opcode(string in_opstr, int in_op1, int in_op2, int in_op3, int in_op4, TRACECODE in_code)
+        public string analyses_opcode(string in_opstr, int in_op1, int in_op2, int in_op3, int in_op4, CodeAnalysisTraceCode in_code)
         {
             if (in_opstr.Contains("#OP2LEN2U"))
             {
@@ -575,11 +547,11 @@
             }
             if ((0xff0000 <= w_addr) && (w_addr < 0x1000000))
             {
-                return ROMSIZE + ((w_addr - 0xff0000) / 2);
+                return CodeAnalysisConstants.RomSize + ((w_addr - 0xff0000) / 2);
             }
             if ((0xe00000 <= w_addr) && (w_addr < 0xe10000))
             {
-                return ROMSIZE + ((w_addr - 0xe00000) / 2);
+                return CodeAnalysisConstants.RomSize + ((w_addr - 0xe00000) / 2);
             }
             return -1;
         }

@@ -103,26 +103,4 @@ namespace MDTracer
         public void DownloadScreen(uint[] in_destination) { }
         public void Dispose() { }
     }
-
-    //----------------------------------------------------------------
-    // Software GPU path: reuses the scanline CPU compositor against
-    // staged frame snapshots. Default backend for headless/tests;
-    // Windows production replaces this with DirectX 12.
-    //----------------------------------------------------------------
-    internal sealed class CpuVdpGpuRenderer : IVdpGpuRenderer
-    {
-        public void InitializeIfNeeded() { }
-        public void StageFrameData(
-            uint[] in_rendererVram,
-            uint[] in_colors,
-            uint[] in_colorShadow,
-            uint[] in_colorHighlight,
-            VDP_LINE_SNAP[] in_lineSnap) { }
-        public void Render(in VDP_REGISTER in_register, int in_displayYSize)
-        {
-            md_main.g_md_vdp?.render_snapshot_frame_cpu();
-        }
-        public void DownloadScreen(uint[] in_destination) { }
-        public void Dispose() { }
-    }
 }
