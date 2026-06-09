@@ -24,8 +24,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
 
-    - name: Build core and portable platform
-      run: dotnet build GenesisEmu.Platform.Portable/GenesisEmu.Platform.Portable.csproj --no-restore --configuration Release
+    - name: Build portable platform and game shell
+      run: |
+        dotnet build GenesisEmu.Platform.Portable/GenesisEmu.Platform.Portable.csproj --no-restore --configuration Release
+        dotnet build GenesisEmu.Game.Portable/GenesisEmu.Game.Portable.csproj --configuration Release
 
     - name: Test core
       run: dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj --configuration Release --verbosity normal

@@ -24,7 +24,8 @@ GenesisEmu.Core/              # Emulation core class library (net9.0)
 GenesisEmu.Platform.Portable/ # Cross-platform audio/input/GPU backends (OpenAL, SDL2, CPU VDP)
 GenesisEmu.Platform.Windows/  # Windows audio/input/GPU backends (NAudio, DirectInput, D3D12)
 GenesisEmu.Frontend.Windows/  # Shared WinForms display helpers (game framebuffer scaling)
-GenesisEmu.Game/              # Minimal game-playing WinExe (no debug tools)
+GenesisEmu.Game/              # Minimal game-playing WinExe (no debug tools, Windows)
+GenesisEmu.Game.Portable/     # Cross-platform SDL2 game shell (Linux/macOS)
 MDTracer/                     # Full WinForms frontend with debug tools
 opcode_make/                  # MC68000 opcode table generator (build-time tool)
 tests/GenesisEmu.Core.Tests/
@@ -333,7 +334,8 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** `GenesisEmu.Platform.Portable` with OpenAL audio, SDL2 input, and `PortablePlatformServices.Register()`
 - **Done:** SDL scancode → DirectInput key mapping for shared saved key bindings
 - Non-Windows accelerated VDP GPU backends (Vulkan/Metal)
-- Cross-platform game frontend (Linux/macOS UI shell)
+- **Done:** `GenesisEmu.Game.Portable` SDL2 game shell with drag-and-drop ROM loading
+- Cross-platform game frontend polish (menus, save-state list, gamepad config UI)
 
 ### Deferred (Out of Scope for Now)
 - Sega 32X

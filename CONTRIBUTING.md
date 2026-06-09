@@ -24,6 +24,7 @@ Portable platform only (Linux/macOS):
 
 ```bash
 dotnet build GenesisEmu.Platform.Portable/GenesisEmu.Platform.Portable.csproj
+dotnet run --project GenesisEmu.Game.Portable/GenesisEmu.Game.Portable.csproj -- /path/to/game.bin
 ```
 
 ### Running Tests

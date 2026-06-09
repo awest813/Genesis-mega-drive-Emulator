@@ -14,6 +14,7 @@
     <InternalsVisibleTo Include="GenesisEmu.Platform.Windows" />
     <InternalsVisibleTo Include="GenesisEmu.Platform.Portable" />
     <InternalsVisibleTo Include="GenesisEmu.Game" />
+    <InternalsVisibleTo Include="GenesisEmu.Game.Portable" />
     <InternalsVisibleTo Include="GenesisEmu.Frontend.Windows" />
   </ItemGroup>
 

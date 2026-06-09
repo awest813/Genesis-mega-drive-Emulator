@@ -154,7 +154,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the technical architecture 
 
 **Phase 3 — Developer Tools:** Optional tracer, debugger, disassembler, and VDP inspection as separate modules.
 
-**Phase 4 — Platform Expansion:** `GenesisEmu.Platform.Portable` (OpenAL + SDL2 + CPU VDP) for Linux/macOS; Windows uses NAudio/DirectInput/D3D12.
+**Phase 4 — Platform Expansion:** `GenesisEmu.Platform.Portable` (OpenAL + SDL2 + CPU VDP) and `GenesisEmu.Game.Portable` SDL shell for Linux/macOS; Windows uses NAudio/DirectInput/D3D12 via `GenesisEmu.Game`.
 
 ## Project Structure
 

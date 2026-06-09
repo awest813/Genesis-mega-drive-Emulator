@@ -1,3 +1,5 @@
+using Silk.NET.SDL;
+
 namespace MDTracer.Platform.Portable
 {
   //----------------------------------------------------------------
@@ -12,6 +14,14 @@ namespace MDTracer.Platform.Portable
     {
       md_main.g_audioBackend = CreateAudioBackend();
       md_io.g_inputBackend = CreateInputBackend();
+      md_vdp.g_gpuRenderer = new CpuVdpGpuRenderer();
+    }
+
+    public static void RegisterForSdlGame(Sdl in_sdl)
+    {
+      EnsureSdlSubsystems(in_sdl, Sdl.InitVideo | Sdl.InitJoystick | Sdl.InitGamecontroller | Sdl.InitEvents);
+      md_main.g_audioBackend = CreateAudioBackend();
+      md_io.g_inputBackend = new SdlInputDeviceBackend(in_sdl, in_ownSdlLifetime: false);
       md_vdp.g_gpuRenderer = new CpuVdpGpuRenderer();
     }
 
@@ -36,6 +46,17 @@ namespace MDTracer.Platform.Portable
     private static IInputDeviceBackend CreateInputBackend()
     {
       return new SdlInputDeviceBackend();
+    }
+
+    private static void EnsureSdlSubsystems(Sdl in_sdl, uint in_flags)
+    {
+      if ((in_sdl.WasInit(in_flags) & in_flags) != in_flags)
+      {
+        if (in_sdl.Init(in_flags) != 0)
+        {
+          throw new InvalidOperationException($"SDL init failed: {in_sdl.GetErrorS()}");
+        }
+      }
     }
   }
 }

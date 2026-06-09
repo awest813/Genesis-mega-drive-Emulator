@@ -27,6 +27,7 @@ namespace MDTracer.Platform.Portable
     private const int KeyStatusNum = 256;
 
     private readonly Sdl g_sdl;
+    private readonly bool g_ownSdlLifetime;
     private readonly object g_deviceLock = new();
     private readonly List<string> g_joyNameList = new();
     private readonly List<OpenJoystickDevice> g_joyDevices = new();
@@ -35,8 +36,14 @@ namespace MDTracer.Platform.Portable
     private bool g_initialized;
 
     public SdlInputDeviceBackend()
+      : this(null, true)
     {
-      g_sdl = Sdl.GetApi();
+    }
+
+    public SdlInputDeviceBackend(Sdl? in_sharedSdl, bool in_ownSdlLifetime = false)
+    {
+      g_sdl = in_sharedSdl ?? Sdl.GetApi();
+      g_ownSdlLifetime = in_ownSdlLifetime;
       EnsureInitialized();
     }
 
@@ -221,20 +228,30 @@ namespace MDTracer.Platform.Portable
         g_joyName = "";
       }
 
-      if (g_initialized)
+      if (g_initialized && g_ownSdlLifetime)
       {
         g_sdl.Quit();
         g_initialized = false;
       }
 
-      g_sdl.Dispose();
+      if (g_ownSdlLifetime)
+      {
+        g_sdl.Dispose();
+      }
     }
 
     private void EnsureInitialized()
     {
       if (g_initialized) return;
 
-      if (g_sdl.Init(Sdl.InitJoystick | Sdl.InitGamecontroller | Sdl.InitEvents) != 0)
+      uint w_required = Sdl.InitJoystick | Sdl.InitGamecontroller | Sdl.InitEvents;
+      if ((g_sdl.WasInit(w_required) & w_required) == w_required)
+      {
+        g_initialized = true;
+        return;
+      }
+
+      if (g_sdl.Init(w_required) != 0)
       {
         throw new InvalidOperationException($"SDL init failed: {g_sdl.GetErrorS()}");
       }
