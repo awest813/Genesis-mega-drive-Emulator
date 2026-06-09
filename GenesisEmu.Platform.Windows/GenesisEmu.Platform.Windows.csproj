@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
+    <ProjectReference Include="..\GenesisEmu.Platform.Portable\GenesisEmu.Platform.Portable.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,11 +18,14 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore GenesisEmu.Core/GenesisEmu.Core.csproj
+    - name: Install portable platform dependencies
+      run: sudo apt-get update && sudo apt-get install -y libopenal1 libsdl2-2.0-0
 
-    - name: Build core
-      run: dotnet build GenesisEmu.Core/GenesisEmu.Core.csproj --no-restore --configuration Release
+    - name: Restore dependencies
+      run: dotnet restore tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj
+
+    - name: Build core and portable platform
+      run: dotnet build GenesisEmu.Platform.Portable/GenesisEmu.Platform.Portable.csproj --no-restore --configuration Release
 
     - name: Test core
       run: dotnet test tests/GenesisEmu.Core.Tests/GenesisEmu.Core.Tests.csproj --configuration Release --verbosity normal

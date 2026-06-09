@@ -21,6 +21,7 @@ The Sega Genesis (Mega Drive) contains the following major components, all of wh
 
 ```
 GenesisEmu.Core/              # Emulation core class library (net9.0)
+GenesisEmu.Platform.Portable/ # Cross-platform audio/input/GPU backends (OpenAL, SDL2, CPU VDP)
 GenesisEmu.Platform.Windows/  # Windows audio/input/GPU backends (NAudio, DirectInput, D3D12)
 GenesisEmu.Frontend.Windows/  # Shared WinForms display helpers (game framebuffer scaling)
 GenesisEmu.Game/              # Minimal game-playing WinExe (no debug tools)
@@ -328,10 +329,11 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** `GenesisEmu.Platform.Windows` with NAudio audio output and DirectInput backends
 - **Done:** `IAudioOutputBackend` / `IInputDeviceBackend` injected into core
 - **Done:** VDP GPU compute renderer extracted to `DirectX12VdpGpuRenderer` behind `IVdpGpuRenderer`; SharpDX removed from core
-- **Done:** `CpuVdpGpuRenderer` software snapshot compositor moved to `GenesisEmu.Platform.Windows` (D3D12 fallback)
+- **Done:** `CpuVdpGpuRenderer` software snapshot compositor in `GenesisEmu.Platform.Portable` (shared CPU fallback)
+- **Done:** `GenesisEmu.Platform.Portable` with OpenAL audio, SDL2 input, and `PortablePlatformServices.Register()`
+- **Done:** SDL scancode → DirectInput key mapping for shared saved key bindings
 - Non-Windows accelerated VDP GPU backends (Vulkan/Metal)
-- Cross-platform audio/input backends beyond Windows
-- Linux and macOS support
+- Cross-platform game frontend (Linux/macOS UI shell)
 
 ### Deferred (Out of Scope for Now)
 - Sega 32X

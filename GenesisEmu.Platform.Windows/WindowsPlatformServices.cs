@@ -1,3 +1,5 @@
+using MDTracer.Platform.Portable;
+
 namespace MDTracer.Platform.Windows
 {
     public static class WindowsPlatformServices

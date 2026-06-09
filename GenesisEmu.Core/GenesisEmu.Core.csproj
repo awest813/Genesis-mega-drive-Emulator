@@ -12,6 +12,7 @@
     <InternalsVisibleTo Include="GenesisEmu.Core.Tests" />
     <InternalsVisibleTo Include="MDTracer" />
     <InternalsVisibleTo Include="GenesisEmu.Platform.Windows" />
+    <InternalsVisibleTo Include="GenesisEmu.Platform.Portable" />
     <InternalsVisibleTo Include="GenesisEmu.Game" />
     <InternalsVisibleTo Include="GenesisEmu.Frontend.Windows" />
   </ItemGroup>
