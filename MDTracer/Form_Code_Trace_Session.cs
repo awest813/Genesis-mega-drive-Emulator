@@ -2,8 +2,8 @@ namespace MDTracer
 {
     public partial class Form_Code_Trace : ICodeAnalysisSession
     {
-        int ICodeAnalysisSession.MemSize => MEMSIZE;
-        TRACECODE[] ICodeAnalysisSession.AnalyseCode => g_analyse_code;
+        int ICodeAnalysisSession.MemSize => CodeAnalysisConstants.MemSize;
+        CodeAnalysisTraceCode[] ICodeAnalysisSession.AnalyseCode => g_analyse_code;
         int ICodeAnalysisSession.ArrowStartLine
         {
             get => g_arrow_start_line;
@@ -16,7 +16,7 @@ namespace MDTracer
         }
         bool ICodeAnalysisSession.CpuPause => g_cpu_pause;
         int ICodeAnalysisSession.StackCur => g_stack_cur;
-        STACK_LIST[] ICodeAnalysisSession.StackList => g_stack_list;
+        CodeAnalysisStackEntry[] ICodeAnalysisSession.StackList => g_stack_list;
         string[] ICodeAnalysisSession.StackListTypeStr => STACK_LIST_TYPE_STR;
 
         int ICodeAnalysisSession.GetCodeFromAddr(uint in_addr) => get_code_from_addr(in_addr);

@@ -2,13 +2,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using static MDTracer.Form_Code_Trace;
-
 namespace MDTracer
 {
     public partial class Form_Flow : Form
     {
-        private List<STACK_LIST> g_list_chk;
+        private List<CodeAnalysisStackEntry> g_list_chk;
         private Bitmap g_work_bitmap;
         public static int g_screen_size_x;
         public static int g_screen_size_y;
@@ -37,7 +35,7 @@ namespace MDTracer
             pictureBox_flow.Image = g_work_bitmap;
             pictureBox_flow.BackColor = Color.White;
             g_font = new Font(FontFamily.GenericMonospace, 10);
-            g_list_chk = new List<STACK_LIST>();
+            g_list_chk = new List<CodeAnalysisStackEntry>();
         }
         //----------------------------------------------------------------
         //Event Handling: Screen Operations
@@ -213,7 +211,7 @@ namespace MDTracer
             bool w_top_call = true;
             for (int i = 0; i < g_list_chk.Count; i++)
             {
-                STACK_LIST w_list = g_list_chk[i];
+                CodeAnalysisStackEntry w_list = g_list_chk[i];
                 if (w_list.func_address == in_start_address)
                 {
                     if(w_top_call == false)
@@ -323,10 +321,10 @@ namespace MDTracer
             int w_line = 0;
             do
             {
-                TRACECODE w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
+                CodeAnalysisTraceCode w_code = WinFormsDebugTools.g_codeAnalysis.AnalyseCode[w_line];
                 for (int i = 0; i < w_code.stack.Count; i++)
                 {
-                    g_list_chk.Add(new STACK_LIST
+                    g_list_chk.Add(new CodeAnalysisStackEntry
                     {
                         type = w_code.stack[i].type,
                         func_address = w_code.stack[i].func_address,
@@ -339,7 +337,7 @@ namespace MDTracer
                     {
                         if (false == g_list_chk.Exists(x => x.start_address == w_code.stack[i].caller_address))
                         {
-                            g_list_chk.Add(new STACK_LIST
+                            g_list_chk.Add(new CodeAnalysisStackEntry
                             {
                                 type = M68kStackEntryType.TOP,
                                 func_address = 0,
@@ -351,7 +349,7 @@ namespace MDTracer
                     }
                 }
                 w_line += 1;
-            } while (w_line < MEMSIZE);
+            } while (w_line < CodeAnalysisConstants.MemSize);
         }
         private void scrollbar_set()
         {

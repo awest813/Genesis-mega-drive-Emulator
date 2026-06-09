@@ -125,8 +125,8 @@ namespace MDTracer
                 g_paramview_vdp.Add(w_addval);
             }
             dataGridView_vdp.DataSource = g_paramview_vdp;
-            g_paramview_call = new List<CallView>(Form_Code_Trace.STACK_LIST_NUM);
-            for (int i = 0; i < Form_Code_Trace.STACK_LIST_NUM; i++)
+            g_paramview_call = new List<CallView>(CodeAnalysisConstants.StackListNum);
+            for (int i = 0; i < CodeAnalysisConstants.StackListNum; i++)
             {
                 g_paramview_call.Add(new CallView { type = "" });
             }
@@ -260,7 +260,7 @@ namespace MDTracer
                 g_paramview_vdp[44].value = md_main.g_md_vdp.g_vdp_reg_23_dma_mode.ToString();
                 g_paramview_vdp[45].value = md_main.g_md_vdp.g_vdp_reg_23_5_dma_high.ToString();
 
-                for (int i = 0; i < Form_Code_Trace.STACK_LIST_NUM; i++)
+                for (int i = 0; i < CodeAnalysisConstants.StackListNum; i++)
                 {
                     g_paramview_call[i].type = "";
                     g_paramview_call[i].caller = "";
@@ -268,7 +268,7 @@ namespace MDTracer
                 }
                 for (int i = 0; i < WinFormsDebugTools.g_codeAnalysis.StackCur; i++)
                 {
-                    Form_Code_Trace.STACK_LIST w_stack = WinFormsDebugTools.g_codeAnalysis.StackList[i];
+                    CodeAnalysisStackEntry w_stack = WinFormsDebugTools.g_codeAnalysis.StackList[i];
                     g_paramview_call[i].type = WinFormsDebugTools.g_codeAnalysis.StackListTypeStr[(int)w_stack.type];
                     g_paramview_call[i].caller = w_stack.caller_address.ToString("X8");
                     g_paramview_call[i].call = w_stack.start_address.ToString("X8");

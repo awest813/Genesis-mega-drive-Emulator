@@ -183,7 +183,7 @@ Each frame follows this sequence (in `md_main.md_run()`):
 ## Current Limitations
 
 - **Residual platform coupling:** WinForms debug viewers convert core ARGB buffers to bitmaps in `MDTracer`; audio, input, and accelerated VDP GPU rendering use injectable backends with Windows implementations in `GenesisEmu.Platform.Windows`
-- **Residual frontend coupling:** VDP GPU rendering still lives in core; trace execution still wires `Form_Code_Trace` as `IM68kTracer`
+- **Residual frontend coupling:** `CpuVdpGpuRenderer` software compositor still lives in core as the default `IVdpGpuRenderer` fallback; production CPU tracing still wires `Form_Code_Trace` as `IM68kTracer`
 - **Global state:** Most subsystems are accessed via static fields on `md_main`
 - **Windows-only:** SharpDX (Direct3D 12) for rendering, DirectInput for gamepads, WinForms for UI
 - **Limited automated coverage:** Core CPU/memory/SRAM/mapper behavior has tests, but broad timing and compatibility regression coverage is still in progress
@@ -255,6 +255,8 @@ The following coupling points are being untangled before extracting a standalone
 8. **Debug-tool analysis state no longer cross-references `Form_Code_Trace` directly** —
    `ICodeAnalysisSession` / `NullCodeAnalysisSession` expose disassembly buffers, trace
    controls, and call-stack display through `WinFormsDebugTools.g_codeAnalysis`.
+   Shared `CodeAnalysisTraceCode` / `CodeAnalysisStackEntry` types now live in
+   `code_analysis_types.cs` so the session seam has no `Form_*` type dependency.
 
 9. **Debug-window close no longer calls `Form_Setting` directly** —
    `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged()` refreshes the settings
@@ -312,6 +314,7 @@ The following coupling points are being untangled before extracting a standalone
 - **Done:** trace-break UI notifications routed through `IDebugToolsCoordinator`
 - **Done:** `opcode_make/` generator emits `g_tracer` wiring
 - **Done:** shared code-analysis state routed through `ICodeAnalysisSession`
+- **Done:** `CodeAnalysisTraceCode` / `CodeAnalysisStackEntry` extracted from `Form_Code_Trace`
 - **Done:** debug-window layout changes notify settings via `IFrontendSettingsHooks.NotifyDebugWindowLayoutChanged`
 - **Done:** CPU tracer wired through `WinFormsDebugTools.g_cpuTracer`
 - **Done:** VDP debug layers composited into ARGB buffers (no System.Drawing in core)

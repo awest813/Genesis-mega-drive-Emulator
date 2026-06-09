@@ -12,19 +12,7 @@ namespace MDTracer
 
         // STACK_LIST_TYPE was removed; callers now reference M68kStackEntryType directly.
         public string[] STACK_LIST_TYPE_STR = new string[] { "", "TOP", "JSR", "BSR", "TRAP", "HINT", "VINT", "EXT" };
-        public const int STACK_LIST_NUM = 1024;
-        public struct STACK_LIST
-        {
-            public M68kStackEntryType type;
-            public uint func_address;
-            public uint caller_address;
-            public int caller_num;
-            public uint ret_address;
-            public uint start_address;
-            public uint end_address;
-            public uint stack_address;
-        }
-        public STACK_LIST[] g_stack_list;
+        public CodeAnalysisStackEntry[] g_stack_list;
         public int g_stack_cur;
         public uint g_func_address;
         public uint g_caller_address;
@@ -42,9 +30,9 @@ namespace MDTracer
         {
             g_cpu_pause = false;
             g_waitHandle = new ManualResetEvent(false);
-            g_stack_list = new STACK_LIST[STACK_LIST_NUM];
+            g_stack_list = new CodeAnalysisStackEntry[CodeAnalysisConstants.StackListNum];
             g_func_address = md_main.g_md_m68k.g_initial_PC;
-            g_analyse_code = new TRACECODE[MEMSIZE];
+            g_analyse_code = new CodeAnalysisTraceCode[CodeAnalysisConstants.MemSize];
         }
         //----------------------------------------------------------------
         //trace event
@@ -104,7 +92,7 @@ namespace MDTracer
         public void CPU_Trace_push(M68kStackEntryType in_type, uint in_caller_address, uint in_start_address, uint in_ret_address, uint in_stack_address)
         {
             if (in_caller_address == 0) return;
-            if (STACK_LIST_NUM <= g_stack_cur) return;
+            if (CodeAnalysisConstants.StackListNum <= g_stack_cur) return;
             in_caller_address &= 0xffffff;
             in_start_address &= 0xffffff;
             in_ret_address &= 0xffffff;
@@ -116,7 +104,7 @@ namespace MDTracer
             if (w_num == -1)
             {
                 w_num = g_analyse_code[w_line].stack.Count();
-                g_analyse_code[w_line].stack.Add(new STACK_LIST
+                g_analyse_code[w_line].stack.Add(new CodeAnalysisStackEntry
                 {
                     type = in_type,
                     caller_address = in_caller_address,
@@ -160,14 +148,14 @@ namespace MDTracer
             {
                 in_pc &= 0xffffff;
                 in_end_addres &= 0xffffff;
-                STACK_LIST w_currentStack = g_stack_list[g_stack_cur - 1];
+                CodeAnalysisStackEntry w_currentStack = g_stack_list[g_stack_cur - 1];
                 int w_line = get_code_from_addr(w_currentStack.caller_address);
                 if (w_line >= 0)
                 {
-                    TRACECODE w_trace = g_analyse_code[w_line];
+                    CodeAnalysisTraceCode w_trace = g_analyse_code[w_line];
                     if ((0 <= w_currentStack.caller_num) && (w_currentStack.caller_num < w_trace.stack.Count))
                     {
-                        STACK_LIST w_stack = w_trace.stack[w_currentStack.caller_num];
+                        CodeAnalysisStackEntry w_stack = w_trace.stack[w_currentStack.caller_num];
                         w_stack.end_address = in_end_addres;
                         w_trace.stack[w_currentStack.caller_num] = w_stack;
                         g_analyse_code[w_line] = w_trace;
@@ -190,9 +178,9 @@ namespace MDTracer
         {
             int w_line = get_code_from_addr(in_addr);
             if (w_line < 0) return;
-            if (g_analyse_code[w_line].type == TRACECODE.TYPE.NON)
+            if (g_analyse_code[w_line].type == CodeAnalysisTraceCode.Type.Non)
             {
-                g_analyse_code[w_line].type = TRACECODE.TYPE.CHK;
+                g_analyse_code[w_line].type = CodeAnalysisTraceCode.Type.Chk;
                 g_chk_enable = true;
             }
             g_analyse_code[w_line].func_address = g_func_address;

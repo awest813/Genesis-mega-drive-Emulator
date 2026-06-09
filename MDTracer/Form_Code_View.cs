@@ -28,17 +28,17 @@ namespace MDTracer
             int w_arrow_end_line = -1;
             for (int w_cur = 0; w_cur < in_line_num; w_cur++)
             {
-                if (Form_Code_Trace.MEMSIZE <= w_cur_line) break;
+                if (CodeAnalysisConstants.MemSize <= w_cur_line) break;
                 if (w_session.ArrowStartLine == w_cur_line) w_arrow_start_line = w_cur;
                 if (w_session.ArrowEndLine == w_cur_line) w_arrow_end_line = w_cur;
 
-                Form_Code_Trace.TRACECODE w_code = w_session.AnalyseCode[w_cur_line];
+                CodeAnalysisTraceCode w_code = w_session.AnalyseCode[w_cur_line];
                 int w_y = CODE_HEADER_HEIGHT + w_cur * CODE_LINE_HEIGHT;
                 if (w_cur_line == in_stop_line)
                 {
                     e.Graphics.FillRectangle(Brushes.LightBlue, 0, w_y, in_width, CODE_LINE_HEIGHT);
                 }
-                else if (w_code.type == Form_Code_Trace.TRACECODE.TYPE.NON)
+                else if (w_code.type == CodeAnalysisTraceCode.Type.Non)
                 {
                     e.Graphics.FillRectangle(Brushes.LightGray, 0, w_y, in_width, CODE_LINE_HEIGHT);
                 }
@@ -72,7 +72,7 @@ namespace MDTracer
                 }
 
                 //View details
-                if (w_code.type == Form_Code_Trace.TRACECODE.TYPE.OPC)
+                if (w_code.type == CodeAnalysisTraceCode.Type.Opc)
                 {
                     //mnemonic
                     w_text = w_code.operand ?? "";
