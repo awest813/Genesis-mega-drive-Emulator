@@ -1,11 +1,11 @@
-namespace MDTracer.Platform.Windows
+namespace MDTracer.Platform.Portable
 {
     //----------------------------------------------------------------
-    // Software VDP GPU path (Phase 3/4).
+    // Software VDP GPU path (Phase 4).
     //
     // Reuses the scanline CPU compositor against staged frame snapshots.
-    // Registered as a fallback when DirectX 12 is unavailable; headless
-    // core/tests default to NullVdpGpuRenderer instead.
+    // Used on non-Windows platforms and as a Windows fallback when
+    // DirectX 12 is unavailable.
     //----------------------------------------------------------------
     internal sealed class CpuVdpGpuRenderer : IVdpGpuRenderer
     {

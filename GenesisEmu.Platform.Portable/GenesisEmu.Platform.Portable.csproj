@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>MDTracer.Platform.Portable</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GenesisEmu.Core\GenesisEmu.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="GenesisEmu.Core.Tests" />
+    <InternalsVisibleTo Include="GenesisEmu.Game.Portable" />
+    <InternalsVisibleTo Include="GenesisEmu.Platform.Windows" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
+    <PackageReference Include="Silk.NET.SDL" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.22.0" />
+  </ItemGroup>
+
+</Project>

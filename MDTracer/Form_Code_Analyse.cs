@@ -14,7 +14,7 @@
         };
         private List<OP_COMMENT1> g_op_comment;
 
-        public CodeAnalysisTraceCode[] g_analyse_code;
+        internal CodeAnalysisTraceCode[] g_analyse_code;
 
         private string[] MOVEM_MTOA = { "A7","A6","A5","A4","A3","A2","A1","A0"
                                                 ,"D7","D6","D5","D4","D3","D2","D1","D0"};
@@ -361,7 +361,7 @@
             }
             return out_comaddr;
         }
-        public string analyses_opcode(string in_opstr, int in_op1, int in_op2, int in_op3, int in_op4, CodeAnalysisTraceCode in_code)
+        internal string analyses_opcode(string in_opstr, int in_op1, int in_op2, int in_op3, int in_op4, CodeAnalysisTraceCode in_code)
         {
             if (in_opstr.Contains("#OP2LEN2U"))
             {

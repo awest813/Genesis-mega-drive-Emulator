@@ -6,7 +6,8 @@ Thank you for your interest in contributing! This project aims to be a robust, l
 
 ### Prerequisites
 
-- Windows 10 or later (currently Windows-only due to WinForms/SharpDX dependencies)
+- Windows 10 or later for the WinForms frontends (`MDTracer`, `GenesisEmu.Game`)
+- Linux/macOS can build `GenesisEmu.Core` and `GenesisEmu.Platform.Portable` (OpenAL + SDL2)
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - Visual Studio 2022 (recommended) or any editor with C# support
 
@@ -16,7 +17,14 @@ Thank you for your interest in contributing! This project aims to be a robust, l
 git clone https://github.com/awest813/Genesis-mega-drive-Emulator.git
 cd Genesis-mega-drive-Emulator
 dotnet restore
-dotnet build
+dotnet build MDTracer.sln
+```
+
+Portable platform only (Linux/macOS):
+
+```bash
+dotnet build GenesisEmu.Platform.Portable/GenesisEmu.Platform.Portable.csproj
+dotnet run --project GenesisEmu.Game.Portable/GenesisEmu.Game.Portable.csproj -- /path/to/game.bin
 ```
 
 ### Running Tests
