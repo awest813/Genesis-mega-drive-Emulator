@@ -5,9 +5,9 @@ namespace MDTracer
     //
     // Historically the CPU reached directly into static md_main fields for
     // memory-mapped operand access (md_main.g_md_bus) and execution tracing
-    // (Form_Code_Trace). That hard-wired the core to the concrete
-    // bus and the WinForms tracer, so individual instructions could not be
-    // exercised without standing up the whole machine and UI.
+    // (the WinForms debug frontend). That hard-wired the core to concrete
+    // collaborators, so individual instructions could not be exercised
+    // without standing up the whole machine and UI.
     //
     // These interfaces let the core depend on behaviour instead of concrete
     // singletons: production wires in md_bus / Form_Code_Trace, while tests
@@ -29,9 +29,8 @@ namespace MDTracer
     }
 
     /// <summary>
-    /// Call-stack entry type used by the 68000 tracer. Lives here (not in
-    /// Form_Code_Trace) so the interface and null implementation have no UI
-    /// dependency.
+    /// Call-stack entry type used by the 68000 tracer. Lives here so the
+    /// interface and null implementation have no frontend dependency.
     /// </summary>
     public enum M68kStackEntryType
     {
@@ -48,7 +47,7 @@ namespace MDTracer
     /// <summary>
     /// Execution/call-stack tracing hooks invoked by the 68000 core.
     /// Production wiring goes through <c>WinFormsDebugTools.g_cpuTracer</c>
-    /// (implemented by <see cref="Form_Code_Trace"/> in the WinForms frontend).
+    /// (implemented by <c>M68kExecutionTracer</c> in the WinForms frontend).
     /// </summary>
     internal interface IM68kTracer
     {

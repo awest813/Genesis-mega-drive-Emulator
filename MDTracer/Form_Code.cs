@@ -5,8 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using static MDTracer.Form_Code_Trace;
-
 namespace MDTracer
 {
     public partial class Form_Code : Form, IBusMonitor

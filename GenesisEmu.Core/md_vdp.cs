@@ -5,7 +5,7 @@
     //----------------------------------------------------------------
     internal partial class md_vdp : System.IDisposable
     {
-        internal static IVdpGpuRenderer g_gpuRenderer = new CpuVdpGpuRenderer();
+        internal static IVdpGpuRenderer g_gpuRenderer = new NullVdpGpuRenderer();
 
         public int g_scanline;
         private int g_hinterrupt_counter;
